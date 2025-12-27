@@ -1,0 +1,15 @@
+numpy
+pandas
+tensorflow
+opencv-python
+Pillow
+scikit-learn
+mlflow
+dagshub
+flask
+jinja2
+pyserial
+python-dotenv
+pymongo
+certifi
+gunicorn

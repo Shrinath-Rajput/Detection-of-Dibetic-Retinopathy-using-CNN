@@ -1,0 +1,7 @@
+{
+    "Mild": 0,
+    "Moderate": 1,
+    "No_DR": 2,
+    "Proliferate_DR": 3,
+    "Severe": 4
+}

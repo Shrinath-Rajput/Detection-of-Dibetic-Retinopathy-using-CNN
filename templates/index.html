@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h1 class="fw-bold">Diabetic Retinopathy Detection</h1>
+    <p class="text-muted">Upload retina image to detect DR stage</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg p-4">
+            <form action="/predict" method="post" enctype="multipart/form-data">
+                <input type="file" class="form-control mb-3" name="image" required>
+                <button class="btn btn-primary w-100 btn-lg">
+                    🔍 Analyze Image
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

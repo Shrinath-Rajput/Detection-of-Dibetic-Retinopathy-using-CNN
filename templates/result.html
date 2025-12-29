@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h2 class="fw-bold text-primary">{{ prediction }}</h2>
+    <p>Confidence: {{ confidence }}%</p>
+
+    <img src="{{ image_path }}" class="img-fluid rounded shadow mb-3" style="max-height:400px;">
+
+    <br>
+    <a href="/" class="btn btn-success btn-lg">
+        🔄 Upload New Image
+    </a>
+</div>
+
+<script>
+if (performance.navigation.type === 1) {
+    window.location.replace("/");
+}
+</script>
+{% endblock %}

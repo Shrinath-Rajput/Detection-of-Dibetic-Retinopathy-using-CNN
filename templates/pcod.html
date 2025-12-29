@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h2 class="fw-bold">PCOD Risk Prediction</h2>
+    <p class="text-muted">Enter health details for PCOD risk analysis</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow p-4">
+            <input class="form-control mb-2" placeholder="Age">
+            <input class="form-control mb-2" placeholder="Weight">
+            <input class="form-control mb-2" placeholder="Menstrual Cycle (Days)">
+            <button class="btn btn-warning w-100">
+                Predict PCOD Risk
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

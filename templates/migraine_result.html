@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Migraine Result | Clinsense-AI</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background:#f4f6f8;
+            margin:0;
+        }
+
+        .container {
+            max-width:600px;
+            background:white;
+            margin:60px auto;
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color:#0d6efd;
+        }
+
+        .risk {
+            font-size:20px;
+            font-weight:bold;
+            margin:15px 0;
+        }
+
+        ul {
+            margin-top:10px;
+        }
+
+        .back {
+            margin-top:20px;
+            display:inline-block;
+            text-decoration:none;
+            color:white;
+            background:#0d6efd;
+            padding:10px 18px;
+            border-radius:5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🧠 Migraine Risk Result</h2>
+
+    <div class="risk">
+        Risk Level: {{ risk }}
+    </div>
+
+    <h4>Possible Triggers / Symptoms:</h4>
+    <ul>
+        {% for r in risks %}
+            <li>{{ r }}</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Preventive Advice:</h4>
+    <ul>
+        {% for a in advice %}
+            <li>{{ a }}</li>
+        {% endfor %}
+    </ul>
+
+    <a class="back" href="/migraine">⬅ Back to Migraine Check</a>
+</div>
+
+</body>
+</html>

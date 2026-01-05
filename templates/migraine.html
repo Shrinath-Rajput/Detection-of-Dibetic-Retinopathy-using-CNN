@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Migraine Prediction</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0}
+.container{
+    max-width:900px;
+    background:white;
+    margin:40px auto;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 12px rgba(0,0,0,0.1);
+}
+input,select{width:100%;padding:8px}
+button{
+    margin-top:20px;
+    padding:12px;
+    width:100%;
+    background:#0d6efd;
+    color:white;
+    border:none;
+}
+</style>
+</head>
+
+<body>
+
+{% include "_navbar.html" %}
+
+<div class="container">
+<h3>Migraine Risk Prediction</h3>
+<form action="/migraine_predict" method="POST">
+<input type="number" name="age" placeholder="Age">
+<select name="family"><option>no</option><option>yes</option></select>
+<select name="nausea"><option>no</option><option>yes</option></select>
+<select name="light"><option>no</option><option>yes</option></select>
+<select name="stress"><option>low</option><option>high</option></select>
+<button type="submit">Predict Migraine</button>
+</form>
+</div>
+
+</body>
+</html>

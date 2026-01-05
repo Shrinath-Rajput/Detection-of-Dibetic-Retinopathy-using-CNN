@@ -29,7 +29,7 @@ with open("class_indices.json") as f:
 INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
 
 # =========================
-# Start Sensor Thread (ONLY ONCE)
+# Start Sensor Thread
 # =========================
 start_sensor_thread()
 
@@ -65,9 +65,6 @@ def analyze_health(hr, spo2):
         else:
             spo2_status = "NORMAL"
 
-    if hr_status == "HIGH" and spo2_status == "LOW":
-        risk.append("Combined cardiovascular & respiratory risk")
-
     if not risk:
         advice.append("All vitals are normal. Maintain healthy lifestyle.")
     else:
@@ -92,7 +89,6 @@ def analyze_health(hr, spo2):
 def home():
     return render_template("index.html")
 
-
 # ---------- DR ----------
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -114,12 +110,10 @@ def predict():
         image_path=path
     )
 
-
 # ---------- LIVE SENSOR ----------
 @app.route("/live_health")
 def live_health():
     return render_template("live_health.html")
-
 
 @app.route("/live_sensor")
 def live_sensor():
@@ -129,19 +123,16 @@ def live_sensor():
         "status": sensor_data.get("status")
     })
 
-
 @app.route("/health_analysis")
 def health_analysis():
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
     return jsonify(analyze_health(hr, spo2))
 
-
 # ---------- PCOD ----------
 @app.route("/pcod")
 def pcod():
     return render_template("pcod.html")
-
 
 @app.route("/pcod_predict", methods=["POST"])
 def pcod_predict():
@@ -178,24 +169,15 @@ def pcod_predict():
             "Consult gynecologist if symptoms persist"
         ]
 
-        return render_template(
-            "pcod_result.html",
-            risk=risk,
-            score=score,
-            advice=advice
-        )
+        return render_template("pcod_result.html", risk=risk, advice=advice)
 
     except Exception as e:
         return f"PCOD Error: {e}"
 
-
-# =====================================================
-# =============== DIABETES (FIXED) ====================
-# =====================================================
+# ---------- DIABETES ----------
 @app.route("/diabetes")
 def diabetes():
     return render_template("diabetes.html")
-
 
 @app.route("/diabetes_predict", methods=["POST"])
 def diabetes_predict():
@@ -210,22 +192,14 @@ def diabetes_predict():
         bp = request.form.get("bp", "no")
 
         score = 0
-        if bmi >= 25:
-            score += 2
-        if family == "yes":
-            score += 2
-        if urination == "yes":
-            score += 1
-        if thirst == "yes":
-            score += 1
-        if fatigue == "yes":
-            score += 1
-        if activity == "low":
-            score += 1
-        if diet == "yes":
-            score += 1
-        if bp == "yes":
-            score += 1
+        if bmi >= 25: score += 2
+        if family == "yes": score += 2
+        if urination == "yes": score += 1
+        if thirst == "yes": score += 1
+        if fatigue == "yes": score += 1
+        if activity == "low": score += 1
+        if diet == "yes": score += 1
+        if bp == "yes": score += 1
 
         if score >= 7:
             risk = "HIGH DIABETES RISK"
@@ -242,15 +216,75 @@ def diabetes_predict():
             "Consult physician if symptoms persist"
         ]
 
-        return render_template(
-            "diabetes_result.html",
-            risk=risk,
-            advice=advice
-        )
+        return render_template("diabetes_result.html", risk=risk, advice=advice)
 
     except Exception as e:
         return f"DIABETES Error: {e}"
 
+# ---------- MIGRAINE (FIXED) ----------
+@app.route("/migraine")
+def migraine():
+    return render_template("migraine.html")
+
+@app.route("/migraine_predict", methods=["POST"])
+def migraine_predict():
+    try:
+        score = 0
+        risks = []
+
+        yes_fields = [
+            "family","unilateral","throbbing","nausea","light",
+            "sound","aura","dizziness","activity_worse",
+            "insomnia","meals","hormonal"
+        ]
+
+        for field in yes_fields:
+            if request.form.get(field) == "yes":
+                score += 1
+                risks.append(field.replace("_"," ").title())
+
+        def safe_int(val):
+            try:
+                return int(val)
+            except:
+                return 0
+
+        intensity = safe_int(request.form.get("intensity"))
+        stress = safe_int(request.form.get("stress"))
+        sleep = safe_int(request.form.get("sleep"))
+
+        score += intensity // 3
+        score += stress // 3
+
+        if sleep != 0 and sleep < 6:
+            score += 1
+            risks.append("Low Sleep Duration")
+
+        if score >= 10:
+            risk = "HIGH MIGRAINE RISK"
+        elif score >= 6:
+            risk = "MODERATE MIGRAINE RISK"
+        else:
+            risk = "LOW MIGRAINE RISK"
+
+        advice = [
+            "Maintain regular sleep routine",
+            "Reduce stress",
+            "Avoid migraine triggers",
+            "Stay hydrated",
+            "Limit caffeine",
+            "Consult neurologist if frequent headaches"
+        ]
+
+        return render_template(
+            "migraine_result.html",
+            risk=risk,
+            risks=risks,
+            advice=advice
+        )
+
+    except Exception as e:
+        return f"MIGRAINE Error: {e}"
 
 # =========================
 # MAIN

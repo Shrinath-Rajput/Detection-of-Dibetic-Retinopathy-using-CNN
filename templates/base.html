@@ -4,25 +4,112 @@
     <meta charset="UTF-8">
     <title>Clinsense-AI</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            margin:0;
+            font-family: Arial, sans-serif;
+            background:#f4f6f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background:#0d6efd;
+            padding:15px 30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .logo {
+            color:white;
+            font-size:22px;
+            font-weight:bold;
+        }
+
+        .menu {
+            list-style:none;
+            display:flex;
+            align-items:center;
+            margin:0;
+            padding:0;
+        }
+
+        .menu li {
+            position:relative;
+        }
+
+        .menu a {
+            color:white;
+            text-decoration:none;
+            margin-left:25px;
+            font-weight:bold;
+        }
+
+        /* DROPDOWN */
+        .dropdown-menu {
+            display:none;
+            position:absolute;
+            top:40px;
+            right:0;
+            background:white;
+            min-width:200px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.2);
+            border-radius:6px;
+            z-index:1000;
+        }
+
+        .dropdown-menu li {
+            padding:10px;
+        }
+
+        .dropdown-menu li a {
+            color:#333;
+            margin:0;
+            display:block;
+        }
+
+        .dropdown-menu li a:hover {
+            background:#f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display:block;
+        }
+
+        /* PAGE CONTENT */
+        .content {
+            padding:40px;
+        }
+    </style>
 </head>
+
 <body>
 
-<nav class="navbar">
-    <div class="logo">
-        🧠 <span>Clinsense-AI</span>
-    </div>
-    <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/live_health">Live Sensor</a>
-    </div>
-</nav>
+<!-- ===== NAVBAR (SAME FOR ALL PAGES) ===== -->
+<div class="navbar">
+    <div class="logo">🧠 Clinsense-AI</div>
 
-<main class="container">
+    <ul class="menu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/">Diabetic Retinopathy</a></li>
+
+        <li class="dropdown">
+            <a href="#">Input Based Diseases ▾</a>
+            <ul class="dropdown-menu">
+                <li><a href="/pcod">PCOD</a></li>
+                <li><a href="/migraine">Migraine</a></li>
+                <li><a href="/diabetes">Diabetes</a></li>
+            </ul>
+        </li>
+
+        <li><a href="/live_health">Live Sensor</a></li>
+    </ul>
+</div>
+
+<!-- ===== PAGE CONTENT ===== -->
+<div class="content">
     {% block content %}{% endblock %}
-</main>
+</div>
 
-<script src="{{ url_for('static', filename='js/live.js') }}"></script>
 </body>
 </html>

@@ -2,28 +2,52 @@
     <h2>🧠 Clinsense-AI</h2>
     <div>
         <a href="/">Home</a>
-        <a href="/pcod">PCOD Check</a>
-        <a href="/diabetes">Diabetes Check</a>
+        <a href="/">Diabetic Retinopathy</a>
+
+        <div class="dropdown-wrapper">
+            <a href="#">Input Based Diseases ▾</a>
+            <div class="dropdown-menu">
+                <a href="/pcod">PCOD</a>
+                <a href="/migraine">Migraine</a>
+                <a href="/diabetes">Diabetes</a>
+            </div>
+        </div>
+
         <a href="/live_health">Live Sensor</a>
     </div>
 </div>
 
 <style>
-.navbar {
+.navbar{
     background:#0d6efd;
     padding:15px;
     display:flex;
     justify-content:space-between;
     align-items:center;
 }
-.navbar h2 {
-    color:white;
-    margin:0;
-}
-.navbar a {
+.navbar h2{color:white;margin:0}
+.navbar a{
     color:white;
     text-decoration:none;
     margin-left:20px;
     font-weight:bold;
+}
+.dropdown-wrapper{position:relative; display:inline-block}
+.dropdown-menu{
+    display:none;
+    position:absolute;
+    background:white;
+    min-width:180px;
+    right:0;
+    border-radius:6px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.dropdown-menu a{
+    color:black;
+    display:block;
+    padding:10px;
+}
+.dropdown-wrapper:hover .dropdown-menu{
+    display:block;
 }
 </style>

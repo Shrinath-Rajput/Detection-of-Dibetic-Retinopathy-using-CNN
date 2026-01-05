@@ -1,69 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Clinsense-AI | Home</title>
+<meta charset="UTF-8">
+<title>Clinsense-AI | Home</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-        }
-
-        .navbar {
-            background:#0d6efd;
-            padding:15px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        }
-
-        .navbar h2 {
-            color:white;
-            margin:0;
-        }
-
-        .navbar a {
-            color:white;
-            text-decoration:none;
-            margin-left:20px;
-            font-weight:bold;
-        }
-
-        .container {
-            max-width:500px;
-            background:white;
-            margin:80px auto;
-            padding:30px;
-            border-radius:8px;
-            box-shadow:0 0 10px rgba(0,0,0,0.1);
-            text-align:center;
-        }
-    </style>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0}
+.container{
+    max-width:500px;
+    background:white;
+    margin:80px auto;
+    padding:30px;
+    border-radius:8px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    text-align:center;
+}
+button{
+    background:#0d6efd;
+    color:white;
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+}
+</style>
 </head>
+
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <h2>🧠 Clinsense-AI</h2>
-    <div>
-        <a href="/">Home</a>
-        <a href="/diabetes">Diabetes</a>
-        <a href="/pcod">PCOD</a>
-        <a href="/live_health">Live Sensor</a>
-    </div>
-</div>
+{% include "_navbar.html" %}
 
-<!-- DR FORM -->
 <div class="container">
     <h3>Diabetic Retinopathy Detection</h3>
-
     <form action="/predict" method="POST" enctype="multipart/form-data">
         <input type="file" name="image" required><br><br>
         <button type="submit">Predict</button>
     </form>
-
     <p>Upload retinal fundus image for DR detection</p>
 </div>
 

@@ -100,6 +100,7 @@ def home():
     return render_template("index.html")
 
 
+# ---------- DR ----------
 @app.route("/predict", methods=["POST"])
 def predict():
     file = request.files.get("image")
@@ -123,17 +124,14 @@ def predict():
     )
 
 
+# ---------- LIVE HEALTH ----------
 @app.route("/live_health")
 def live_health():
-    # page only
     return render_template("live_health.html")
 
 
 @app.route("/live_sensor")
 def live_sensor_api():
-    """
-    Only RAW SENSOR DATA
-    """
     return jsonify({
         "heart_rate": sensor_data.get("heart_rate"),
         "spo2": sensor_data.get("spo2"),
@@ -143,15 +141,74 @@ def live_sensor_api():
 
 @app.route("/health_analysis")
 def health_analysis_api():
-    """
-    Risk + Advice logic
-    """
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
+    return jsonify(analyze_health(hr, spo2))
 
-    analysis = analyze_health(hr, spo2)
 
-    return jsonify(analysis)
+# =========================
+# 🔥 PCOD MODULE (ADDED)
+# =========================
+@app.route("/pcod")
+def pcod_form():
+    return render_template("pcod.html")
+
+
+@app.route("/pcod_predict", methods=["POST"])
+def pcod_predict():
+
+    try:
+        age = int(request.form.get("age"))
+        bmi = float(request.form.get("bmi"))
+        fatigue = int(request.form.get("fatigue"))
+        sleep = int(request.form.get("sleep"))
+        stress = int(request.form.get("stress"))
+
+        activity = request.form.get("activity")          # low / moderate / high
+        diet = request.form.get("diet")                  # junk / balanced / healthy
+        family = request.form.get("family_history")      # yes / no
+
+    except Exception as e:
+        return f"Invalid input ❌ {e}"
+
+    score = 0
+
+    if bmi >= 25:
+        score += 2
+    score += fatigue
+    score += stress
+
+    if family == "yes":
+        score += 2
+
+    if activity == "low":
+        score += 1
+
+    if diet == "junk":
+        score += 1
+
+    if score >= 10:
+        risk = "HIGH PCOD RISK"
+    elif score >= 6:
+        risk = "MODERATE PCOD RISK"
+    else:
+        risk = "LOW PCOD RISK"
+
+    advice = [
+        "Maintain healthy BMI",
+        "Follow balanced diet",
+        "Exercise regularly",
+        "Improve sleep quality",
+        "Reduce stress",
+        "Consult gynecologist if symptoms persist"
+    ]
+
+    return render_template(
+        "pcod_result.html",
+        risk=risk,
+        score=score,
+        advice=advice
+    )
 
 
 # =========================

@@ -1,21 +1,104 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clinsense-AI | Diabetic Retinopathy Detection</title>
 
-{% block content %}
-<div class="text-center mb-4">
-    <h1 class="fw-bold">Diabetic Retinopathy Detection</h1>
-    <p class="text-muted">Upload retina image to detect DR stage</p>
-</div>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-lg p-4">
-            <form action="/predict" method="post" enctype="multipart/form-data">
-                <input type="file" class="form-control mb-3" name="image" required>
-                <button class="btn btn-primary w-100 btn-lg">
-                    🔍 Analyze Image
-                </button>
-            </form>
+        /* Navbar */
+        .navbar {
+            background: #0d6efd;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            color: white;
+            margin: 0;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        /* Container */
+        .container {
+            max-width: 500px;
+            background: white;
+            margin: 60px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h3 {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #084298;
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <h2>Clinsense-AI</h2>
+        <div>
+            <a href="/">Home</a>
+            <a href="/live_health">Live Sensor</a>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <h3>Diabetic Retinopathy Detection</h3>
+
+        <form action="/predict" method="POST" enctype="multipart/form-data">
+            <input type="file" name="image" required>
+            <br>
+            <button type="submit">Predict</button>
+        </form>
+
+        <div class="note">
+            Upload retinal fundus image for DR detection
+        </div>
+    </div>
+
+</body>
+</html>

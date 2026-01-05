@@ -1,0 +1,73 @@
+import os
+import json
+import uuid
+import numpy as np
+from flask import Flask, render_template, request, redirect, url_for, make_response
+from tensorflow.keras.models import load_model
+from src.utils.preprocess import preprocess_image
+
+app = Flask(__name__)
+
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+model = load_model("dr_cnn_model.h5")
+
+with open("class_indices.json") as f:
+    class_indices = json.load(f)
+
+INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
+
+
+# ==========================
+# HOME
+# ==========================
+@app.route("/")
+def home():
+    response = make_response(render_template("index.html"))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+# ==========================
+# PREDICT (POST ONLY)
+# ==========================
+@app.route("/predict", methods=["POST"])
+def predict():
+    file = request.files.get("image")
+    if not file or file.filename == "":
+        return redirect("/")
+
+    filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(image_path)
+
+    image = preprocess_image(image_path)
+    preds = model.predict(image)
+
+    idx = int(np.argmax(preds))
+    confidence = round(float(np.max(preds)) * 100, 2)
+    label = INDEX_TO_CLASS[idx]
+
+    response = make_response(
+        render_template(
+            "result.html",
+            prediction=label,
+            confidence=confidence,
+            image_path=f"/static/uploads/{filename}"
+        )
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+# ==========================
+# BLOCK RESULT URL
+# ==========================
+@app.route("/result")
+def block_result():
+    return redirect("/")
+    
+
+if __name__ == "__main__":
+    app.run(debug=True)

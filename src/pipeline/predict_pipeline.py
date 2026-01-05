@@ -1,13 +1,16 @@
-import tensorflow as tf
-import numpy as np
-from tensorflow.keras.preprocessing import image
+from src.components.serial_reader import read_sensor_data
+from src.components.body_analysis import analyze_body
+from src.components.hypertension import predict_health_risk
 
-class PredictPipeline:
-    def predict(self, img_path):
-        model = tf.keras.models.load_model("artifacts/dr_model.h5")
-        img = image.load_img(img_path, target_size=(224,224))
-        img = image.img_to_array(img)/255.0
-        img = np.expand_dims(img, axis=0)
+def health_monitoring_pipeline():
+    bpm, spo2 = read_sensor_data()
 
-        pred = model.predict(img)
-        return pred
+    body_status = analyze_body(bpm, spo2)
+    risks = predict_health_risk(body_status)
+
+    return {
+        "Heart Rate": bpm,
+        "SpO2": spo2,
+        "Body Analysis": body_status,
+        "Risk Prediction": risks
+    }

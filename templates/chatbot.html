@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>🤖 AI Healthcare Chatbot</h3>
+
+<div class="card p-3 mb-3" id="chat-box" style="height:300px; overflow-y:auto;">
+    <p><strong>Bot:</strong> Hello! Ask me anything about your result.</p>
+</div>
+
+<input type="hidden" id="stage" value="{{ prediction }}">
+
+<div class="input-group">
+    <input type="text" id="userInput" class="form-control" placeholder="Ask a question...">
+    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+function sendMessage() {
+    let msg = document.getElementById("userInput").value;
+    let stage = document.getElementById("stage").value;
+
+    if (msg === "") return;
+
+    let chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML += `<p><strong>You:</strong> ${msg}</p>`;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `message=${msg}&stage=${stage}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.reply}</p>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    document.getElementById("userInput").value = "";
+}
+</script>
+
+{% endblock %}

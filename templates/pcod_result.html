@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>PCOD Prediction Result</h2>
+<h3>{{ risk }}</h3>
+
+<ul>
+{% for a in advice %}
+<li>{{ a }}</li>
+{% endfor %}
+</ul>
+
+<a href="/pcod">Check Again</a>
+
+</body>
+</html>

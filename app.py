@@ -33,13 +33,13 @@ with open("class_indices.json") as f:
 INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
 
 # =========================
-# Start Sensor Thread
+# Start Sensor Thread (ONLY ONCE)
 # =========================
 start_sensor_thread()
 print("✅ Sensor thread started")
 
 # =========================
-# Image Preprocess
+# Helper Functions
 # =========================
 def preprocess_image(img_path):
     img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
@@ -49,9 +49,6 @@ def preprocess_image(img_path):
     return img
 
 
-# =========================
-# Health Analysis Logic
-# =========================
 def analyze_health(hr, spo2):
     hr_status = "UNKNOWN"
     spo2_status = "UNKNOWN"
@@ -76,14 +73,14 @@ def analyze_health(hr, spo2):
             spo2_status = "NORMAL"
 
     if hr_status == "HIGH" and spo2_status == "LOW":
-        risk.append("Combined cardiovascular + respiratory risk")
+        risk.append("Combined cardiovascular & respiratory risk")
 
     if not risk:
         advice.append("All vitals are normal. Maintain healthy lifestyle.")
     else:
         advice.extend([
             "Take proper rest",
-            "Practice deep breathing",
+            "Practice deep breathing exercises",
             "Reduce stress",
             "Consult doctor if values persist"
         ])
@@ -94,7 +91,6 @@ def analyze_health(hr, spo2):
         "risk": risk,
         "advice": advice
     }
-
 
 # =========================
 # ROUTES
@@ -129,12 +125,15 @@ def predict():
 
 @app.route("/live_health")
 def live_health():
+    # page only
     return render_template("live_health.html")
 
 
-# 🔴 SENSOR DATA API
 @app.route("/live_sensor")
-def live_sensor():
+def live_sensor_api():
+    """
+    Only RAW SENSOR DATA
+    """
     return jsonify({
         "heart_rate": sensor_data.get("heart_rate"),
         "spo2": sensor_data.get("spo2"),
@@ -142,13 +141,16 @@ def live_sensor():
     })
 
 
-# 🔴 HEALTH ANALYSIS API (THIS WAS MISSING)
 @app.route("/health_analysis")
-def health_analysis():
+def health_analysis_api():
+    """
+    Risk + Advice logic
+    """
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
 
     analysis = analyze_health(hr, spo2)
+
     return jsonify(analysis)
 
 
@@ -156,4 +158,7 @@ def health_analysis():
 # MAIN
 # =========================
 if __name__ == "__main__":
-    app.run(debug=False, use_reloader=False)
+    app.run(
+        debug=False,        # 🔥 MUST be False
+        use_reloader=False # 🔥 MUST be False
+    )

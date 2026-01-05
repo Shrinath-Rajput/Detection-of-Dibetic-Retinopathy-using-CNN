@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diabetes Prediction Result</title>
+</head>
+<body>
+
+{% include "_navbar.html" %}
+
+<div style="
+    max-width:700px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1)
+">
+
+    <h2>🧪 Diabetes Risk Result</h2>
+
+    <h3 style="color:red">{{ risk }}</h3>
+
+    <h4>Preventive Advice</h4>
+    <ul>
+        {% for a in advice %}
+            <li>{{ a }}</li>
+        {% endfor %}
+    </ul>
+
+    <br>
+    <a href="/diabetes">Check Another Patient</a>
+
+</div>
+
+</body>
+</html>

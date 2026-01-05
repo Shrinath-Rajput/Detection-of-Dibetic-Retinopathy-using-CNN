@@ -189,6 +189,69 @@ def pcod_predict():
         return f"PCOD Error: {e}"
 
 
+# =====================================================
+# =============== DIABETES (FIXED) ====================
+# =====================================================
+@app.route("/diabetes")
+def diabetes():
+    return render_template("diabetes.html")
+
+
+@app.route("/diabetes_predict", methods=["POST"])
+def diabetes_predict():
+    try:
+        bmi = float(request.form.get("bmi", 0))
+        family = request.form.get("family", "no")
+        urination = request.form.get("urination", "no")
+        thirst = request.form.get("thirst", "no")
+        fatigue = request.form.get("fatigue", "no")
+        activity = request.form.get("activity", "moderate")
+        diet = request.form.get("diet", "no")
+        bp = request.form.get("bp", "no")
+
+        score = 0
+        if bmi >= 25:
+            score += 2
+        if family == "yes":
+            score += 2
+        if urination == "yes":
+            score += 1
+        if thirst == "yes":
+            score += 1
+        if fatigue == "yes":
+            score += 1
+        if activity == "low":
+            score += 1
+        if diet == "yes":
+            score += 1
+        if bp == "yes":
+            score += 1
+
+        if score >= 7:
+            risk = "HIGH DIABETES RISK"
+        elif score >= 4:
+            risk = "MODERATE DIABETES RISK"
+        else:
+            risk = "LOW DIABETES RISK"
+
+        advice = [
+            "Maintain healthy body weight",
+            "Follow low sugar balanced diet",
+            "Exercise regularly",
+            "Monitor blood glucose levels",
+            "Consult physician if symptoms persist"
+        ]
+
+        return render_template(
+            "diabetes_result.html",
+            risk=risk,
+            advice=advice
+        )
+
+    except Exception as e:
+        return f"DIABETES Error: {e}"
+
+
 # =========================
 # MAIN
 # =========================

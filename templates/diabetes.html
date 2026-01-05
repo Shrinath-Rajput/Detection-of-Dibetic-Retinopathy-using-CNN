@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clinsense-AI | Diabetes Risk Prediction</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    margin:0;
+}
+
+.navbar{
+    background:#0d6efd;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.navbar h2{
+    color:white;
+    margin:0;
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+    margin-left:20px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:900px;
+    background:white;
+    margin:40px auto;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 12px rgba(0,0,0,0.1);
+}
+
+h3{
+    margin-bottom:20px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:15px 30px;
+}
+
+label{
+    font-weight:bold;
+}
+
+input, select{
+    width:100%;
+    padding:8px;
+}
+
+button{
+    margin-top:25px;
+    padding:12px;
+    width:100%;
+    background:#0d6efd;
+    color:white;
+    border:none;
+    font-size:16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#084298;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h2>🧠 Clinsense-AI</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/diabetes">Diabetes</a>
+        <a href="/pcod">PCOD</a>
+        <a href="/live_health">Live Sensor</a>
+    </div>
+</div>
+
+<div class="container">
+    <h3>Diabetes Risk Prediction Questionnaire</h3>
+
+    <form action="/diabetes_predict" method="POST">
+
+        <div class="form-grid">
+
+            <!-- BASIC INFO -->
+            <div>
+                <label>Age</label>
+                <input type="number" name="age" required>
+            </div>
+
+            <div>
+                <label>Gender</label>
+                <select name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Height (cm)</label>
+                <input type="number" name="height" required>
+            </div>
+
+            <div>
+                <label>Weight (kg)</label>
+                <input type="number" name="weight" required>
+            </div>
+
+            <div>
+                <label>BMI</label>
+                <input type="number" step="0.1" name="bmi" required>
+            </div>
+
+            <div>
+                <label>Family history of diabetes</label>
+                <select name="family">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- SYMPTOMS -->
+            <div>
+                <label>Frequent urination</label>
+                <select name="urination">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Excessive thirst</label>
+                <select name="thirst">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Increased hunger</label>
+                <select name="hunger">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Unexplained weight loss</label>
+                <select name="weight_loss">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Fatigue / weakness</label>
+                <select name="fatigue">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Slow wound healing</label>
+                <select name="wound">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Blurred vision</label>
+                <select name="vision">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- LIFESTYLE -->
+            <div>
+                <label>Physical activity (days/week)</label>
+                <input type="number" name="activity" required>
+            </div>
+
+            <div>
+                <label>Sedentary lifestyle</label>
+                <select name="sedentary">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Unhealthy diet</label>
+                <select name="diet">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Smoking habit</label>
+                <select name="smoke">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Alcohol consumption</label>
+                <select name="alcohol">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>History of high BP</label>
+                <select name="bp">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>BP medication</label>
+                <select name="bp_med">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Gestational diabetes history</label>
+                <select name="gestational">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit">Predict Diabetes Risk</button>
+    </form>
+</div>
+
+</body>
+</html>

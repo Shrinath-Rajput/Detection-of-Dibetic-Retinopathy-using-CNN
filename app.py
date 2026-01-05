@@ -6,10 +6,7 @@ import tensorflow as tf
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
 
-from src.services.sensor_service import (
-    sensor_data,
-    start_sensor_thread
-)
+from src.services.sensor_service import sensor_data, start_sensor_thread
 
 # =========================
 # Flask Init
@@ -25,7 +22,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # Load DR Model
 # =========================
 model = tf.keras.models.load_model("dr_cnn_model.h5", compile=False)
-print("✅ DR Model Loaded")
 
 with open("class_indices.json") as f:
     class_indices = json.load(f)
@@ -36,17 +32,14 @@ INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
 # Start Sensor Thread (ONLY ONCE)
 # =========================
 start_sensor_thread()
-print("✅ Sensor thread started")
 
 # =========================
 # Helper Functions
 # =========================
 def preprocess_image(img_path):
     img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-    img = tf.keras.preprocessing.image.img_to_array(img)
-    img = img / 255.0
-    img = np.expand_dims(img, axis=0)
-    return img
+    img = tf.keras.preprocessing.image.img_to_array(img) / 255.0
+    return np.expand_dims(img, axis=0)
 
 
 def analyze_health(hr, spo2):
@@ -80,7 +73,7 @@ def analyze_health(hr, spo2):
     else:
         advice.extend([
             "Take proper rest",
-            "Practice deep breathing exercises",
+            "Practice deep breathing",
             "Reduce stress",
             "Consult doctor if values persist"
         ])
@@ -107,12 +100,10 @@ def predict():
     if not file or file.filename == "":
         return redirect(url_for("home"))
 
-    filename = secure_filename(file.filename)
-    path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
     file.save(path)
 
-    img = preprocess_image(path)
-    preds = model.predict(img)
+    preds = model.predict(preprocess_image(path))
     class_id = int(np.argmax(preds))
     confidence = float(np.max(preds)) * 100
 
@@ -124,14 +115,14 @@ def predict():
     )
 
 
-# ---------- LIVE HEALTH ----------
+# ---------- LIVE SENSOR ----------
 @app.route("/live_health")
 def live_health():
     return render_template("live_health.html")
 
 
 @app.route("/live_sensor")
-def live_sensor_api():
+def live_sensor():
     return jsonify({
         "heart_rate": sensor_data.get("heart_rate"),
         "spo2": sensor_data.get("spo2"),
@@ -140,82 +131,66 @@ def live_sensor_api():
 
 
 @app.route("/health_analysis")
-def health_analysis_api():
+def health_analysis():
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
     return jsonify(analyze_health(hr, spo2))
 
 
-# =========================
-# 🔥 PCOD MODULE (ADDED)
-# =========================
+# ---------- PCOD ----------
 @app.route("/pcod")
-def pcod_form():
+def pcod():
     return render_template("pcod.html")
 
 
 @app.route("/pcod_predict", methods=["POST"])
 def pcod_predict():
-
     try:
-        age = int(request.form.get("age"))
-        bmi = float(request.form.get("bmi"))
-        fatigue = int(request.form.get("fatigue"))
-        sleep = int(request.form.get("sleep"))
-        stress = int(request.form.get("stress"))
+        bmi = float(request.form.get("bmi", 0))
+        fatigue = int(request.form.get("fatigue", 0))
+        sleep = int(request.form.get("sleep", 0))
+        stress = int(request.form.get("stress", 0))
+        activity = request.form.get("activity", "moderate")
+        diet = request.form.get("diet", "balanced")
+        family = request.form.get("family_history", "no")
 
-        activity = request.form.get("activity")          # low / moderate / high
-        diet = request.form.get("diet")                  # junk / balanced / healthy
-        family = request.form.get("family_history")      # yes / no
+        score = 0
+        score += 2 if bmi >= 25 else 0
+        score += fatigue
+        score += stress
+        score += 2 if family == "yes" else 0
+        score += 1 if activity == "low" else 0
+        score += 1 if diet == "junk" else 0
+
+        if score >= 10:
+            risk = "HIGH PCOD RISK"
+        elif score >= 6:
+            risk = "MODERATE PCOD RISK"
+        else:
+            risk = "LOW PCOD RISK"
+
+        advice = [
+            "Maintain healthy BMI",
+            "Follow balanced diet",
+            "Exercise regularly",
+            "Improve sleep quality",
+            "Reduce stress",
+            "Consult gynecologist if symptoms persist"
+        ]
+
+        return render_template(
+            "pcod_result.html",
+            risk=risk,
+            score=score,
+            advice=advice
+        )
 
     except Exception as e:
-        return f"Invalid input ❌ {e}"
-
-    score = 0
-
-    if bmi >= 25:
-        score += 2
-    score += fatigue
-    score += stress
-
-    if family == "yes":
-        score += 2
-
-    if activity == "low":
-        score += 1
-
-    if diet == "junk":
-        score += 1
-
-    if score >= 10:
-        risk = "HIGH PCOD RISK"
-    elif score >= 6:
-        risk = "MODERATE PCOD RISK"
-    else:
-        risk = "LOW PCOD RISK"
-
-    advice = [
-        "Maintain healthy BMI",
-        "Follow balanced diet",
-        "Exercise regularly",
-        "Improve sleep quality",
-        "Reduce stress",
-        "Consult gynecologist if symptoms persist"
-    ]
-
-    return render_template(
-        "pcod_result.html",
-        risk=risk,
-        score=score,
-        advice=advice
-    )
+        return f"PCOD Error: {e}"
 
 
 # =========================
 # MAIN
 # =========================
 if __name__ == "__main__":
-    app.run(
-        debug=False,        # 🔥 MUST be False
-        use_reloader=False # 🔥 MUST be False
-    )
+    app.run(debug=False, use_reloader=False)

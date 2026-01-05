@@ -1,130 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Clinsense-AI | PCOD Result</title>
-
+    <title>PCOD Result | Clinsense-AI</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
+        body{font-family:Arial;background:#f4f6f8;margin:0}
+        .container{
+            max-width:900px;
+            margin:40px auto;
         }
-
-        /* Navbar */
-        .nav {
-            background: #0d6efd;
-            padding: 15px;
-            color: white;
-            font-size: 18px;
+        .card{
+            background:white;
+            padding:25px;
+            border-radius:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom:20px;
         }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            font-weight: bold;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 30px auto;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .risk-high { color: #dc3545; font-weight: bold; }
-        .risk-moderate { color: #fd7e14; font-weight: bold; }
-        .risk-low { color: #198754; font-weight: bold; }
-
-        ul {
-            margin-top: 10px;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        .btn {
-            display: inline-block;
-            background: #0d6efd;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            background: #084298;
+        h2{margin-top:0}
+        .danger{color:red;font-weight:bold}
+        button{
+            background:#0d6efd;
+            color:white;
+            padding:10px 20px;
+            border:none;
+            border-radius:6px;
+            font-size:16px;
         }
     </style>
 </head>
-
 <body>
 
-<!-- NAVBAR -->
-<div class="nav">
-    🧬 <b>Clinsense-AI</b>
-    <a href="/">Home</a>
-    <a href="/pcod">PCOD Check</a>
-    <a href="/live_health">Live Sensor</a>
-</div>
+{% include "_navbar.html" %}
 
 <div class="container">
 
-    <!-- RESULT SUMMARY -->
     <div class="card">
         <h2>🧠 PCOD Risk Assessment</h2>
-
-        {% if "HIGH" in risk %}
-            <p class="risk-high">Prediction: {{ risk }}</p>
-        {% elif "MODERATE" in risk %}
-            <p class="risk-moderate">Prediction: {{ risk }}</p>
-        {% else %}
-            <p class="risk-low">Prediction: {{ risk }}</p>
-        {% endif %}
-
+        <p class="danger">Prediction: {{ risk }}</p>
         <p>
-            This assessment is based on lifestyle, BMI, stress, sleep quality,
-            physical activity, and family history.
+            This assessment is based on BMI, stress, sleep quality,
+            physical activity, lifestyle and family history.
         </p>
     </div>
 
-    <!-- RISK FACTORS -->
     <div class="card">
         <h2>⚠️ Possible Health Concerns</h2>
         <ul>
             <li>Hormonal imbalance indicators</li>
-            <li>Irregular metabolism or weight changes</li>
+            <li>Metabolic or weight fluctuations</li>
             <li>Stress-related endocrine impact</li>
         </ul>
     </div>
 
-    <!-- PREVENTIVE ADVICE -->
     <div class="card">
         <h2>✅ Preventive & Lifestyle Advice</h2>
         <ul>
             {% for a in advice %}
-                <li>{{ a }}</li>
+            <li>{{ a }}</li>
             {% endfor %}
         </ul>
     </div>
 
-    <!-- ACTION -->
     <div class="card" style="text-align:center">
-        <a href="/pcod" class="btn">🔁 Check Another Patient</a>
+        <a href="/pcod"><button>🔁 Check Another Patient</button></a>
     </div>
 
 </div>

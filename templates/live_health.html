@@ -1,114 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Clinsense-AI | Live Health</title>
+    <title>Live Health | Clinsense-AI</title>
     <style>
-        body { font-family: Arial; background:#f4f6f8; margin:0 }
-        .nav { background:#0d6efd; padding:15px; color:white }
-        .container { max-width:900px; margin:30px auto; }
-        .card {
+        body{font-family:Arial;background:#f4f6f8;margin:0}
+        .container{max-width:900px;margin:40px auto}
+        .card{
             background:white;
-            padding:20px;
+            padding:25px;
             border-radius:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
             margin-bottom:20px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1)
         }
-        h2 { margin-top:0 }
-        .value { font-size:22px; font-weight:bold }
     </style>
 </head>
-
 <body>
 
-<div class="nav">
-    <b>🧠 Clinsense-AI</b> | <a href="/" style="color:white">Home</a>
-</div>
+{% include "_navbar.html" %}
 
 <div class="container">
 
-<div class="card">
-    <h2>❤️ Live Health Monitoring</h2>
-    <p>Heart Rate: <span class="value" id="hr">--</span> BPM</p>
-    <p>SpO₂: <span class="value" id="spo2">--</span> %</p>
-    <p>Status: <b id="status">--</b></p>
-</div>
+    <div class="card">
+        <h2>❤️ Live Health Monitoring</h2>
+        <p>Heart Rate: <b id="hr">--</b> BPM</p>
+        <p>SpO₂: <b id="spo2">--</b> %</p>
+        <p>Status: <b id="status">--</b></p>
+    </div>
 
-<div class="card">
-    <h2>🧠 Health Analysis</h2>
-    <p>Heart Rate Status: <b id="hr_status">--</b></p>
-    <p>SpO₂ Status: <b id="spo2_status">--</b></p>
-</div>
+    <div class="card">
+        <h2>🧠 Health Analysis</h2>
+        <p>Heart Rate Status: <b id="hr_status">--</b></p>
+        <p>SpO₂ Status: <b id="spo2_status">--</b></p>
+    </div>
 
-<div class="card">
-    <h2>⚠️ Risk Prediction</h2>
-    <ul id="risk">
-        <li>Waiting for data...</li>
-    </ul>
-</div>
+    <div class="card">
+        <h2>⚠️ Risk Prediction</h2>
+        <ul id="risk"></ul>
+    </div>
 
-<div class="card">
-    <h2>✅ Preventive Advice</h2>
-    <ul id="advice">
-        <li>Waiting for data...</li>
-    </ul>
-</div>
+    <div class="card">
+        <h2>✅ Preventive Advice</h2>
+        <ul id="advice"></ul>
+    </div>
 
 </div>
 
 <script>
 function fetchData(){
-
-    /* 1️⃣ SENSOR DATA */
     fetch("/live_sensor")
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("hr").innerText = data.heart_rate ?? "--";
-        document.getElementById("spo2").innerText = data.spo2 ?? "--";
-        document.getElementById("status").innerText = data.status ?? "--";
-    })
-    .catch(err => console.error("Sensor error:", err));
+    .then(r=>r.json())
+    .then(d=>{
+        document.getElementById("hr").innerText=d.heart_rate ?? "--";
+        document.getElementById("spo2").innerText=d.spo2 ?? "--";
+        document.getElementById("status").innerText=d.status ?? "--";
+    });
 
-    /* 2️⃣ HEALTH ANALYSIS */
     fetch("/health_analysis")
-    .then(res => res.json())
-    .then(data => {
+    .then(r=>r.json())
+    .then(d=>{
+        document.getElementById("hr_status").innerText=d.heart_rate_status;
+        document.getElementById("spo2_status").innerText=d.spo2_status;
 
-        document.getElementById("hr_status").innerText =
-            data.heart_rate_status || "UNKNOWN";
+        let rEl=document.getElementById("risk");
+        rEl.innerHTML="";
+        d.risk.forEach(x=>{
+            let li=document.createElement("li");
+            li.innerText=x;
+            rEl.appendChild(li);
+        });
 
-        document.getElementById("spo2_status").innerText =
-            data.spo2_status || "UNKNOWN";
-
-        // Risk
-        let riskEl = document.getElementById("risk");
-        riskEl.innerHTML = "";
-        if (data.risk && data.risk.length > 0) {
-            data.risk.forEach(r => {
-                let li = document.createElement("li");
-                li.innerText = r;
-                riskEl.appendChild(li);
-            });
-        } else {
-            riskEl.innerHTML = "<li>No major risk detected</li>";
-        }
-
-        // Advice
-        let adviceEl = document.getElementById("advice");
-        adviceEl.innerHTML = "";
-        if (data.advice && data.advice.length > 0) {
-            data.advice.forEach(a => {
-                let li = document.createElement("li");
-                li.innerText = a;
-                adviceEl.appendChild(li);
-            });
-        } else {
-            adviceEl.innerHTML = "<li>Maintain healthy lifestyle</li>";
-        }
-    })
-    .catch(err => console.error("Analysis error:", err));
+        let aEl=document.getElementById("advice");
+        aEl.innerHTML="";
+        d.advice.forEach(x=>{
+            let li=document.createElement("li");
+            li.innerText=x;
+            aEl.appendChild(li);
+        });
+    });
 }
 
-setInterval(fetchData, 2000);
+setInterval(fetchData,2000);
 fetchData();
 </script>
 

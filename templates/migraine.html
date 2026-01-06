@@ -1,126 +1,282 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Migraine Risk Prediction |  CareSense Assistant</title>
+{% extends "base.html" %}
+{% block content %}
 
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f8;
-    margin:0;
+.hero{
+    background:linear-gradient(135deg,#ff6b6b,#f06595);
+    color:white;
+    padding:70px 30px;
+    border-radius:20px;
+    text-align:center;
+    margin-bottom:60px
 }
-.container{
-    max-width:900px;
+.hero h1{font-size:36px;margin-bottom:15px}
+.hero p{max-width:900px;margin:auto;font-size:17px;line-height:1.6}
+
+.section{margin-bottom:70px}
+.section h2{text-align:center;color:#e64980;margin-bottom:30px}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:25px
+}
+.card{
     background:white;
-    margin:40px auto;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1)
 }
+
+.form-box{
+    max-width:750px;
+    margin:auto;
+    background:white;
+    padding:35px;
+    border-radius:20px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.15)
+}
+
 .form-grid{
     display:grid;
-    grid-template-columns: repeat(2,1fr);
-    gap:15px 30px;
+    grid-template-columns:1fr 1fr;
+    gap:20px
 }
-label{font-weight:bold}
-input,select{width:100%;padding:8px}
-button{
-    margin-top:25px;
+
+.form-box label{font-weight:bold}
+.form-box input,.form-box select{
     width:100%;
-    padding:12px;
-    background:#0d6efd;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ccc
+}
+
+.form-box button{
+    width:100%;
+    background:#e64980;
     color:white;
     border:none;
-    border-radius:6px;
+    padding:15px;
+    border-radius:30px;
     font-size:16px;
+    cursor:pointer;
+    margin-top:25px
+}
+.form-box button:hover{background:#d6336c}
+
+.note{
+    background:#fff0f6;
+    padding:20px;
+    border-left:5px solid #e64980;
+    border-radius:10px;
+    font-size:14px
+}
+
+@media(max-width:768px){
+    .form-grid{grid-template-columns:1fr}
 }
 </style>
-</head>
 
-<body>
-
-{% include "_navbar.html" %}
-
-<div class="container">
-<h2>🧠 Migraine Risk Prediction</h2>
-
-<form method="POST" action="/migraine_predict">
-
-<div class="form-grid">
-
-<div><label>Age</label><input type="number" name="age" required></div>
-
-<div>
-<label>Gender</label>
-<select name="gender">
-<option value="male">Male</option>
-<option value="female">Female</option>
-</select>
+<!-- ================= HERO ================= -->
+<div class="hero">
+    <h1>🧠 Migraine Risk Prediction</h1>
+    <p>
+        Assess migraine risk using a clinically inspired questionnaire
+        combined with AI-driven pattern analysis for early identification
+        and preventive care.
+    </p>
 </div>
 
-<div><label>Family history of migraine</label>
-<select name="family"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Frequency of headaches (per month)</label>
-<input type="number" name="frequency"></div>
-
-<div><label>Duration of headache (hours)</label>
-<input type="number" name="duration"></div>
-
-<div><label>Intensity of pain (1–10)</label>
-<input type="number" min="1" max="10" name="intensity"></div>
-
-<div><label>One-sided head pain</label>
-<select name="unilateral"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Throbbing pain</label>
-<select name="throbbing"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Nausea / vomiting</label>
-<select name="nausea"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Sensitivity to light</label>
-<select name="light"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Sensitivity to sound</label>
-<select name="sound"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Visual disturbance (Aura)</label>
-<select name="aura"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Dizziness / Vertigo</label>
-<select name="dizziness"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Aggravated by activity</label>
-<select name="activity_worse"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Sleep duration (hours/day)</label>
-<input type="number" name="sleep"></div>
-
-<div><label>Sleep disturbance / insomnia</label>
-<select name="insomnia"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Stress level (1–10)</label>
-<input type="number" min="1" max="10" name="stress"></div>
-
-<div><label>Skipped meals</label>
-<select name="meals"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Caffeine intake</label>
-<select name="caffeine"><option value="high">High</option><option value="low">Low</option></select></div>
-
-<div><label>Hormonal trigger</label>
-<select name="hormonal"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
-<div><label>Relief after rest/sleep</label>
-<select name="relief"><option value="yes">Yes</option><option value="no">No</option></select></div>
-
+<!-- ================= ABOUT MIGRAINE ================= -->
+<div class="section">
+    <h2>What is Migraine?</h2>
+    <p style="max-width:1000px;margin:auto;text-align:center">
+        Migraine is a neurological disorder characterized by recurring
+        headaches, often accompanied by nausea, light sensitivity,
+        and visual disturbances. Early identification of triggers
+        helps reduce severity and frequency.
+    </p>
 </div>
 
-<button type="submit">Predict Migraine</button>
-</form>
+<!-- ================= TRIGGERS ================= -->
+<div class="section">
+    <h2>Common Migraine Triggers</h2>
+    <div class="cards">
+        <div class="card">💡 Light & sound sensitivity</div>
+        <div class="card">😣 Stress & anxiety</div>
+        <div class="card">☕ Excess caffeine</div>
+        <div class="card">😴 Poor sleep patterns</div>
+        <div class="card">🍽 Skipped meals</div>
+        <div class="card">🧬 Hormonal changes</div>
+    </div>
 </div>
 
-</body>
-</html>
+<!-- ================= FORM ================= -->
+<div class="section">
+    <h2>Migraine Risk Questionnaire</h2>
+
+    <div class="form-box">
+        <form action="/migraine_predict" method="POST">
+
+            <div class="form-grid">
+
+                <div>
+                    <label>Age</label>
+                    <input type="number" name="age" required>
+                </div>
+
+                <div>
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Family History of Migraine</label>
+                    <select name="family">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Headache Frequency (per month)</label>
+                    <input type="number" name="frequency">
+                </div>
+
+                <div>
+                    <label>Headache Duration (hours)</label>
+                    <input type="number" name="duration">
+                </div>
+
+                <div>
+                    <label>Intensity of Pain (1–10)</label>
+                    <input type="number" name="intensity" min="1" max="10">
+                </div>
+
+                <div>
+                    <label>One-sided Head Pain</label>
+                    <select name="unilateral">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Throbbing Pain</label>
+                    <select name="throbbing">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Nausea / Vomiting</label>
+                    <select name="nausea">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Sensitivity to Light</label>
+                    <select name="light">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Sensitivity to Sound</label>
+                    <select name="sound">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Visual Disturbance (Aura)</label>
+                    <select name="aura">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Dizziness / Vertigo</label>
+                    <select name="dizziness">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Aggravated by Physical Activity</label>
+                    <select name="activity_worse">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Sleep Duration (hours/day)</label>
+                    <input type="number" name="sleep">
+                </div>
+
+                <div>
+                    <label>Sleep Disturbance / Insomnia</label>
+                    <select name="insomnia">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Stress Level (1–10)</label>
+                    <input type="number" name="stress" min="1" max="10">
+                </div>
+
+                <div>
+                    <label>Skipped Meals</label>
+                    <select name="meals">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Caffeine Intake</label>
+                    <select name="caffeine">
+                        <option value="high">High</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Hormonal Trigger</label>
+                    <select name="hormonal">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <button type="submit">🔍 Predict Migraine Risk</button>
+        </form>
+    </div>
+</div>
+
+<!-- ================= DISCLAIMER ================= -->
+<div class="section">
+    <div class="note">
+        ⚠️ <b>Medical Disclaimer:</b>  
+        This AI-based assessment is for awareness and decision support only.
+        It does not replace professional medical consultation.
+    </div>
+</div>
+
+{% endblock %}

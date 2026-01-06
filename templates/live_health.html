@@ -1,47 +1,130 @@
 {% extends "base.html" %}
-
 {% block content %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Live Health | CareSense Assistant</title>
-    <style>
-        body{font-family:Arial;background:#f4f6f8;margin:0}
-        .container{max-width:900px;margin:40px auto}
-        .card{
-            background:white;
-            padding:25px;
-            border-radius:10px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom:20px;
-        }
-    </style>
-</head>
-<body>
+
+<style>
+    body{
+        font-family:Arial, sans-serif;
+        background:#f4f6f8;
+        margin:0
+    }
+
+    .container{
+        max-width:1100px;
+        margin:40px auto
+    }
+
+    .hero{
+        background:linear-gradient(135deg,#ff4d4d,#ff7a7a);
+        color:white;
+        padding:50px 30px;
+        border-radius:20px;
+        text-align:center;
+        margin-bottom:40px
+    }
+
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+        gap:25px
+    }
+
+    .card{
+        background:white;
+        padding:25px;
+        border-radius:18px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.12)
+    }
+
+    .value{
+        font-size:32px;
+        font-weight:bold;
+        margin:10px 0
+    }
+
+    .badge{
+        display:inline-block;
+        padding:6px 14px;
+        border-radius:20px;
+        font-size:13px;
+        font-weight:bold
+    }
+
+    .ok{background:#d4edda;color:#155724}
+    .warn{background:#fff3cd;color:#856404}
+    .danger{background:#f8d7da;color:#721c24}
+
+    .section-title{
+        margin:50px 0 20px;
+        color:#0d6efd
+    }
+
+    .note{
+        background:#f1f7ff;
+        padding:20px;
+        border-left:5px solid #0d6efd;
+        border-radius:10px;
+        font-size:14px;
+        margin-top:40px
+    }
+</style>
 
 <div class="container">
 
-    <div class="card">
-        <h2>❤️ Live Health Monitoring</h2>
-        <p>Heart Rate: <b id="hr">--</b> BPM</p>
-        <p>SpO₂: <b id="spo2">--</b> %</p>
-        <p>Status: <b id="status">--</b></p>
+    <!-- HERO -->
+    <div class="hero">
+        <h1>❤️ Live Health Monitoring</h1>
+        <p>Real-time IoT based monitoring using ESP32 + MAX30102 sensor</p>
     </div>
 
-    <div class="card">
-        <h2>🧠 Health Analysis</h2>
-        <p>Heart Rate Status: <b id="hr_status">--</b></p>
-        <p>SpO₂ Status: <b id="spo2_status">--</b></p>
+    <!-- LIVE VITALS -->
+    <div class="grid">
+        <div class="card">
+            <h3>❤️ Heart Rate</h3>
+            <div class="value"><span id="hr">--</span> BPM</div>
+            <span class="badge ok" id="hr_status">--</span>
+        </div>
+
+        <div class="card">
+            <h3>🫁 Oxygen Level (SpO₂)</h3>
+            <div class="value"><span id="spo2">--</span> %</div>
+            <span class="badge ok" id="spo2_status">--</span>
+        </div>
+
+        <div class="card">
+            <h3>📡 Sensor Status</h3>
+            <div class="value" id="status">--</div>
+            <p style="font-size:14px;margin-top:10px">
+                Live data streaming from IoT device
+            </p>
+        </div>
     </div>
 
+    <!-- RISK -->
+    <h2 class="section-title">⚠️ Risk Prediction</h2>
     <div class="card">
-        <h2>⚠️ Risk Prediction</h2>
         <ul id="risk"></ul>
     </div>
 
+    <!-- ADVICE -->
+    <h2 class="section-title">✅ Preventive Advice</h2>
     <div class="card">
-        <h2>✅ Preventive Advice</h2>
         <ul id="advice"></ul>
+    </div>
+
+    <!-- EXTRA INFO -->
+    <h2 class="section-title">📘 How This Helps</h2>
+    <div class="grid">
+        <div class="card">✔ Continuous monitoring of heart & oxygen levels</div>
+        <div class="card">✔ Early detection of abnormal vitals</div>
+        <div class="card">✔ AI-based risk assessment</div>
+        <div class="card">✔ Useful for elderly & chronic patients</div>
+    </div>
+
+    <div class="note">
+        ⚠️ <b>Medical Disclaimer:</b><br>
+        This live monitoring system provides real-time vitals and AI-based
+        risk analysis for awareness only. It does not replace professional
+        medical diagnosis.
     </div>
 
 </div>
@@ -59,8 +142,8 @@ function fetchData(){
     fetch("/health_analysis")
     .then(r=>r.json())
     .then(d=>{
-        document.getElementById("hr_status").innerText=d.heart_rate_status;
-        document.getElementById("spo2_status").innerText=d.spo2_status;
+        document.getElementById("hr_status").innerText=d.heart_rate_status ?? "--";
+        document.getElementById("spo2_status").innerText=d.spo2_status ?? "--";
 
         let rEl=document.getElementById("risk");
         rEl.innerHTML="";
@@ -84,6 +167,4 @@ setInterval(fetchData,2000);
 fetchData();
 </script>
 
-</body>
-</html>
 {% endblock %}

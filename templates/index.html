@@ -1,42 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title> CareSense Assistant | Home</title>
+{% extends "base.html" %}
+{% block content %}
 
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
-.container{
-    max-width:500px;
-    background:white;
-    margin:80px auto;
-    padding:30px;
-    border-radius:8px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+.hero-dr{
+    background:linear-gradient(135deg,#0d6efd,#4dabf7);
+    color:white;
+    padding:70px 30px;
+    border-radius:20px;
     text-align:center;
+    margin-bottom:60px
 }
-button{
+.hero-dr h1{font-size:36px;margin-bottom:15px}
+.hero-dr p{max-width:900px;margin:auto;font-size:17px;line-height:1.6}
+
+.section{margin-bottom:70px}
+.section h2{text-align:center;color:#0d6efd;margin-bottom:30px}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:25px
+}
+.card{
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1)
+}
+
+.upload-box{
+    max-width:500px;
+    margin:0 auto;
+    background:white;
+    padding:35px;
+    border-radius:18px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    text-align:center
+}
+
+.upload-box input{margin:15px 0}
+.upload-box button{
     background:#0d6efd;
     color:white;
-    padding:10px 20px;
     border:none;
-    border-radius:6px;
+    padding:12px 30px;
+    border-radius:25px;
+    font-size:16px;
+    cursor:pointer
+}
+.upload-box button:hover{background:#0b5ed7}
+
+.note{
+    background:#f1f7ff;
+    padding:20px;
+    border-left:5px solid #0d6efd;
+    border-radius:10px;
+    font-size:14px
 }
 </style>
-</head>
 
-<body>
-
-{% include "_navbar.html" %}
-
-<div class="container">
-    <h3>Diabetic Retinopathy Detection</h3>
-    <form action="/predict" method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" required><br><br>
-        <button type="submit">Predict</button>
-    </form>
-    <p>Upload retinal fundus image for DR detection</p>
+<!-- ================= HERO ================= -->
+<div class="hero-dr">
+    <h1>👁️ Diabetic Retinopathy Detection</h1>
+    <p>
+        Upload a retinal fundus image and let our AI-powered Deep Learning model
+        analyze early signs of Diabetic Retinopathy with high accuracy.
+    </p>
 </div>
 
-</body>
-</html>
+<!-- ================= ABOUT DR ================= -->
+<div class="section">
+    <h2>What is Diabetic Retinopathy?</h2>
+    <p style="max-width:1000px;margin:auto;text-align:center">
+        Diabetic Retinopathy is a diabetes-related eye disease caused by damage
+        to retinal blood vessels. If not detected early, it can lead to
+        permanent vision loss or blindness. Early screening is critical.
+    </p>
+</div>
+
+<!-- ================= HOW AI WORKS ================= -->
+<div class="section">
+    <h2>How Our AI Detects DR</h2>
+    <div class="cards">
+        <div class="card">📸 Retinal image is uploaded</div>
+        <div class="card">🧪 Image preprocessing & enhancement</div>
+        <div class="card">🧠 CNN extracts retinal features</div>
+        <div class="card">📊 DR stage classification</div>
+        <div class="card">✅ Confidence score generated</div>
+        <div class="card">👨‍⚕️ Decision support for doctors</div>
+    </div>
+</div>
+
+<!-- ================= UPLOAD ================= -->
+<div class="section">
+    <h2>Upload Retinal Image</h2>
+
+    <div class="upload-box">
+        <form action="/predict" method="POST" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required><br>
+            <button type="submit">🔍 Predict Diabetic Retinopathy</button>
+        </form>
+
+        <p style="margin-top:15px;font-size:14px">
+            Supported formats: JPG, PNG <br>
+            Retinal fundus images only
+        </p>
+    </div>
+</div>
+
+<!-- ================= WHY IMPORTANT ================= -->
+<div class="section">
+    <h2>Why Early Detection Matters</h2>
+    <div class="cards">
+        <div class="card">✔ Prevents irreversible vision loss</div>
+        <div class="card">✔ Enables early treatment planning</div>
+        <div class="card">✔ Reduces dependency on specialists</div>
+        <div class="card">✔ Suitable for rural & remote screening</div>
+    </div>
+</div>
+
+<!-- ================= MEDICAL NOTE ================= -->
+<div class="section">
+    <div class="note">
+        ⚠️ <b>Medical Disclaimer:</b>  
+        This system provides AI-based risk prediction and clinical decision
+        support. It is not a replacement for professional medical diagnosis.
+    </div>
+</div>
+
+{% endblock %}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> CareSense Assistant</title>
+    <title>CareSense Assistant</title>
 
     <style>
         body {
@@ -11,13 +11,15 @@
             background:#f4f6f8;
         }
 
-        /* NAVBAR */
+        /* ================= NAVBAR ================= */
         .navbar {
             background:#0d6efd;
             padding:15px 30px;
             display:flex;
             justify-content:space-between;
             align-items:center;
+            position:relative;
+            z-index:1000;   /* 🔥 IMPORTANT */
         }
 
         .logo {
@@ -43,19 +45,24 @@
             text-decoration:none;
             margin-left:25px;
             font-weight:bold;
+            cursor:pointer;
         }
 
-        /* DROPDOWN */
+        /* ================= DROPDOWN (FIXED) ================= */
+        .dropdown {
+            position:relative;
+        }
+
         .dropdown-menu {
             display:none;
             position:absolute;
-            top:40px;
+            top:100%;
             right:0;
             background:white;
             min-width:200px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.2);
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);
             border-radius:6px;
-            z-index:1000;
+            z-index:2000;
         }
 
         .dropdown-menu li {
@@ -72,27 +79,28 @@
             background:#f1f1f1;
         }
 
-        .dropdown:hover .dropdown-menu {
+        /* 🔥 THIS LINE FIXES FILE SELECT ISSUE */
+        .dropdown:hover > .dropdown-menu {
             display:block;
         }
 
-        /* PAGE CONTENT */
+        /* ================= PAGE CONTENT ================= */
         .content {
             padding:40px;
+            position:relative;
+            z-index:1;
         }
     </style>
 </head>
 
 <body>
 
-<!-- ===== NAVBAR (SAME FOR ALL PAGES) ===== -->
+<!-- ===== NAVBAR ===== -->
 <div class="navbar">
-    <div class="logo">🧠  CareSense Assistant</div>
+    <div class="logo">🧠 CareSense Assistant</div>
 
     <ul class="menu">
         <li><a href="/">Home</a></li>
-
-        <!-- ✅ FIXED LINK -->
         <li><a href="/dr">Diabetic Retinopathy</a></li>
 
         <li class="dropdown">

@@ -2,7 +2,9 @@
     <h2>🧠 Clinsense-AI</h2>
     <div>
         <a href="/">Home</a>
-        <a href="/">Diabetic Retinopathy</a>
+
+        <!-- ✅ CORRECT DR PAGE -->
+        <a href="/dr">Diabetic Retinopathy</a>
 
         <div class="dropdown-wrapper">
             <a href="#">Input Based Diseases ▾</a>
@@ -25,14 +27,14 @@
     justify-content:space-between;
     align-items:center;
 }
-.navbar h2{color:white;margin:0}
+.navbar h2{ color:white; margin:0 }
 .navbar a{
     color:white;
     text-decoration:none;
     margin-left:20px;
     font-weight:bold;
 }
-.dropdown-wrapper{position:relative; display:inline-block}
+.dropdown-wrapper{ position:relative; display:inline-block }
 .dropdown-menu{
     display:none;
     position:absolute;
@@ -41,13 +43,14 @@
     right:0;
     border-radius:6px;
     box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    z-index:1000;
 }
 .dropdown-menu a{
     color:black;
     display:block;
     padding:10px;
+    margin:0;
 }
-.dropdown-wrapper:hover .dropdown-menu{
-    display:block;
-}
+.dropdown-menu a:hover{ background:#f1f1f1 }
+.dropdown-wrapper:hover .dropdown-menu{ display:block }
 </style>

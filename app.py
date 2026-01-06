@@ -85,16 +85,25 @@ def analyze_health(hr, spo2):
 # =========================
 # ROUTES
 # =========================
+
+# ✅ HOME → Project Overview
 @app.route("/")
 def home():
+    return render_template("home.html")
+
+
+# ✅ DR PAGE → Image Upload Page
+@app.route("/dr")
+def dr_page():
     return render_template("index.html")
 
-# ---------- DR ----------
+
+# ---------- DR PREDICT ----------
 @app.route("/predict", methods=["POST"])
 def predict():
     file = request.files.get("image")
     if not file or file.filename == "":
-        return redirect(url_for("home"))
+        return redirect(url_for("dr_page"))
 
     path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
     file.save(path)
@@ -110,10 +119,12 @@ def predict():
         image_path=path
     )
 
+
 # ---------- LIVE SENSOR ----------
 @app.route("/live_health")
 def live_health():
     return render_template("live_health.html")
+
 
 @app.route("/live_sensor")
 def live_sensor():
@@ -123,16 +134,19 @@ def live_sensor():
         "status": sensor_data.get("status")
     })
 
+
 @app.route("/health_analysis")
 def health_analysis():
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
     return jsonify(analyze_health(hr, spo2))
 
+
 # ---------- PCOD ----------
 @app.route("/pcod")
 def pcod():
     return render_template("pcod.html")
+
 
 @app.route("/pcod_predict", methods=["POST"])
 def pcod_predict():
@@ -147,18 +161,12 @@ def pcod_predict():
 
         score = 0
         score += 2 if bmi >= 25 else 0
-        score += fatigue
-        score += stress
+        score += fatigue + stress
         score += 2 if family == "yes" else 0
         score += 1 if activity == "low" else 0
         score += 1 if diet == "junk" else 0
 
-        if score >= 10:
-            risk = "HIGH PCOD RISK"
-        elif score >= 6:
-            risk = "MODERATE PCOD RISK"
-        else:
-            risk = "LOW PCOD RISK"
+        risk = "HIGH PCOD RISK" if score >= 10 else "MODERATE PCOD RISK" if score >= 6 else "LOW PCOD RISK"
 
         advice = [
             "Maintain healthy BMI",
@@ -174,10 +182,12 @@ def pcod_predict():
     except Exception as e:
         return f"PCOD Error: {e}"
 
+
 # ---------- DIABETES ----------
 @app.route("/diabetes")
 def diabetes():
     return render_template("diabetes.html")
+
 
 @app.route("/diabetes_predict", methods=["POST"])
 def diabetes_predict():
@@ -191,22 +201,18 @@ def diabetes_predict():
         diet = request.form.get("diet", "no")
         bp = request.form.get("bp", "no")
 
-        score = 0
-        if bmi >= 25: score += 2
-        if family == "yes": score += 2
-        if urination == "yes": score += 1
-        if thirst == "yes": score += 1
-        if fatigue == "yes": score += 1
-        if activity == "low": score += 1
-        if diet == "yes": score += 1
-        if bp == "yes": score += 1
+        score = (
+            (2 if bmi >= 25 else 0) +
+            (2 if family == "yes" else 0) +
+            (1 if urination == "yes" else 0) +
+            (1 if thirst == "yes" else 0) +
+            (1 if fatigue == "yes" else 0) +
+            (1 if activity == "low" else 0) +
+            (1 if diet == "yes" else 0) +
+            (1 if bp == "yes" else 0)
+        )
 
-        if score >= 7:
-            risk = "HIGH DIABETES RISK"
-        elif score >= 4:
-            risk = "MODERATE DIABETES RISK"
-        else:
-            risk = "LOW DIABETES RISK"
+        risk = "HIGH DIABETES RISK" if score >= 7 else "MODERATE DIABETES RISK" if score >= 4 else "LOW DIABETES RISK"
 
         advice = [
             "Maintain healthy body weight",
@@ -221,10 +227,12 @@ def diabetes_predict():
     except Exception as e:
         return f"DIABETES Error: {e}"
 
-# ---------- MIGRAINE (FIXED) ----------
+
+# ---------- MIGRAINE ----------
 @app.route("/migraine")
 def migraine():
     return render_template("migraine.html")
+
 
 @app.route("/migraine_predict", methods=["POST"])
 def migraine_predict():
@@ -244,28 +252,20 @@ def migraine_predict():
                 risks.append(field.replace("_"," ").title())
 
         def safe_int(val):
-            try:
-                return int(val)
-            except:
-                return 0
+            try: return int(val)
+            except: return 0
 
         intensity = safe_int(request.form.get("intensity"))
         stress = safe_int(request.form.get("stress"))
         sleep = safe_int(request.form.get("sleep"))
 
-        score += intensity // 3
-        score += stress // 3
+        score += intensity // 3 + stress // 3
 
-        if sleep != 0 and sleep < 6:
+        if sleep and sleep < 6:
             score += 1
             risks.append("Low Sleep Duration")
 
-        if score >= 10:
-            risk = "HIGH MIGRAINE RISK"
-        elif score >= 6:
-            risk = "MODERATE MIGRAINE RISK"
-        else:
-            risk = "LOW MIGRAINE RISK"
+        risk = "HIGH MIGRAINE RISK" if score >= 10 else "MODERATE MIGRAINE RISK" if score >= 6 else "LOW MIGRAINE RISK"
 
         advice = [
             "Maintain regular sleep routine",
@@ -276,15 +276,11 @@ def migraine_predict():
             "Consult neurologist if frequent headaches"
         ]
 
-        return render_template(
-            "migraine_result.html",
-            risk=risk,
-            risks=risks,
-            advice=advice
-        )
+        return render_template("migraine_result.html", risk=risk, risks=risks, advice=advice)
 
     except Exception as e:
         return f"MIGRAINE Error: {e}"
+
 
 # =========================
 # MAIN

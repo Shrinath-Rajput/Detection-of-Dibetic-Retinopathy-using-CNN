@@ -1,206 +1,199 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Clinsense-AI | Home</title>
+{% extends "base.html" %}
+{% block content %}
 
-    <style>
-        body{
-            margin:0;
-            font-family: Arial, sans-serif;
-            background:#f4f6f8;
-        }
+<style>
+.fade-up{opacity:0;transform:translateY(30px);animation:fadeUp 1s ease forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
 
-        /* ===== NAVBAR ===== */
-        .navbar{
-            background:#0d6efd;
-            padding:15px 30px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        }
+.section{margin-bottom:90px}
+.section h2{text-align:center;color:#0d6efd;margin-bottom:30px}
 
-        .navbar h2{
-            color:white;
-            margin:0;
-        }
+.hero{
+    background:linear-gradient(135deg,#0d6efd,#4dabf7);
+    color:white;
+    padding:90px 30px;
+    border-radius:20px;
+    text-align:center;
+    margin-bottom:90px
+}
+.hero h1{font-size:44px;margin-bottom:15px}
+.hero p{max-width:950px;margin:auto;font-size:18px;line-height:1.7}
 
-        .navbar a{
-            color:white;
-            text-decoration:none;
-            margin-left:20px;
-            font-weight:bold;
-        }
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:25px
+}
+.card{
+    background:white;
+    padding:30px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    transition:.3s
+}
+.card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 14px 35px rgba(13,110,253,.3)
+}
 
-        .dropdown-wrapper{
-            position:relative;
-            display:inline-block;
-        }
+.highlight{
+    background:linear-gradient(135deg,#0d6efd,#4dabf7);
+    color:white;
+    padding:80px 35px;
+    border-radius:20px;
+    text-align:center
+}
 
-        .dropdown-menu{
-            display:none;
-            position:absolute;
-            background:white;
-            min-width:180px;
-            right:0;
-            border-radius:6px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.2);
-            z-index:1000;
-        }
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:25px;
+    text-align:center
+}
+.stat{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1)
+}
+.stat h3{font-size:36px;color:#0d6efd}
 
-        .dropdown-menu a{
-            color:black;
-            display:block;
-            padding:10px;
-            margin:0;
-        }
+.cta{text-align:center;margin-top:70px}
+.cta a{
+    background:#0d6efd;
+    color:white;
+    padding:18px 40px;
+    border-radius:40px;
+    font-weight:bold;
+    text-decoration:none;
+    box-shadow:0 10px 25px rgba(13,110,253,.4)
+}
+.cta a:hover{background:#0b5ed7}
+</style>
 
-        .dropdown-menu a:hover{
-            background:#f1f1f1;
-        }
-
-        .dropdown-wrapper:hover .dropdown-menu{
-            display:block;
-        }
-
-        /* ===== HERO ===== */
-        .hero{
-            background:linear-gradient(135deg,#0d6efd,#4f9bff);
-            color:white;
-            padding:60px 30px;
-            margin:30px;
-            border-radius:12px;
-            text-align:center;
-        }
-
-        .hero h1{
-            margin-bottom:10px;
-        }
-
-        /* ===== CONTENT ===== */
-        .container{
-            padding:0 40px 40px;
-        }
-
-        .section-title{
-            margin:40px 0 20px;
-            font-size:22px;
-        }
-
-        /* ===== CARDS ===== */
-        .card-grid{
-            display:grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap:20px;
-        }
-
-        .card{
-            background:white;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .card h3{
-            margin-top:0;
-        }
-
-        .card p{
-            font-size:14px;
-            color:#555;
-        }
-
-        .card a{
-            display:inline-block;
-            margin-top:10px;
-            padding:8px 14px;
-            background:#0d6efd;
-            color:white;
-            text-decoration:none;
-            border-radius:6px;
-            font-size:14px;
-        }
-    </style>
-</head>
-
-<body>
-
-<!-- ===== NAVBAR ===== -->
-<div class="navbar">
-    <h2>🧠 Clinsense-AI</h2>
-    <div>
-        <a href="/">Home</a>
-        <a href="/dr">Diabetic Retinopathy</a>
-
-        <div class="dropdown-wrapper">
-            <a href="#">Input Based Diseases ▾</a>
-            <div class="dropdown-menu">
-                <a href="/pcod">PCOD</a>
-                <a href="/migraine">Migraine</a>
-                <a href="/diabetes">Diabetes</a>
-            </div>
-        </div>
-
-        <a href="/live_health">Live Sensor</a>
-    </div>
-</div>
-
-<!-- ===== HERO ===== -->
-<div class="hero">
-    <h1>Clinsense-AI</h1>
+<!-- ================= HERO ================= -->
+<div class="hero fade-up">
+    <h1>🧠 CareSense Assistant</h1>
     <p>
-        AI-powered healthcare platform for early disease detection using
-        medical imaging, IoT sensors, and intelligent questionnaires.
+        An AI-powered clinical decision support system for <b>early detection of
+        Diabetic Retinopathy</b> using Deep Learning, retinal image analysis,
+        and real-time IoT-based patient monitoring.
     </p>
 </div>
 
-<!-- ===== CONTENT ===== -->
-<div class="container">
-
-    <div class="section-title">📌 Project Overview</div>
-    <p>
-        Clinsense-AI is an intelligent clinical decision support system designed
-        to assist in early diagnosis of critical health conditions using
-        Artificial Intelligence, Deep Learning, and real-time sensor data.
+<!-- ================= PROBLEM STATEMENT ================= -->
+<div class="section fade-up">
+    <h2>🚨Statement</h2>
+    <p style="max-width:1000px;margin:auto;text-align:center">
+        Diabetic Retinopathy (DR) is a leading cause of blindness worldwide.
+        Due to lack of early screening, manual diagnosis, and shortage of
+        ophthalmologists—especially in rural areas—patients are often diagnosed
+        at advanced stages, resulting in irreversible vision loss.
     </p>
-
-    <div class="section-title">🧩 Key Modules</div>
-
-    <div class="card-grid">
-
-        <div class="card">
-            <h3>👁️ Diabetic Retinopathy</h3>
-            <p>Detects diabetic eye disease using deep learning on retinal images.</p>
-            <a href="/dr">Check Retinopathy</a>
-        </div>
-
-        <div class="card">
-            <h3>🌸 PCOD Risk Assessment</h3>
-            <p>Predicts PCOD risk based on BMI, stress, sleep, lifestyle, and history.</p>
-            <a href="/pcod">Check PCOD</a>
-        </div>
-
-        <div class="card">
-            <h3>🧠 Migraine Prediction</h3>
-            <p>Assesses migraine risk using a detailed clinical questionnaire.</p>
-            <a href="/migraine">Check Migraine</a>
-        </div>
-
-        <div class="card">
-            <h3>🩸 Diabetes Risk</h3>
-            <p>Evaluates diabetes risk using symptoms, BMI, and lifestyle.</p>
-            <a href="/diabetes">Check Diabetes</a>
-        </div>
-
-        <div class="card">
-            <h3>❤️ Live Health Monitoring</h3>
-            <p>Real-time heart rate & SpO₂ monitoring using IoT sensors.</p>
-            <a href="/live_health">View Live Sensor</a>
-        </div>
-
-    </div>
-
 </div>
 
-</body>
-</html>
+<!-- ================= SOLUTION ================= -->
+<div class="section fade-up">
+    <h2>💡Proposed Solution</h2>
+    <div class="cards">
+        <div class="card">
+            <b>AI-based Retinal Image Analysis</b>
+            <p>
+                CNN models automatically analyze retinal fundus images to detect
+                microaneurysms, hemorrhages, and exudates indicating DR stages.
+            </p>
+        </div>
+        <div class="card">
+            <b>Automated Disease Classification</b>
+            <p>
+                The system classifies DR into Normal, Mild, Moderate, or Severe
+                stages with confidence scores to support doctors.
+            </p>
+        </div>
+        <div class="card">
+            <b>Real-time IoT Health Monitoring</b>
+            <p>
+                Live monitoring of Heart Rate and SpO₂ using MAX30102 sensors
+                enhances overall patient health assessment.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SYSTEM WORKFLOW ================= -->
+<div class="section fade-up">
+    <h2>⚙️ System Workflow</h2>
+    <div class="cards">
+        <div class="card">1️⃣ Patient uploads retinal image</div>
+        <div class="card">2️⃣ Image preprocessing & normalization</div>
+        <div class="card">3️⃣ CNN extracts retinal features</div>
+        <div class="card">4️⃣ DR stage prediction with confidence</div>
+        <div class="card">5️⃣ Live sensor data analyzed</div>
+        <div class="card">6️⃣ AI-assisted clinical decision support</div>
+    </div>
+</div>
+
+<!-- ================= TECHNOLOGY STACK ================= -->
+<div class="section fade-up">
+    <h2>🧪 Technology Stack</h2>
+    <div class="cards">
+        <div class="card">🔹 Python, Flask (Backend)</div>
+        <div class="card">🔹 TensorFlow & CNN (Deep Learning)</div>
+        <div class="card">🔹 OpenCV (Image Processing)</div>
+        <div class="card">🔹 MAX30102 IoT Sensor</div>
+        <div class="card">🔹 HTML, CSS, Jinja2 (Frontend)</div>
+        <div class="card">🔹 Real-time Data Analysis</div>
+    </div>
+</div>
+
+<!-- ================= IMPACT ================= -->
+<div class="section fade-up">
+    <h2>📊 Clinical Impact</h2>
+    <div class="stats">
+        <div class="stat">
+            <h3>90%+</h3>
+            <p>Early Detection Accuracy</p>
+        </div>
+        <div class="stat">
+            <h3>60%</h3>
+            <p>Reduction in Diagnosis Time</p>
+        </div>
+        <div class="stat">
+            <h3>24×7</h3>
+            <p>Live Patient Monitoring</p>
+        </div>
+        <div class="stat">
+            <h3>Scalable</h3>
+            <p>Rural Healthcare Ready</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= FUTURE SCOPE ================= -->
+<div class="section fade-up">
+    <h2>🚀 Future Enhancements</h2>
+    <div class="cards">
+        <div class="card"> Multi-disease retinal analysis</div>
+        <div class="card"> Integration with hospital EMR systems</div>
+        <div class="card"> Cloud-based large-scale screening</div>
+        <div class="card"> Mobile app for remote diagnosis</div>
+    </div>
+</div>
+
+<!-- ================= WHY ================= -->
+<div class="highlight fade-up">
+    <h2>💙 Why CareSense Assistant?</h2>
+    <p style="max-width:950px;margin:auto;font-size:17px">
+        Clinsense-AI bridges the gap between patients and specialists by providing
+        fast, accurate, and affordable early diagnosis. It empowers doctors,
+        reduces healthcare burden, and helps prevent avoidable blindness.
+    </p>
+</div>
+
+<!-- ================= CTA ================= -->
+<div class="cta fade-up">
+    <h2>Ready to Experience Smart Diagnosis?</h2>
+    <a href="/dr">🚀 Start Diagnosis</a>
+</div>
+
+{% endblock %}

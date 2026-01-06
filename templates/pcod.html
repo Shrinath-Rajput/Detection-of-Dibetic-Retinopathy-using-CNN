@@ -1,24 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>PCOD Risk Prediction</title>
+<meta charset="UTF-8">
+<title>PCOD Risk Prediction | Clinsense-AI</title>
+
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
-.container{
-    max-width:600px;
-    margin:40px auto;
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1)
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    margin:0;
 }
-input,select{width:100%;padding:10px;margin:8px 0}
+
+.container{
+    max-width:500px;
+    background:white;
+    margin:60px auto;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+}
+
 button{
     background:#0d6efd;
     color:white;
-    padding:10px;
-    width:100%;
     border:none;
+    padding:12px;
+    width:100%;
+    font-size:16px;
     border-radius:6px;
 }
 </style>
@@ -29,15 +43,52 @@ button{
 {% include "_navbar.html" %}
 
 <div class="container">
-<h2>🧬 PCOD Risk Prediction</h2>
-<form method="POST" action="/pcod_predict">
-<input type="number" name="age" placeholder="Age" required>
-<input type="number" step="0.1" name="bmi" placeholder="BMI" required>
-<select name="activity"><option>low</option><option>moderate</option><option>high</option></select>
-<select name="diet"><option>junk</option><option>balanced</option></select>
-<select name="family_history"><option>yes</option><option>no</option></select>
-<button type="submit">Predict PCOD</button>
-</form>
+    <h2>🧬 PCOD Risk Prediction</h2>
+
+    <form method="POST" action="/pcod_predict">
+
+        <label>Age</label>
+        <input type="number" name="age" required>
+
+        <label>Gender</label>
+        <select name="gender">
+            <option value="female">Female</option>
+        </select>
+
+        <label>BMI</label>
+        <input type="number" step="0.1" name="bmi" required>
+
+        <label>Fatigue Level (1–10)</label>
+        <input type="number" min="1" max="10" name="fatigue" required>
+
+        <label>Sleep Quality (1–10)</label>
+        <input type="number" min="1" max="10" name="sleep" required>
+
+        <label>Stress Level (1–10)</label>
+        <input type="number" min="1" max="10" name="stress" required>
+
+        <label>Physical Activity</label>
+        <select name="activity">
+            <option value="low">Low</option>
+            <option value="moderate">Moderate</option>
+            <option value="high">High</option>
+        </select>
+
+        <label>Diet Type</label>
+        <select name="diet">
+            <option value="junk">Junk / Processed</option>
+            <option value="balanced">Balanced</option>
+            <option value="healthy">Healthy</option>
+        </select>
+
+        <label>Family History of PCOD</label>
+        <select name="family_history">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+
+        <button type="submit">Predict PCOD Risk</button>
+    </form>
 </div>
 
 </body>

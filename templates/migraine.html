@@ -1,25 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Migraine Prediction</title>
+<meta charset="UTF-8">
+<title>Migraine Risk Prediction | Clinsense-AI</title>
+
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    margin:0;
+}
 .container{
     max-width:900px;
     background:white;
     margin:40px auto;
     padding:30px;
     border-radius:10px;
-    box-shadow:0 0 12px rgba(0,0,0,0.1);
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
+.form-grid{
+    display:grid;
+    grid-template-columns: repeat(2,1fr);
+    gap:15px 30px;
+}
+label{font-weight:bold}
 input,select{width:100%;padding:8px}
 button{
-    margin-top:20px;
-    padding:12px;
+    margin-top:25px;
     width:100%;
+    padding:12px;
     background:#0d6efd;
     color:white;
     border:none;
+    border-radius:6px;
+    font-size:16px;
 }
 </style>
 </head>
@@ -29,13 +43,81 @@ button{
 {% include "_navbar.html" %}
 
 <div class="container">
-<h3>Migraine Risk Prediction</h3>
-<form action="/migraine_predict" method="POST">
-<input type="number" name="age" placeholder="Age">
-<select name="family"><option>no</option><option>yes</option></select>
-<select name="nausea"><option>no</option><option>yes</option></select>
-<select name="light"><option>no</option><option>yes</option></select>
-<select name="stress"><option>low</option><option>high</option></select>
+<h2>🧠 Migraine Risk Prediction</h2>
+
+<form method="POST" action="/migraine_predict">
+
+<div class="form-grid">
+
+<div><label>Age</label><input type="number" name="age" required></div>
+
+<div>
+<label>Gender</label>
+<select name="gender">
+<option value="male">Male</option>
+<option value="female">Female</option>
+</select>
+</div>
+
+<div><label>Family history of migraine</label>
+<select name="family"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Frequency of headaches (per month)</label>
+<input type="number" name="frequency"></div>
+
+<div><label>Duration of headache (hours)</label>
+<input type="number" name="duration"></div>
+
+<div><label>Intensity of pain (1–10)</label>
+<input type="number" min="1" max="10" name="intensity"></div>
+
+<div><label>One-sided head pain</label>
+<select name="unilateral"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Throbbing pain</label>
+<select name="throbbing"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Nausea / vomiting</label>
+<select name="nausea"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Sensitivity to light</label>
+<select name="light"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Sensitivity to sound</label>
+<select name="sound"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Visual disturbance (Aura)</label>
+<select name="aura"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Dizziness / Vertigo</label>
+<select name="dizziness"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Aggravated by activity</label>
+<select name="activity_worse"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Sleep duration (hours/day)</label>
+<input type="number" name="sleep"></div>
+
+<div><label>Sleep disturbance / insomnia</label>
+<select name="insomnia"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Stress level (1–10)</label>
+<input type="number" min="1" max="10" name="stress"></div>
+
+<div><label>Skipped meals</label>
+<select name="meals"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Caffeine intake</label>
+<select name="caffeine"><option value="high">High</option><option value="low">Low</option></select></div>
+
+<div><label>Hormonal trigger</label>
+<select name="hormonal"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+<div><label>Relief after rest/sleep</label>
+<select name="relief"><option value="yes">Yes</option><option value="no">No</option></select></div>
+
+</div>
+
 <button type="submit">Predict Migraine</button>
 </form>
 </div>

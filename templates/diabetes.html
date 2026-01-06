@@ -1,36 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Clinsense-AI | Diabetes Risk Prediction</title>
+{% extends "base.html" %}
+
+{% block content %}
 
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f8;
-    margin:0;
-}
-
-.navbar{
-    background:#0d6efd;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.navbar h2{
-    color:white;
-    margin:0;
-}
-
-.navbar a{
-    color:white;
-    text-decoration:none;
-    margin-left:20px;
-    font-weight:bold;
-}
-
 .container{
     max-width:900px;
     background:white;
@@ -75,20 +47,6 @@ button:hover{
     background:#084298;
 }
 </style>
-</head>
-
-<body>
-
-<!-- NAVBAR -->
-<div class="navbar">
-    <h2>🧠 Clinsense-AI</h2>
-    <div>
-        <a href="/">Home</a>
-        <a href="/diabetes">Diabetes</a>
-        <a href="/pcod">PCOD</a>
-        <a href="/live_health">Live Sensor</a>
-    </div>
-</div>
 
 <div class="container">
     <h3>Diabetes Risk Prediction Questionnaire</h3>
@@ -259,5 +217,4 @@ button:hover{
     </form>
 </div>
 
-</body>
-</html>
+{% endblock %}

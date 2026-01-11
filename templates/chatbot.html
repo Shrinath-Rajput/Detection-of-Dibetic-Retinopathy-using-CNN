@@ -3,11 +3,11 @@
 
 <h3>🤖 AI Healthcare Chatbot</h3>
 
-<div class="card p-3 mb-3" id="chat-box" style="height:300px; overflow-y:auto;">
-    <p><strong>Bot:</strong> Hello! Ask me anything about your result.</p>
+<div id="chat-box" style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:auto;">
+    <p><strong>Bot:</strong> Hello! Ask me anything.</p>
 </div>
 
-<input type="hidden" id="stage" value="{{ prediction }}">
+<br>
 
 <div class="input-group">
     <input type="text" id="userInput" class="form-control" placeholder="Ask a question...">
@@ -17,17 +17,17 @@
 <script>
 function sendMessage() {
     let msg = document.getElementById("userInput").value;
-    let stage = document.getElementById("stage").value;
-
-    if (msg === "") return;
+    if (msg.trim() === "") return;
 
     let chatBox = document.getElementById("chat-box");
     chatBox.innerHTML += `<p><strong>You:</strong> ${msg}</p>`;
 
     fetch("/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: `message=${msg}&stage=${stage}`
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: msg })
     })
     .then(res => res.json())
     .then(data => {

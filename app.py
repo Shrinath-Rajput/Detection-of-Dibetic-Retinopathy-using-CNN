@@ -9,6 +9,11 @@ from werkzeug.utils import secure_filename
 from src.services.sensor_service import sensor_data, start_sensor_thread
 
 # =========================
+# ✅ CHATBOT IMPORT (ADDED)
+# =========================
+from src.chatbot.bot import chatbot_response
+
+# =========================
 # Flask Init
 # =========================
 app = Flask(__name__)
@@ -86,19 +91,16 @@ def analyze_health(hr, spo2):
 # ROUTES
 # =========================
 
-# ✅ HOME → Project Overview
 @app.route("/")
 def home():
     return render_template("home.html")
 
 
-# ✅ DR PAGE → Image Upload Page
 @app.route("/dr")
 def dr_page():
     return render_template("index.html")
 
 
-# ---------- DR PREDICT ----------
 @app.route("/predict", methods=["POST"])
 def predict():
     file = request.files.get("image")
@@ -120,7 +122,6 @@ def predict():
     )
 
 
-# ---------- LIVE SENSOR ----------
 @app.route("/live_health")
 def live_health():
     return render_template("live_health.html")
@@ -142,7 +143,6 @@ def health_analysis():
     return jsonify(analyze_health(hr, spo2))
 
 
-# ---------- PCOD ----------
 @app.route("/pcod")
 def pcod():
     return render_template("pcod.html")
@@ -183,7 +183,6 @@ def pcod_predict():
         return f"PCOD Error: {e}"
 
 
-# ---------- DIABETES ----------
 @app.route("/diabetes")
 def diabetes():
     return render_template("diabetes.html")
@@ -228,7 +227,6 @@ def diabetes_predict():
         return f"DIABETES Error: {e}"
 
 
-# ---------- MIGRAINE ----------
 @app.route("/migraine")
 def migraine():
     return render_template("migraine.html")
@@ -281,6 +279,19 @@ def migraine_predict():
     except Exception as e:
         return f"MIGRAINE Error: {e}"
 
+# =========================
+# ✅ CHATBOT ROUTES (ADDED)
+# =========================
+@app.route("/chatbot")
+def chatbot():
+    return render_template("chatbot.html")
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    user_msg = request.json.get("message", "")
+    reply = chatbot_response(user_msg)
+    return jsonify({"reply": reply})
 
 # =========================
 # MAIN

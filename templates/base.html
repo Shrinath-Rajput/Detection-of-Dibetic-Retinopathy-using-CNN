@@ -19,7 +19,7 @@
             justify-content:space-between;
             align-items:center;
             position:relative;
-            z-index:1000;   /* 🔥 IMPORTANT */
+            z-index:1000;
         }
 
         .logo {
@@ -48,7 +48,7 @@
             cursor:pointer;
         }
 
-        /* ================= DROPDOWN (FIXED) ================= */
+        /* ================= DROPDOWN ================= */
         .dropdown {
             position:relative;
         }
@@ -79,7 +79,6 @@
             background:#f1f1f1;
         }
 
-        /* 🔥 THIS LINE FIXES FILE SELECT ISSUE */
         .dropdown:hover > .dropdown-menu {
             display:block;
         }
@@ -113,6 +112,9 @@
         </li>
 
         <li><a href="/live_health">Live Sensor</a></li>
+
+        <!-- ✅ ONLY THIS LINE ADDED -->
+        <li><a href="/chatbot">Chatbot</a></li>
     </ul>
 </div>
 

@@ -1,82 +1,76 @@
-# src/chatbot/bot.py
+import wikipedia
+import requests
 
-import re
+# -------------------------
+# Helper: greeting check
+# -------------------------
+def is_greeting(text):
+    greetings = [
+        "hi", "hello", "hey", "good morning",
+        "good afternoon", "good evening"
+    ]
+    return text.lower().strip() in greetings
 
-def chatbot_response(message: str) -> str:
-    if not message:
-        return "Please ask something 🙂"
 
-    msg = message.lower().strip()
+# -------------------------
+# Main chatbot function
+# -------------------------
+def chatbot_response(user_message: str) -> str:
+    if not user_message or len(user_message.strip()) < 2:
+        return "Please ask a clear question 🙂"
 
-    # ---------------- BASIC TALKS ----------------
-    greetings = ["hi", "hello", "hey", "hii", "hiii"]
-    if msg in greetings:
-        return "Hello 👋 I'm your AI Healthcare Assistant. Ask me anything."
+    query = user_message.strip()
 
-    if "who are you" in msg:
+    # 1️⃣ HANDLE GREETINGS (IMPORTANT FIX)
+    if is_greeting(query):
+        return "Hello 👋 I'm your AI Assistant. You can ask me any question."
+
+    # 2️⃣ VERY SHORT / VAGUE QUESTIONS
+    if len(query.split()) <= 1:
+        return "Please ask a complete question so I can help you better 🙂"
+
+    # 3️⃣ TRY WIKIPEDIA (ONLY FOR REAL QUESTIONS)
+    try:
+        wikipedia.set_lang("en")
+        summary = wikipedia.summary(query, sentences=2)
+        return summary
+    except wikipedia.exceptions.DisambiguationError:
         return (
-            "I am CareSense AI Assistant 🤖. "
-            "I help with health-related questions as well as general questions."
+            "Your question is a bit broad.\n"
+            "👉 Please be more specific.\n"
+            "Example: 'Virat Kohli cricketer' or 'Python programming language'"
         )
+    except wikipedia.exceptions.PageError:
+        pass
+    except Exception:
+        pass
 
-    if "what are you doing" in msg:
-        return "I'm here to answer your questions and help you 😊"
+    # 4️⃣ TRY DUCKDUCKGO (FACTUAL BACKUP)
+    try:
+        url = "https://api.duckduckgo.com/"
+        params = {
+            "q": query,
+            "format": "json",
+            "no_html": 1,
+            "skip_disambig": 1
+        }
+        res = requests.get(url, params=params, timeout=5)
+        data = res.json()
 
-    # ---------------- HEALTH QUESTIONS ----------------
-    if "pcod" in msg:
-        return (
-            "PCOD (Polycystic Ovary Disease) is a hormonal disorder in women. "
-            "Common symptoms include irregular periods, weight gain, acne, "
-            "hair growth, and difficulty in pregnancy."
-        )
+        if data.get("AbstractText"):
+            return data["AbstractText"]
 
-    if "diabetes" in msg:
-        return (
-            "Diabetes is a condition where blood sugar levels become high. "
-            "It can be managed with diet, exercise, and proper medication."
-        )
+        if data.get("Answer"):
+            return data["Answer"]
 
-    if "migraine" in msg:
-        return (
-            "Migraine is a neurological condition causing intense headaches, "
-            "often with nausea, light sensitivity, and sound sensitivity."
-        )
+        if data.get("Definition"):
+            return data["Definition"]
 
-    if "heart rate" in msg:
-        return (
-            "A normal resting heart rate for adults is usually between 60 and 100 BPM."
-        )
+    except Exception:
+        pass
 
-    if "spo2" in msg or "oxygen" in msg:
-        return (
-            "Normal SpO₂ (oxygen level) is between 95% and 100%."
-        )
-
-    # ---------------- GENERAL KNOWLEDGE ----------------
-    if "virat kohli" in msg:
-        return (
-            "Virat Kohli is a famous Indian cricketer and former captain of the "
-            "Indian national team. He is known for his aggressive batting style."
-        )
-
-    if "india" in msg:
-        return "India is a country in South Asia, known for its rich culture and history."
-
-    if "python" in msg:
-        return (
-            "Python is a popular programming language used for web development, "
-            "AI, machine learning, and data science."
-        )
-
-    if "ai" in msg or "artificial intelligence" in msg:
-        return (
-            "Artificial Intelligence (AI) is a field of computer science where "
-            "machines simulate human intelligence."
-        )
-
-    # ---------------- FALLBACK (SMART ANSWER) ----------------
+    # 5️⃣ CLEAN FINAL FALLBACK (NO FALTU)
     return (
-        f"I understood your question: '{message}'. "
-        "Currently, I can answer health and general knowledge questions. "
-        "Please ask something related 😊"
+        "I couldn't find a reliable answer for this question.\n\n"
+        "👉 Please try rephrasing it or ask with more details."
     )

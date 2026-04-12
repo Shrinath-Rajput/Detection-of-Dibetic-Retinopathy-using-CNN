@@ -7,10 +7,6 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
 
 from src.services.sensor_service import sensor_data, start_sensor_thread
-
-# =========================
-# ✅ CHATBOT IMPORT
-# =========================
 from src.chatbot.bot import chatbot_response
 
 # =========================
@@ -24,7 +20,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# ✅ DOWNLOAD MODEL (ADDED)
+# ✅ DOWNLOAD MODEL FIRST
 # =========================
 import gdown
 
@@ -35,7 +31,7 @@ if not os.path.exists(MODEL_PATH):
     gdown.download(url, MODEL_PATH, quiet=False)
 
 # =========================
-# Load DR Model
+# ✅ LOAD MODEL AFTER DOWNLOAD
 # =========================
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
@@ -290,6 +286,7 @@ def migraine_predict():
     except Exception as e:
         return f"MIGRAINE Error: {e}"
 
+
 # =========================
 # CHATBOT ROUTES
 # =========================
@@ -304,8 +301,9 @@ def chat():
     reply = chatbot_response(user_msg)
     return jsonify({"reply": reply})
 
+
 # =========================
-# MAIN (UPDATED FOR RENDER)
+# MAIN (Render fix)
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

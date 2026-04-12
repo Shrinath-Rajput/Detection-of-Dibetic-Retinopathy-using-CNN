@@ -166,6 +166,7 @@ def pcod_predict():
         diet = request.form.get("diet", "balanced")
         family = request.form.get("family_history", "no")
 
+
         score = 0
         score += 2 if bmi >= 25 else 0
         score += fatigue + stress

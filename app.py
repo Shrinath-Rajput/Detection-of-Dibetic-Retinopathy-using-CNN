@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from src.services.sensor_service import sensor_data, start_sensor_thread
 
 # =========================
-# ✅ CHATBOT IMPORT (ADDED)
+# ✅ CHATBOT IMPORT
 # =========================
 from src.chatbot.bot import chatbot_response
 
@@ -24,9 +24,20 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
+# ✅ DOWNLOAD MODEL (ADDED)
+# =========================
+import gdown
+
+MODEL_PATH = "dr_cnn_model.h5"
+
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+# =========================
 # Load DR Model
 # =========================
-model = tf.keras.models.load_model("dr_cnn_model.h5", compile=False)
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 with open("class_indices.json") as f:
     class_indices = json.load(f)
@@ -280,7 +291,7 @@ def migraine_predict():
         return f"MIGRAINE Error: {e}"
 
 # =========================
-# ✅ CHATBOT ROUTES (ADDED)
+# CHATBOT ROUTES
 # =========================
 @app.route("/chatbot")
 def chatbot():
@@ -294,7 +305,8 @@ def chat():
     return jsonify({"reply": reply})
 
 # =========================
-# MAIN
+# MAIN (UPDATED FOR RENDER)
 # =========================
 if __name__ == "__main__":
-    app.run(debug=False, use_reloader=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

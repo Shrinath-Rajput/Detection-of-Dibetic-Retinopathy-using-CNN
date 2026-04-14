@@ -10,7 +10,7 @@ from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
 # =========================
-# Flask Init (FIXED)
+# Flask Init (SAME UI SAFE)
 # =========================
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = "clinsense_ai_secret"
@@ -20,25 +20,29 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# ✅ DOWNLOAD MODEL (RENDER SAFE)
+# MODEL LAZY LOAD (FINAL FIX 🔥)
 # =========================
 import gdown
 
 MODEL_PATH = "dr_cnn_model.h5"
+model = None   # 🔥 IMPORTANT
 
-if not os.path.exists(MODEL_PATH):
-    print("Downloading model...")
-    url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
-    gdown.download(url, MODEL_PATH, quiet=False)
+def load_model_if_needed():
+    global model
 
-print("Files in root:", os.listdir())
+    if model is None:
+        if not os.path.exists(MODEL_PATH):
+            print("Downloading model...")
+            url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+            gdown.download(url, MODEL_PATH, quiet=False)
+
+        print("Loading model...")
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+        print("Model loaded successfully ✅")
 
 # =========================
-# ✅ LOAD MODEL
+# LOAD CLASS INDEX
 # =========================
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-print("Model loaded successfully ✅")
-
 with open("class_indices.json") as f:
     class_indices = json.load(f)
 
@@ -99,7 +103,7 @@ def analyze_health(hr, spo2):
     }
 
 # =========================
-# ROUTES
+# ROUTES (UNCHANGED UI)
 # =========================
 
 @app.route("/")
@@ -114,6 +118,8 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    load_model_if_needed()   # 🔥 ONLY IMPORTANT ADD
+
     file = request.files.get("image")
     if not file or file.filename == "":
         return redirect(url_for("dr_page"))
@@ -307,7 +313,7 @@ def chat():
 
 
 # =========================
-# MAIN (RENDER FIX 🔥)
+# MAIN (RENDER FIX)
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

@@ -20,7 +20,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# LOAD TFLITE MODEL 🔥 (SAFE)
+# LOAD TFLITE MODEL
 # =========================
 try:
     interpreter = tf.lite.Interpreter(model_path="model.tflite")
@@ -29,18 +29,24 @@ try:
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    print("✅ TFLite Model Loaded")
+    MODEL_LOADED = True
+    print("✅ Model Loaded Successfully")
+
 except Exception as e:
-    interpreter = None
     print("❌ Model Load Error:", e)
+    MODEL_LOADED = False
 
 # =========================
 # LOAD CLASS INDEX
 # =========================
-with open("class_indices.json") as f:
-    class_indices = json.load(f)
+try:
+    with open("class_indices.json") as f:
+        class_indices = json.load(f)
 
-INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
+    INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
+
+except:
+    INDEX_TO_CLASS = {}
 
 # =========================
 # Start Sensor Thread
@@ -56,8 +62,7 @@ def preprocess_image(img_path):
         img = tf.keras.preprocessing.image.img_to_array(img)
         img = img / 255.0
         return np.expand_dims(img, axis=0).astype('float32')
-    except Exception as e:
-        print("Image error:", e)
+    except:
         return None
 
 # =========================
@@ -72,11 +77,26 @@ def home():
 def dr_page():
     return render_template("index.html")
 
+# 🔥 ADDED ROUTES (IMPORTANT)
+@app.route("/pcod")
+def pcod():
+    return render_template("pcod.html")
+
+@app.route("/diabetes")
+def diabetes():
+    return render_template("diabetes.html")
+
+@app.route("/live_health")
+def live_health():
+    return render_template("live_health.html")
+
+# =========================
+# PREDICT
+# =========================
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        # 🔥 model check
-        if interpreter is None:
+        if not MODEL_LOADED:
             return "Model not loaded ❌"
 
         file = request.files.get("file")
@@ -84,8 +104,7 @@ def predict():
         if file is None or file.filename == "":
             return "No file uploaded ❌"
 
-        filename = secure_filename(file.filename)
-        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
         file.save(path)
 
         img = preprocess_image(path)
@@ -101,8 +120,6 @@ def predict():
         class_id = int(np.argmax(preds))
         confidence = float(np.max(preds)) * 100
 
-        print("Prediction:", class_id, confidence)
-
         return render_template(
             "result.html",
             prediction=INDEX_TO_CLASS.get(class_id, "Unknown"),
@@ -111,13 +128,18 @@ def predict():
         )
 
     except Exception as e:
-        print("ERROR:", e)
         return f"ERROR: {str(e)}"
 
+# =========================
+# SENSOR API
+# =========================
 @app.route("/live_sensor")
 def live_sensor():
     return jsonify(sensor_data)
 
+# =========================
+# CHATBOT
+# =========================
 @app.route("/chat", methods=["POST"])
 def chat():
     msg = request.json.get("message", "")

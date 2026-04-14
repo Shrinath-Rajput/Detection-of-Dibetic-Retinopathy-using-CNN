@@ -34,10 +34,9 @@ def load_model():
             if not os.path.exists(MODEL_PATH):
                 print("Downloading model...")
 
-                # 🔥 YOUR FINAL GOOGLE DRIVE LINK FIXED
-                url = "https://drive.google.com/uc?id=1mOU9EIk3KMJ2_4RhscWWN_220JX5uCBy"
-
-                gdown.download(url, MODEL_PATH, quiet=False)
+                # 🔥 FINAL FIX (IMPORTANT)
+                url = "https://drive.google.com/file/d/1mOU9EIk3KMJ2_4RhscWWN_220JX5uCBy/view"
+                gdown.download(url, MODEL_PATH, fuzzy=True)
 
             print("Loading model...")
             model = tf.keras.models.load_model(MODEL_PATH, compile=False)

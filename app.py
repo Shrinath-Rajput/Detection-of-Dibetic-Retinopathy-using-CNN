@@ -20,7 +20,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# MODEL LAZY LOAD (FIXED)
+# MODEL LAZY LOAD (FINAL FIX)
 # =========================
 import gdown
 
@@ -33,7 +33,10 @@ def load_model():
         if model is None:
             if not os.path.exists(MODEL_PATH):
                 print("Downloading model...")
-                url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+
+                # 🔥 YOUR FINAL GOOGLE DRIVE LINK FIXED
+                url = "https://drive.google.com/uc?id=1mOU9EIk3KMJ2_4RhscWWN_220JX5uCBy"
+
                 gdown.download(url, MODEL_PATH, quiet=False)
 
             print("Loading model...")

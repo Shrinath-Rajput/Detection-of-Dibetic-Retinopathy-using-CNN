@@ -10,9 +10,9 @@ from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
 # =========================
-# Flask Init
+# Flask Init (FIXED)
 # =========================
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = "clinsense_ai_secret"
 
 UPLOAD_FOLDER = "static/uploads"
@@ -20,20 +20,24 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# ✅ DOWNLOAD MODEL FIRST
+# ✅ DOWNLOAD MODEL (RENDER SAFE)
 # =========================
 import gdown
 
 MODEL_PATH = "dr_cnn_model.h5"
 
 if not os.path.exists(MODEL_PATH):
+    print("Downloading model...")
     url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
     gdown.download(url, MODEL_PATH, quiet=False)
 
+print("Files in root:", os.listdir())
+
 # =========================
-# ✅ LOAD MODEL AFTER DOWNLOAD
+# ✅ LOAD MODEL
 # =========================
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+print("Model loaded successfully ✅")
 
 with open("class_indices.json") as f:
     class_indices = json.load(f)
@@ -165,7 +169,6 @@ def pcod_predict():
         activity = request.form.get("activity", "moderate")
         diet = request.form.get("diet", "balanced")
         family = request.form.get("family_history", "no")
-
 
         score = 0
         score += 2 if bmi >= 25 else 0
@@ -304,8 +307,8 @@ def chat():
 
 
 # =========================
-# MAIN (Render fix)
+# MAIN (RENDER FIX 🔥)
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

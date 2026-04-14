@@ -10,7 +10,7 @@ from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
 # =========================
-# Flask Init (UI SAME)
+# Flask Init (UNCHANGED UI)
 # =========================
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = "clinsense_ai_secret"
@@ -20,25 +20,29 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# MODEL LAZY LOAD (FINAL FIX 🔥)
+# MODEL FIX (ONLY CHANGE 🔥)
 # =========================
 import gdown
 
 MODEL_PATH = "dr_cnn_model.h5"
 model = None
 
-def load_model_if_needed():
+def load_model():
     global model
 
     if model is None:
-        if not os.path.exists(MODEL_PATH):
-            print("Downloading model...")
-            url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
-            gdown.download(url, MODEL_PATH, quiet=False)
+        try:
+            if not os.path.exists(MODEL_PATH):
+                print("Downloading model...")
+                url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+                gdown.download(url, MODEL_PATH, quiet=False)
 
-        print("Loading model...")
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-        print("Model loaded successfully ✅")
+            print("Loading model...")
+            model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+            print("Model loaded ✅")
+
+        except Exception as e:
+            print("Model load failed:", e)
 
 # =========================
 # LOAD CLASS INDEX
@@ -118,7 +122,7 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    load_model_if_needed()   # 🔥 IMPORTANT
+    load_model()   # 🔥 ONLY ADD
 
     file = request.files.get("image")
     if not file or file.filename == "":
@@ -313,7 +317,7 @@ def chat():
 
 
 # =========================
-# MAIN (RENDER FIX)
+# MAIN
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

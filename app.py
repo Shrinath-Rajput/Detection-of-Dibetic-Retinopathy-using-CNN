@@ -12,7 +12,7 @@ from src.chatbot.bot import chatbot_response
 # =========================
 # Flask Init
 # =========================
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
 
 UPLOAD_FOLDER = "static/uploads"
@@ -20,25 +20,21 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# MODEL LOAD (FINAL FIX 🔥)
+# ✅ DOWNLOAD MODEL FIRST
 # =========================
+import gdown
+
 MODEL_PATH = "dr_cnn_model.h5"
-model = None
 
-def load_model():
-    global model
-    try:
-        if model is None:
-            print("Loading model from local...")
-            model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-            print("Model loaded ✅")
-    except Exception as e:
-        print("Model load error:", e)
-        model = None
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
 # =========================
-# LOAD CLASS INDEX
+# ✅ LOAD MODEL AFTER DOWNLOAD
 # =========================
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+
 with open("class_indices.json") as f:
     class_indices = json.load(f)
 
@@ -53,14 +49,9 @@ start_sensor_thread()
 # Helper Functions
 # =========================
 def preprocess_image(img_path):
-    try:
-        img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-        img = tf.keras.preprocessing.image.img_to_array(img)
-        img = img / 255.0
-        return np.expand_dims(img, axis=0)
-    except Exception as e:
-        print("Preprocess error:", e)
-        return None
+    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
+    img = tf.keras.preprocessing.image.img_to_array(img) / 255.0
+    return np.expand_dims(img, axis=0)
 
 
 def analyze_health(hr, spo2):
@@ -119,42 +110,23 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    try:
-        load_model()
+    file = request.files.get("image")
+    if not file or file.filename == "":
+        return redirect(url_for("dr_page"))
 
-        if model is None:
-            return "Model not loaded ❌"
+    path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+    file.save(path)
 
-        file = request.files.get("file")
+    preds = model.predict(preprocess_image(path))
+    class_id = int(np.argmax(preds))
+    confidence = float(np.max(preds)) * 100
 
-        if file is None or file.filename == "":
-            return "No file uploaded ❌"
-
-        path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
-        file.save(path)
-
-        if not os.path.exists(path):
-            return "File save failed ❌"
-
-        img = preprocess_image(path)
-
-        if img is None:
-            return "Image processing failed ❌"
-
-        preds = model.predict(img)
-
-        class_id = int(np.argmax(preds))
-        confidence = float(np.max(preds)) * 100
-
-        return render_template(
-            "result.html",
-            prediction=INDEX_TO_CLASS.get(class_id, "Unknown"),
-            confidence=f"{confidence:.2f}%",
-            image_path=path
-        )
-
-    except Exception as e:
-        return f"ERROR: {str(e)}"
+    return render_template(
+        "result.html",
+        prediction=INDEX_TO_CLASS[class_id],
+        confidence=f"{confidence:.2f}%",
+        image_path=path
+    )
 
 
 @app.route("/live_health")
@@ -193,6 +165,7 @@ def pcod_predict():
         activity = request.form.get("activity", "moderate")
         diet = request.form.get("diet", "balanced")
         family = request.form.get("family_history", "no")
+
 
         score = 0
         score += 2 if bmi >= 25 else 0
@@ -316,7 +289,7 @@ def migraine_predict():
 
 
 # =========================
-# CHATBOT
+# CHATBOT ROUTES
 # =========================
 @app.route("/chatbot")
 def chatbot():
@@ -331,8 +304,8 @@ def chat():
 
 
 # =========================
-# MAIN
+# MAIN (Render fix)
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

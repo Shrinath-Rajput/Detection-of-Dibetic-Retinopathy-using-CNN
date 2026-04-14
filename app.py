@@ -10,7 +10,7 @@ from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
 # =========================
-# Flask Init (SAME UI SAFE)
+# Flask Init (UI SAME)
 # =========================
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = "clinsense_ai_secret"
@@ -25,7 +25,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 import gdown
 
 MODEL_PATH = "dr_cnn_model.h5"
-model = None   # 🔥 IMPORTANT
+model = None
 
 def load_model_if_needed():
     global model
@@ -103,7 +103,7 @@ def analyze_health(hr, spo2):
     }
 
 # =========================
-# ROUTES (UNCHANGED UI)
+# ROUTES (UNCHANGED)
 # =========================
 
 @app.route("/")
@@ -118,7 +118,7 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    load_model_if_needed()   # 🔥 ONLY IMPORTANT ADD
+    load_model_if_needed()   # 🔥 IMPORTANT
 
     file = request.files.get("image")
     if not file or file.filename == "":
@@ -298,7 +298,7 @@ def migraine_predict():
 
 
 # =========================
-# CHATBOT ROUTES
+# CHATBOT
 # =========================
 @app.route("/chatbot")
 def chatbot():

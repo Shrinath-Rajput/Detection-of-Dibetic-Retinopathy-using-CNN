@@ -20,13 +20,19 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# LOAD TFLITE MODEL 🔥
+# LOAD TFLITE MODEL 🔥 (SAFE)
 # =========================
-interpreter = tf.lite.Interpreter(model_path="model.tflite")
-interpreter.allocate_tensors()
+try:
+    interpreter = tf.lite.Interpreter(model_path="model.tflite")
+    interpreter.allocate_tensors()
 
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    print("✅ TFLite Model Loaded")
+except Exception as e:
+    interpreter = None
+    print("❌ Model Load Error:", e)
 
 # =========================
 # LOAD CLASS INDEX
@@ -50,7 +56,8 @@ def preprocess_image(img_path):
         img = tf.keras.preprocessing.image.img_to_array(img)
         img = img / 255.0
         return np.expand_dims(img, axis=0).astype('float32')
-    except:
+    except Exception as e:
+        print("Image error:", e)
         return None
 
 # =========================
@@ -68,12 +75,17 @@ def dr_page():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        # 🔥 model check
+        if interpreter is None:
+            return "Model not loaded ❌"
+
         file = request.files.get("file")
 
         if file is None or file.filename == "":
             return "No file uploaded ❌"
 
-        path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+        filename = secure_filename(file.filename)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(path)
 
         img = preprocess_image(path)
@@ -89,6 +101,8 @@ def predict():
         class_id = int(np.argmax(preds))
         confidence = float(np.max(preds)) * 100
 
+        print("Prediction:", class_id, confidence)
+
         return render_template(
             "result.html",
             prediction=INDEX_TO_CLASS.get(class_id, "Unknown"),
@@ -97,6 +111,7 @@ def predict():
         )
 
     except Exception as e:
+        print("ERROR:", e)
         return f"ERROR: {str(e)}"
 
 @app.route("/live_sensor")

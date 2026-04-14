@@ -16,3 +16,4 @@ matplotlib==3.8.2
 mlflow
 gdown
 wikipedia
+requests

@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import tensorflow as tf
+import requests   # 🔥 added
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
@@ -20,10 +21,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# MODEL LAZY LOAD (FINAL FIX)
+# MODEL LAZY LOAD (FINAL FIX 🔥)
 # =========================
-import gdown
-
 MODEL_PATH = "dr_cnn_model.h5"
 model = None
 
@@ -34,9 +33,16 @@ def load_model():
             if not os.path.exists(MODEL_PATH):
                 print("Downloading model...")
 
-                # 🔥 FINAL FIX (IMPORTANT)
-                url = "https://drive.google.com/file/d/1mOU9EIk3KMJ2_4RhscWWN_220JX5uCBy/view"
-                gdown.download(url, MODEL_PATH, fuzzy=True)
+                url = "https://drive.google.com/uc?export=download&id=1mOU9EIk3KMJ2_4RhscWWN_220JX5uCBy"
+
+                response = requests.get(url, stream=True)
+
+                with open(MODEL_PATH, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+
+                print("Download complete ✅")
 
             print("Loading model...")
             model = tf.keras.models.load_model(MODEL_PATH, compile=False)

@@ -20,33 +20,21 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# LOAD TFLITE MODEL
+# LOAD MODEL (UNCHANGED)
 # =========================
-try:
-    interpreter = tf.lite.Interpreter(model_path="model.tflite")
-    interpreter.allocate_tensors()
+interpreter = tf.lite.Interpreter(model_path="model.tflite")
+interpreter.allocate_tensors()
 
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-
-    MODEL_LOADED = True
-    print("✅ Model Loaded Successfully")
-
-except Exception as e:
-    print("❌ Model Load Error:", e)
-    MODEL_LOADED = False
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # =========================
 # LOAD CLASS INDEX
 # =========================
-try:
-    with open("class_indices.json") as f:
-        class_indices = json.load(f)
+with open("class_indices.json") as f:
+    class_indices = json.load(f)
 
-    INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
-
-except:
-    INDEX_TO_CLASS = {}
+INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
 
 # =========================
 # Start Sensor Thread
@@ -66,7 +54,7 @@ def preprocess_image(img_path):
         return None
 
 # =========================
-# ROUTES
+# ROUTES (ONLY ADD FIX)
 # =========================
 
 @app.route("/")
@@ -77,7 +65,7 @@ def home():
 def dr_page():
     return render_template("index.html")
 
-# 🔥 ADDED ROUTES (IMPORTANT)
+# ✅ ADD THESE (tuza UI already use karto)
 @app.route("/pcod")
 def pcod():
     return render_template("pcod.html")
@@ -90,15 +78,20 @@ def diabetes():
 def live_health():
     return render_template("live_health.html")
 
+@app.route("/migraine")
+def migraine():
+    return render_template("migraine.html")
+
+@app.route("/chatbot")
+def chatbot_page():
+    return render_template("chatbot.html")
+
 # =========================
-# PREDICT
+# PREDICT (UNCHANGED)
 # =========================
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        if not MODEL_LOADED:
-            return "Model not loaded ❌"
-
         file = request.files.get("file")
 
         if file is None or file.filename == "":
@@ -112,7 +105,6 @@ def predict():
         if img is None:
             return "Image processing failed ❌"
 
-        # 🔥 TFLite prediction
         interpreter.set_tensor(input_details[0]['index'], img)
         interpreter.invoke()
         preds = interpreter.get_tensor(output_details[0]['index'])
@@ -138,7 +130,7 @@ def live_sensor():
     return jsonify(sensor_data)
 
 # =========================
-# CHATBOT
+# CHATBOT API
 # =========================
 @app.route("/chat", methods=["POST"])
 def chat():

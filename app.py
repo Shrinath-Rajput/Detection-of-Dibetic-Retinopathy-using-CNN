@@ -118,9 +118,10 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    load_model()   # 🔥 ONLY CHANGE
+    load_model()
 
-    file = request.files.get("image")
+    file = request.files.get("file")   # 🔥 FINAL FIX
+
     if not file or file.filename == "":
         return redirect(url_for("dr_page"))
 

@@ -10,7 +10,7 @@ from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
 # =========================
-# Flask Init (UNCHANGED)
+# Flask Init
 # =========================
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = "clinsense_ai_secret"
@@ -29,16 +29,20 @@ model = None
 
 def load_model():
     global model
+    try:
+        if model is None:
+            if not os.path.exists(MODEL_PATH):
+                print("Downloading model...")
+                url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
+                gdown.download(url, MODEL_PATH, quiet=False)
 
-    if model is None:
-        if not os.path.exists(MODEL_PATH):
-            print("Downloading model...")
-            url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
-            gdown.download(url, MODEL_PATH, quiet=False)
+            print("Loading model...")
+            model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+            print("Model loaded ✅")
 
-        print("Loading model...")
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-        print("Model loaded successfully ✅")
+    except Exception as e:
+        print("Model load error:", e)
+        model = None
 
 # =========================
 # LOAD CLASS INDEX
@@ -57,9 +61,14 @@ start_sensor_thread()
 # Helper Functions
 # =========================
 def preprocess_image(img_path):
-    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-    img = tf.keras.preprocessing.image.img_to_array(img) / 255.0
-    return np.expand_dims(img, axis=0)
+    try:
+        img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
+        img = tf.keras.preprocessing.image.img_to_array(img)
+        img = img / 255.0
+        return np.expand_dims(img, axis=0)
+    except Exception as e:
+        print("Preprocess error:", e)
+        return None
 
 
 def analyze_health(hr, spo2):
@@ -103,7 +112,7 @@ def analyze_health(hr, spo2):
     }
 
 # =========================
-# ROUTES (UNCHANGED)
+# ROUTES
 # =========================
 
 @app.route("/")
@@ -118,26 +127,42 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    load_model()
+    try:
+        load_model()
 
-    file = request.files.get("file")   # 🔥 FINAL FIX
+        if model is None:
+            return "Model not loaded ❌"
 
-    if not file or file.filename == "":
-        return redirect(url_for("dr_page"))
+        file = request.files.get("file")
 
-    path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
-    file.save(path)
+        if file is None or file.filename == "":
+            return "No file uploaded ❌"
 
-    preds = model.predict(preprocess_image(path))
-    class_id = int(np.argmax(preds))
-    confidence = float(np.max(preds)) * 100
+        path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+        file.save(path)
 
-    return render_template(
-        "result.html",
-        prediction=INDEX_TO_CLASS[class_id],
-        confidence=f"{confidence:.2f}%",
-        image_path=path
-    )
+        if not os.path.exists(path):
+            return "File save failed ❌"
+
+        img = preprocess_image(path)
+
+        if img is None:
+            return "Image processing failed ❌"
+
+        preds = model.predict(img)
+
+        class_id = int(np.argmax(preds))
+        confidence = float(np.max(preds)) * 100
+
+        return render_template(
+            "result.html",
+            prediction=INDEX_TO_CLASS.get(class_id, "Unknown"),
+            confidence=f"{confidence:.2f}%",
+            image_path=path
+        )
+
+    except Exception as e:
+        return f"ERROR: {str(e)}"
 
 
 @app.route("/live_health")

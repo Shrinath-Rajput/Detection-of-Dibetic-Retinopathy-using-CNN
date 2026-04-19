@@ -3,7 +3,7 @@
 <head>
     <title>Diabetes Prediction Result</title>
 
-    <!-- 🔥 MOBILE FIX -->
+    <!-- MOBILE -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -18,8 +18,14 @@
             margin:40px auto;
             background:white;
             padding:30px;
-            border-radius:10px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            border-radius:12px;
+            box-shadow:0 8px 25px rgba(0,0,0,0.1);
+            transition:0.3s;
+        }
+
+        /* hover */
+        .container:hover{
+            transform:translateY(-5px);
         }
 
         h2{
@@ -29,37 +35,50 @@
         .risk{
             color:red;
             text-align:center;
+            font-size:22px;
+            animation:pulse 1.2s infinite alternate;
+        }
+
+        @keyframes pulse{
+            from{transform:scale(1);}
+            to{transform:scale(1.05);}
         }
 
         ul{
             padding-left:20px;
         }
 
+        li{
+            margin:6px 0;
+            animation:fadeItem 0.5s ease;
+        }
+
+        @keyframes fadeItem{
+            from{opacity:0; transform:translateX(-10px);}
+            to{opacity:1; transform:translateX(0);}
+        }
+
         .btn{
             display:inline-block;
             margin-top:15px;
-            padding:10px 15px;
+            padding:12px 18px;
             background:#0d6efd;
             color:white;
             text-decoration:none;
             border-radius:6px;
+            transition:0.3s;
         }
 
         .btn:hover{
-            background:#0b5ed7;
+            transform:scale(1.05);
         }
 
-        /* 🔥 MOBILE RESPONSIVE */
-        @media (max-width:768px){
+        /* mobile */
+        @media(max-width:768px){
             .container{
                 margin:20px;
                 padding:20px;
             }
-
-            h2{
-                font-size:20px;
-            }
-
             .btn{
                 width:100%;
                 text-align:center;
@@ -72,20 +91,22 @@
 
 {% include "_navbar.html" %}
 
-<div class="container">
+<div class="container animate">
 
-    <h2>🧪 Diabetes Risk Result</h2>
+    <h2 class="animate">🧪 Diabetes Risk Result</h2>
 
-    <h3 class="risk">{{ risk }}</h3>
+    <h3 class="risk animate">{{ risk }}</h3>
 
-    <h4>Preventive Advice</h4>
+    <h4 class="animate">Preventive Advice</h4>
     <ul>
         {% for a in advice %}
-            <li>{{ a }}</li>
+            <li class="animate">{{ a }}</li>
         {% endfor %}
     </ul>
 
-    <a href="/diabetes" class="btn">Check Another Patient</a>
+    <a href="/diabetes" class="btn animate">
+        Check Another Patient
+    </a>
 
 </div>
 

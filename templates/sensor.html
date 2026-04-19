@@ -2,7 +2,40 @@
 
 {% block content %}
 
-<div class="text-center mb-4">
+<style>
+.card{
+    border-radius:15px;
+    transition:0.3s;
+}
+
+/* hover animation */
+.card:hover{
+    transform:translateY(-6px) scale(1.02);
+    box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* value animation */
+.value{
+    transition:0.3s;
+}
+
+/* status pulse */
+#status{
+    animation:pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse{
+    from{opacity:0.7;}
+    to{opacity:1;}
+}
+
+/* mobile */
+@media (max-width:768px){
+    h2{font-size:22px}
+}
+</style>
+
+<div class="text-center mb-4 animate">
     <h2 class="fw-bold">❤️ Live Health Monitoring</h2>
     <p class="text-muted">MAX30102 Sensor Data</p>
 </div>
@@ -10,18 +43,18 @@
 <div class="row text-center">
 
     <div class="col-md-6 mb-3">
-        <div class="card shadow p-4">
+        <div class="card shadow p-4 animate">
             <h5>Heart Rate</h5>
-            <h2 class="text-danger">
+            <h2 class="text-danger value">
                 <span id="hr">--</span> BPM
             </h2>
         </div>
     </div>
 
     <div class="col-md-6 mb-3">
-        <div class="card shadow p-4">
+        <div class="card shadow p-4 animate">
             <h5>SpO₂</h5>
-            <h2 class="text-success">
+            <h2 class="text-success value">
                 <span id="spo2">--</span> %
             </h2>
         </div>
@@ -29,7 +62,7 @@
 
 </div>
 
-<div class="text-center mt-3">
+<div class="text-center mt-3 animate">
     <p id="status" class="fw-bold text-primary">Connecting...</p>
 </div>
 
@@ -38,16 +71,30 @@ function fetchSensor(){
     fetch("/live_sensor")
     .then(res => res.json())
     .then(data => {
+
+        // update values
         document.getElementById("hr").innerText = data.heart_rate ?? "--";
         document.getElementById("spo2").innerText = data.spo2 ?? "--";
-        document.getElementById("status").innerText = data.status ?? "No Data";
+
+        let statusEl = document.getElementById("status");
+        statusEl.innerText = data.status ?? "No Data";
+
+        // 🔥 dynamic color change
+        if(data.status === "Connected"){
+            statusEl.className = "fw-bold text-success";
+        }else{
+            statusEl.className = "fw-bold text-danger";
+        }
+
     })
     .catch(() => {
-        document.getElementById("status").innerText = "Sensor not connected ❌";
+        let statusEl = document.getElementById("status");
+        statusEl.innerText = "Sensor not connected ❌";
+        statusEl.className = "fw-bold text-danger";
     });
 }
 
-/* 🔁 auto refresh */
+/* auto refresh */
 setInterval(fetchSensor, 2000);
 fetchSensor();
 </script>

@@ -2,154 +2,163 @@
 {% block content %}
 
 <style>
-.fade-up{opacity:0;transform:translateY(30px);animation:fadeUp 1s ease forwards}
-@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
 
-.section{margin-bottom:70px;padding:0 10px}
-.section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
-
-.hero{
-    background:linear-gradient(135deg,#0d6efd,#4dabf7);
-    color:white;
-    padding:70px 20px;
-    border-radius:20px;
-    text-align:center;
-    margin-bottom:70px
+/* BACKGROUND */
+body{
+    background:linear-gradient(135deg,#eef2ff,#f8fbff);
 }
-.hero h1{font-size:34px;margin-bottom:12px}
-.hero p{max-width:900px;margin:auto;font-size:16px;line-height:1.6}
 
+/* HERO */
+.hero{
+    background:linear-gradient(135deg,#1e3a8a,#2563eb);
+    color:white;
+    padding:80px 20px;
+    border-radius:25px;
+    text-align:center;
+    margin-bottom:70px;
+    box-shadow:0 15px 40px rgba(37,99,235,0.3);
+    transition:0.3s;
+}
+.hero:hover{ transform:translateY(-5px); }
+
+.hero h1{font-size:38px}
+.hero p{max-width:900px;margin:auto;font-size:17px;opacity:0.9}
+
+/* SECTION */
+.section{
+    margin-bottom:70px;
+}
+.section h2{
+    text-align:center;
+    color:#1e3a8a;
+    margin-bottom:30px;
+}
+
+/* CARDS */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px
+    gap:20px;
 }
+
 .card{
     background:white;
     padding:22px;
-    border-radius:16px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.08);
-    transition:.3s
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    transition:0.3s;
 }
+
+/* hover */
 .card:hover{
-    transform:translateY(-5px);
-    box-shadow:0 12px 30px rgba(13,110,253,.25)
+    transform:translateY(-10px) scale(1.03);
+    box-shadow:0 20px 40px rgba(37,99,235,0.25);
 }
 
-.highlight{
-    background:linear-gradient(135deg,#0d6efd,#4dabf7);
-    color:white;
-    padding:50px 20px;
-    border-radius:20px;
-    text-align:center
-}
-
+/* STATS */
 .stats{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:20px;
-    text-align:center
 }
+
 .stat{
     background:white;
     padding:20px;
     border-radius:15px;
-    box-shadow:0 6px 15px rgba(0,0,0,0.1)
+    text-align:center;
+    transition:0.3s;
 }
-.stat h3{font-size:28px;color:#0d6efd}
 
-.cta{text-align:center;margin-top:50px}
+.stat:hover{
+    transform:scale(1.05);
+}
+
+/* CTA */
+.cta{
+    text-align:center;
+    margin-top:50px;
+}
 .cta a{
-    background:#0d6efd;
+    background:#2563eb;
     color:white;
     padding:15px 30px;
     border-radius:30px;
-    font-weight:bold;
     text-decoration:none;
-    box-shadow:0 8px 20px rgba(13,110,253,.4)
+    font-weight:bold;
+    transition:0.3s;
 }
-.cta a:hover{background:#0b5ed7}
+.cta a:hover{ transform:scale(1.08); }
 
-/* 🔥 MOBILE FIX */
-@media(max-width:768px){
-    .hero h1{font-size:24px}
-    .hero p{font-size:14px}
-}
 </style>
 
-<!-- ================= HERO ================= -->
-<div class="hero fade-up">
+<!-- HERO -->
+<div class="hero animate">
     <h1>🧠 CareSense Assistant</h1>
     <p>
-        AI-powered clinical decision support system for <b>early detection of
-        Diabetic Retinopathy</b> using deep learning and real-time monitoring.
+        AI-powered clinical decision support system for early detection of Diabetic Retinopathy.
     </p>
 </div>
 
-<!-- ================= PROBLEM ================= -->
-<div class="section fade-up">
+<!-- PROBLEM -->
+<div class="section animate">
     <h2>🚨 Problem Statement</h2>
-    <p style="max-width:900px;margin:auto;text-align:center">
-        Diabetic Retinopathy is a leading cause of blindness. Due to lack of
-        early screening and specialists, patients are often diagnosed too late.
+    <p style="text-align:center;max-width:900px;margin:auto">
+        Diabetic Retinopathy causes blindness if not detected early.
     </p>
 </div>
 
-<!-- ================= SOLUTION ================= -->
-<div class="section fade-up">
-    <h2>💡 Solution</h2>
+<!-- SOLUTION -->
+<div class="section">
+    <h2 class="animate">💡 Solution</h2>
+
     <div class="cards">
-        <div class="card">AI-based retinal image analysis</div>
-        <div class="card">Automatic DR stage classification</div>
-        <div class="card">Real-time IoT health monitoring</div>
+        <div class="card animate">AI-based retinal analysis</div>
+        <div class="card animate">Automatic classification</div>
+        <div class="card animate">IoT monitoring</div>
     </div>
 </div>
 
-<!-- ================= WORKFLOW ================= -->
-<div class="section fade-up">
-    <h2>⚙️ Workflow</h2>
+<!-- WORKFLOW -->
+<div class="section">
+    <h2 class="animate">⚙️ Workflow</h2>
+
     <div class="cards">
-        <div class="card">Upload retinal image</div>
-        <div class="card">Preprocessing</div>
-        <div class="card">CNN analysis</div>
-        <div class="card">Prediction</div>
-        <div class="card">Live sensor analysis</div>
-        <div class="card">Decision support</div>
+        <div class="card animate">Upload Image</div>
+        <div class="card animate">Preprocessing</div>
+        <div class="card animate">CNN Model</div>
+        <div class="card animate">Prediction</div>
+        <div class="card animate">Sensor Data</div>
+        <div class="card animate">Final Output</div>
     </div>
 </div>
 
-<!-- ================= TECH ================= -->
-<div class="section fade-up">
-    <h2>🧪 Tech Stack</h2>
+<!-- TECH -->
+<div class="section">
+    <h2 class="animate">🧪 Tech Stack</h2>
+
     <div class="cards">
-        <div class="card">Python + Flask</div>
-        <div class="card">TensorFlow CNN</div>
-        <div class="card">OpenCV</div>
-        <div class="card">IoT Sensors</div>
+        <div class="card animate">Python + Flask</div>
+        <div class="card animate">TensorFlow</div>
+        <div class="card animate">OpenCV</div>
+        <div class="card animate">IoT Sensors</div>
     </div>
 </div>
 
-<!-- ================= IMPACT ================= -->
-<div class="section fade-up">
-    <h2>📊 Impact</h2>
+<!-- IMPACT -->
+<div class="section">
+    <h2 class="animate">📊 Impact</h2>
+
     <div class="stats">
-        <div class="stat"><h3>90%+</h3><p>Accuracy</p></div>
-        <div class="stat"><h3>60%</h3><p>Faster Diagnosis</p></div>
-        <div class="stat"><h3>24×7</h3><p>Monitoring</p></div>
-        <div class="stat"><h3>Scalable</h3><p>Healthcare</p></div>
+        <div class="stat animate"><h3>90%+</h3><p>Accuracy</p></div>
+        <div class="stat animate"><h3>60%</h3><p>Faster</p></div>
+        <div class="stat animate"><h3>24×7</h3><p>Monitoring</p></div>
+        <div class="stat animate"><h3>Scalable</h3><p>System</p></div>
     </div>
 </div>
 
-<!-- ================= WHY ================= -->
-<div class="highlight fade-up">
-    <h2>💙 Why CareSense?</h2>
-    <p style="max-width:900px;margin:auto">
-        Provides fast, affordable, and accurate diagnosis helping prevent blindness.
-    </p>
-</div>
-
-<!-- ================= CTA ================= -->
-<div class="cta fade-up">
+<!-- CTA -->
+<div class="cta animate">
     <h2>Start Smart Diagnosis</h2>
     <a href="/dr">🚀 Start Now</a>
 </div>

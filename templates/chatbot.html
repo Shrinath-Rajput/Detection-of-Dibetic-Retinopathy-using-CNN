@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3 style="text-align:center;">🤖 AI Healthcare Chatbot</h3>
+<h3 style="text-align:center;" class="animate">🤖 AI Healthcare Chatbot</h3>
 
-<div id="chat-box" class="chat-box">
+<div id="chat-box" class="chat-box animate">
     <p class="bot-msg"><strong>Bot:</strong> Hello! Ask me anything.</p>
 </div>
 
 <br>
 
-<div class="input-group chat-input">
+<div class="input-group chat-input animate">
     <input type="text" id="userInput" class="form-control" placeholder="Ask a question...">
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
 </div>
@@ -24,11 +24,24 @@
     border-radius:8px;
 }
 
+/* 🔥 message animation */
+@keyframes fadeMsg {
+    from {
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
 .bot-msg{
     background:#e9ecef;
     padding:8px;
     border-radius:6px;
     margin:5px 0;
+    animation:fadeMsg 0.4s ease;
 }
 
 .user-msg{
@@ -38,18 +51,32 @@
     border-radius:6px;
     margin:5px 0;
     text-align:right;
+    animation:fadeMsg 0.4s ease;
 }
 
-/* mobile fix */
+/* 🔥 input focus */
+.chat-input input:focus{
+    outline:none;
+    border-color:#0d6efd;
+    box-shadow:0 0 6px rgba(13,110,253,0.4);
+}
+
+/* 🔥 button */
+.chat-input button{
+    transition:0.3s;
+}
+.chat-input button:hover{
+    transform:scale(1.05);
+}
+
+/* mobile */
 .chat-input{
     display:flex;
     gap:10px;
 }
 
 @media (max-width:768px){
-    .chat-box{
-        height:260px;
-    }
+    .chat-box{ height:260px; }
 
     .chat-input{
         flex-direction:column;
@@ -70,7 +97,10 @@ function sendMessage() {
     let chatBox = document.getElementById("chat-box");
 
     // user message
-    chatBox.innerHTML += `<div class="user-msg"><strong>You:</strong> ${msg}</div>`;
+    let userDiv = document.createElement("div");
+    userDiv.className = "user-msg";
+    userDiv.innerHTML = `<strong>You:</strong> ${msg}`;
+    chatBox.appendChild(userDiv);
 
     fetch("/chat", {
         method: "POST",
@@ -81,7 +111,11 @@ function sendMessage() {
     })
     .then(res => res.json())
     .then(data => {
-        chatBox.innerHTML += `<div class="bot-msg"><strong>Bot:</strong> ${data.reply}</div>`;
+        let botDiv = document.createElement("div");
+        botDiv.className = "bot-msg";
+        botDiv.innerHTML = `<strong>Bot:</strong> ${data.reply}`;
+        chatBox.appendChild(botDiv);
+
         chatBox.scrollTop = chatBox.scrollHeight;
     });
 

@@ -8,49 +8,68 @@
     padding:60px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:50px
+    margin-bottom:50px;
+    transition:0.3s;
 }
-.hero h1{font-size:30px;margin-bottom:12px}
-.hero p{max-width:900px;margin:auto;font-size:15px;line-height:1.6}
+.hero:hover{ transform:translateY(-5px); }
 
-.section{margin-bottom:60px;padding:0 10px}
+.hero h1{font-size:30px}
+.hero p{max-width:900px;margin:auto;font-size:15px}
+
+.section{margin-bottom:60px}
 .section h2{text-align:center;color:#e64980;margin-bottom:25px}
 
+/* CARDS */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px
+    gap:20px;
 }
+
 .card{
     background:white;
     padding:20px;
     border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1)
+    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    transition:0.3s;
 }
 
+.card:hover{
+    transform:translateY(-8px) scale(1.02);
+    box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* FORM */
 .form-box{
     max-width:750px;
     margin:auto;
     background:white;
     padding:25px;
     border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15)
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    transition:0.3s;
 }
+.form-box:hover{ transform:translateY(-5px); }
 
 .form-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:15px
+    gap:15px;
 }
 
-label{font-weight:bold}
 input,select{
     width:100%;
     padding:10px;
     border-radius:8px;
-    border:1px solid #ccc
+    border:1px solid #ccc;
 }
 
+input:focus,select:focus{
+    border-color:#e64980;
+    box-shadow:0 0 6px rgba(230,73,128,0.4);
+}
+
+/* BUTTON */
 button{
     width:100%;
     background:#e64980;
@@ -58,138 +77,113 @@ button{
     border:none;
     padding:14px;
     border-radius:30px;
-    font-size:15px;
-    cursor:pointer;
-    margin-top:20px
+    margin-top:20px;
+    transition:0.3s;
 }
-button:hover{background:#d6336c}
+button:hover{
+    transform:scale(1.05);
+}
 
+/* NOTE */
 .note{
     background:#fff0f6;
     padding:15px;
     border-left:5px solid #e64980;
     border-radius:10px;
-    font-size:14px
+    transition:0.3s;
 }
+.note:hover{ transform:translateX(5px); }
 
-/* 🔥 MOBILE FIX */
+/* MOBILE */
 @media(max-width:768px){
     .hero h1{font-size:22px}
-    .hero p{font-size:14px}
     .form-grid{grid-template-columns:1fr}
-    .form-box{padding:20px}
 }
 </style>
 
-<!-- ================= HERO ================= -->
-<div class="hero">
+<!-- HERO -->
+<div class="hero animate">
     <h1>🧠 Migraine Risk Prediction</h1>
     <p>
-        AI-powered questionnaire to assess migraine risk and identify triggers
-        for better preventive care.
+        AI-powered questionnaire to assess migraine risk and triggers.
     </p>
 </div>
 
-<!-- ================= ABOUT ================= -->
-<div class="section">
+<!-- ABOUT -->
+<div class="section animate">
     <h2>What is Migraine?</h2>
-    <p style="max-width:900px;margin:auto;text-align:center">
-        Migraine is a neurological disorder with recurring headaches,
-        nausea, and sensitivity to light or sound. Early detection helps
-        manage severity.
+    <p style="text-align:center;max-width:900px;margin:auto">
+        Neurological disorder causing severe headaches and sensitivity.
     </p>
 </div>
 
-<!-- ================= TRIGGERS ================= -->
+<!-- TRIGGERS -->
 <div class="section">
-    <h2>Common Triggers</h2>
+    <h2 class="animate">Common Triggers</h2>
+
     <div class="cards">
-        <div class="card">💡 Light sensitivity</div>
-        <div class="card">😣 Stress</div>
-        <div class="card">☕ Caffeine</div>
-        <div class="card">😴 Poor sleep</div>
-        <div class="card">🍽 Skipped meals</div>
-        <div class="card">🧬 Hormonal changes</div>
+        <div class="card animate">💡 Light sensitivity</div>
+        <div class="card animate">😣 Stress</div>
+        <div class="card animate">☕ Caffeine</div>
+        <div class="card animate">😴 Poor sleep</div>
+        <div class="card animate">🍽 Skipped meals</div>
+        <div class="card animate">🧬 Hormonal changes</div>
     </div>
 </div>
 
-<!-- ================= FORM ================= -->
-<div class="section">
+<!-- FORM -->
+<div class="section animate">
     <h2>Migraine Risk Questionnaire</h2>
 
-    <div class="form-box">
+    <div class="form-box animate">
         <form action="/migraine_predict" method="POST">
 
             <div class="form-grid">
 
-                <div><label>Age</label><input type="number" name="age" required></div>
-                <div><label>Gender</label>
-                    <select name="gender"><option>Male</option><option>Female</option></select>
-                </div>
+                <input type="number" name="age" placeholder="Age" required>
 
-                <div><label>Family History</label>
-                    <select name="family"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="gender">
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
 
-                <div><label>Frequency / month</label><input type="number" name="frequency"></div>
-                <div><label>Duration (hours)</label><input type="number" name="duration"></div>
-                <div><label>Intensity (1–10)</label><input type="number" name="intensity" min="1" max="10"></div>
+                <select name="family">
+                    <option value="yes">Family History: Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <div><label>One-sided Pain</label>
-                    <select name="unilateral"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <input type="number" name="frequency" placeholder="Frequency / month">
+                <input type="number" name="duration" placeholder="Duration (hours)">
+                <input type="number" name="intensity" placeholder="Intensity (1–10)">
 
-                <div><label>Throbbing Pain</label>
-                    <select name="throbbing"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="unilateral"><option>One-sided Pain</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="throbbing"><option>Throbbing</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="nausea"><option>Nausea</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Nausea</label>
-                    <select name="nausea"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="light"><option>Light Sensitivity</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="sound"><option>Sound Sensitivity</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Light Sensitivity</label>
-                    <select name="light"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="aura"><option>Aura</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="dizziness"><option>Dizziness</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Sound Sensitivity</label>
-                    <select name="sound"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="activity_worse"><option>Activity Worsens</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Aura</label>
-                    <select name="aura"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <input type="number" name="sleep" placeholder="Sleep Hours">
 
-                <div><label>Dizziness</label>
-                    <select name="dizziness"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="insomnia"><option>Insomnia</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Activity Worsens Pain</label>
-                    <select name="activity_worse"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <input type="number" name="stress" placeholder="Stress (1–10)">
 
-                <div><label>Sleep Hours</label><input type="number" name="sleep"></div>
+                <select name="meals"><option>Skipped Meals</option><option value="yes">Yes</option><option value="no">No</option></select>
 
-                <div><label>Insomnia</label>
-                    <select name="insomnia"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="caffeine">
+                    <option>-- Caffeine --</option>
+                    <option value="high">High</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="low">Low</option>
+                </select>
 
-                <div><label>Stress (1–10)</label><input type="number" name="stress" min="1" max="10"></div>
-
-                <div><label>Skipped Meals</label>
-                    <select name="meals"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Caffeine</label>
-                    <select name="caffeine">
-                        <option value="high">High</option>
-                        <option value="moderate">Moderate</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-
-                <div><label>Hormonal Trigger</label>
-                    <select name="hormonal"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
+                <select name="hormonal"><option>Hormonal Trigger</option><option value="yes">Yes</option><option value="no">No</option></select>
 
             </div>
 
@@ -198,11 +192,10 @@ button:hover{background:#d6336c}
     </div>
 </div>
 
-<!-- ================= NOTE ================= -->
-<div class="section">
+<!-- NOTE -->
+<div class="section animate">
     <div class="note">
-        ⚠️ <b>Medical Disclaimer:</b>  
-        AI-based prediction for awareness only.
+        ⚠️ AI-based prediction for awareness only.
     </div>
 </div>
 

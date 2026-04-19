@@ -8,10 +8,13 @@
     padding:60px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:50px
+    margin-bottom:50px;
+    transition:0.3s;
 }
+.hero:hover{ transform:translateY(-5px); }
+
 .hero h1{font-size:32px;margin-bottom:15px}
-.hero p{max-width:900px;margin:auto;font-size:16px;line-height:1.6}
+.hero p{max-width:900px;margin:auto;font-size:16px}
 
 .section{margin-bottom:60px;padding:0 10px}
 .section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
@@ -21,11 +24,17 @@
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
     gap:20px
 }
+
 .card{
     background:white;
     padding:20px;
     border-radius:15px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1)
+    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+.card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
 }
 
 .form-box{
@@ -34,7 +43,7 @@
     background:white;
     padding:25px;
     border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15)
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
 }
 
 .form-grid{
@@ -43,171 +52,108 @@
     gap:15px
 }
 
-label{font-weight:bold}
 input,select{
     width:100%;
     padding:10px;
     border-radius:8px;
-    border:1px solid #ccc
+    border:1px solid #ccc;
+}
+
+input:focus,select:focus{
+    border-color:#0d6efd;
+    box-shadow:0 0 6px rgba(13,110,253,0.4);
 }
 
 button{
     width:100%;
     background:#0d6efd;
     color:white;
-    border:none;
     padding:14px;
+    border:none;
     border-radius:30px;
-    font-size:15px;
-    cursor:pointer;
-    margin-top:20px
+    margin-top:20px;
+    transition:0.3s;
 }
-button:hover{background:#0b5ed7}
+button:hover{ transform:scale(1.05); }
 
 .note{
     background:#f1f7ff;
     padding:15px;
     border-left:5px solid #0d6efd;
     border-radius:10px;
-    font-size:14px
 }
 
-/* 🔥 MOBILE FIX */
+/* mobile */
 @media(max-width:768px){
-    .hero h1{font-size:24px}
     .form-grid{grid-template-columns:1fr}
-    .form-box{padding:20px}
+    .hero h1{font-size:24px}
 }
 </style>
 
-<!-- ================= HERO ================= -->
-<div class="hero">
+<!-- HERO -->
+<div class="hero animate">
     <h1>🩺 Diabetes Risk Prediction</h1>
     <p>
-        AI-powered questionnaire system to assess diabetes risk using
-        lifestyle habits, symptoms, and medical history.
+        AI-powered questionnaire system to assess diabetes risk using lifestyle and history.
     </p>
 </div>
 
-<!-- ================= WHAT IS DIABETES ================= -->
-<div class="section">
+<!-- ABOUT -->
+<div class="section animate">
     <h2>What is Diabetes?</h2>
-    <p style="max-width:900px;margin:auto;text-align:center">
-        Diabetes is a chronic metabolic disorder characterized by high blood
-        glucose levels due to insufficient insulin production or improper
-        insulin usage. Early detection helps prevent complications such as
-        heart disease, kidney failure, nerve damage, and vision loss.
+    <p style="text-align:center">
+        Diabetes is a chronic condition where blood sugar levels are too high.
     </p>
 </div>
 
-<!-- ================= HOW AI WORKS ================= -->
+<!-- CARDS -->
 <div class="section">
-    <h2>How Our AI Predicts Diabetes Risk</h2>
+    <h2 class="animate">How Our AI Works</h2>
+
     <div class="cards">
-        <div class="card">📝 Patient health & lifestyle questionnaire</div>
-        <div class="card">📊 Risk factor scoring & feature weighting</div>
-        <div class="card">🧠 AI-based rule & pattern analysis</div>
-        <div class="card">⚠️ Risk level classification</div>
-        <div class="card">📋 Personalized preventive advice</div>
-        <div class="card">👨‍⚕️ Clinical decision support</div>
+        <div class="card animate">📝 Questionnaire</div>
+        <div class="card animate">📊 Risk scoring</div>
+        <div class="card animate">🧠 AI analysis</div>
+        <div class="card animate">⚠️ Classification</div>
+        <div class="card animate">📋 Advice</div>
+        <div class="card animate">👨‍⚕️ Support</div>
     </div>
 </div>
 
-<!-- ================= FORM ================= -->
-<div class="section">
-    <h2>Diabetes Prediction Questionnaire</h2>
+<!-- FORM -->
+<div class="section animate">
+    <h2>Diabetes Prediction</h2>
 
-    <div class="form-box">
+    <div class="form-box animate">
         <form action="/diabetes_predict" method="POST">
 
             <div class="form-grid">
+                <input type="number" name="age" placeholder="Age" required>
+                <select name="gender">
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
 
-                <div><label>Age</label><input type="number" name="age" required></div>
-                <div><label>Gender</label>
-                    <select name="gender">
-                        <option>Male</option>
-                        <option>Female</option>
-                    </select>
-                </div>
+                <input type="number" name="height" placeholder="Height">
+                <input type="number" name="weight" placeholder="Weight">
 
-                <div><label>Height (cm)</label><input type="number" name="height"></div>
-                <div><label>Weight (kg)</label><input type="number" name="weight"></div>
-                <div><label>BMI</label><input type="number" step="0.1" name="bmi"></div>
+                <input type="number" step="0.1" name="bmi" placeholder="BMI">
 
-                <div><label>Family History</label>
-                    <select name="family"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Frequent Urination</label>
-                    <select name="urination"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Excessive Thirst</label>
-                    <select name="thirst"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Increased Hunger</label>
-                    <select name="hunger"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Weight Loss</label>
-                    <select name="weight_loss"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Fatigue</label>
-                    <select name="fatigue"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Slow Healing</label>
-                    <select name="wound"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Blurred Vision</label>
-                    <select name="vision"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Activity (days/week)</label><input type="number" name="activity_days"></div>
-
-                <div><label>Sedentary Lifestyle</label>
-                    <select name="sedentary"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Unhealthy Diet</label>
-                    <select name="diet"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Smoking</label>
-                    <select name="smoking"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Alcohol</label>
-                    <select name="alcohol"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>High BP</label>
-                    <select name="bp"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>BP Medication</label>
-                    <select name="bp_med"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
-                <div><label>Gestational Diabetes</label>
-                    <select name="gestational"><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-
+                <select name="family">
+                    <option>Family History: Yes</option>
+                    <option>No</option>
+                </select>
             </div>
 
-            <button type="submit">🔍 Predict Diabetes Risk</button>
+            <button type="submit">🔍 Predict Risk</button>
         </form>
     </div>
 </div>
 
-<!-- ================= DISCLAIMER ================= -->
-<div class="section">
+<!-- NOTE -->
+<div class="section animate">
     <div class="note">
-        ⚠️ <b>Medical Disclaimer:</b><br>
-        This AI system provides diabetes risk assessment for awareness only.
+        ⚠️ This system is for awareness only.
     </div>
 </div>
 

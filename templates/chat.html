@@ -2,12 +2,12 @@
 
 {% block content %}
 
-<div class="chat-container">
-    <h2>🤖 AI Health Assistant</h2>
+<div class="chat-container animate">
+    <h2 class="animate">🤖 AI Health Assistant</h2>
 
     <div id="chat-box" class="chat-box"></div>
 
-    <div class="input-area">
+    <div class="input-area animate">
         <input type="text" id="user-input" placeholder="Ask something..." />
         <button onclick="sendMessage()">Send</button>
     </div>
@@ -19,8 +19,14 @@
     margin:auto;
     background:white;
     padding:20px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+/* hover */
+.chat-container:hover{
+    transform:translateY(-5px);
 }
 
 .chat-box{
@@ -33,11 +39,18 @@
     background:#f9f9f9;
 }
 
+/* message animation */
 .message{
     margin:10px 0;
-    padding:8px 12px;
-    border-radius:6px;
+    padding:10px 14px;
+    border-radius:8px;
     max-width:75%;
+    animation:fadeMsg 0.4s ease;
+}
+
+@keyframes fadeMsg{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
 }
 
 .user{
@@ -49,9 +62,9 @@
 
 .bot{
     background:#e9ecef;
-    color:black;
 }
 
+/* input */
 .input-area{
     display:flex;
     gap:10px;
@@ -64,6 +77,12 @@
     border:1px solid #ccc;
 }
 
+.input-area input:focus{
+    outline:none;
+    border-color:#0d6efd;
+    box-shadow:0 0 5px rgba(13,110,253,0.5);
+}
+
 .input-area button{
     background:#0d6efd;
     color:white;
@@ -71,21 +90,17 @@
     padding:10px 15px;
     border-radius:6px;
     cursor:pointer;
+    transition:0.3s;
 }
 
 .input-area button:hover{
-    background:#0b5ed7;
+    transform:scale(1.05);
 }
 
-/* 🔥 Mobile responsive */
+/* mobile */
 @media (max-width:768px){
-    .chat-container{
-        padding:15px;
-    }
-
-    .chat-box{
-        height:300px;
-    }
+    .chat-box{height:300px;}
+    .chat-container{padding:15px;}
 }
 </style>
 
@@ -113,8 +128,10 @@ function sendMessage(){
 function appendMessage(text, type){
     let box = document.getElementById("chat-box");
     let div = document.createElement("div");
-    div.classList.add("message", type);
+
+    div.className = "message " + type;
     div.innerText = text;
+
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 }

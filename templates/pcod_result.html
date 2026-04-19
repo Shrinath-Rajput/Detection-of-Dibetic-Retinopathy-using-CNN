@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <style>
@@ -9,21 +8,58 @@
     padding:0 10px;
 }
 
+/* CARD */
 .card{
     background:white;
     padding:20px;
-    border-radius:12px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    border-radius:14px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.1);
     margin-bottom:20px;
+    transition:0.3s;
 }
 
+/* hover lift */
+.card:hover{
+    transform:translateY(-6px);
+}
+
+/* TITLE */
 h2{margin-top:0}
 
+/* RISK */
 .danger{
-    color:red;
+    color:#dc3545;
     font-weight:bold;
+    font-size:18px;
+    animation:pulse 1.2s infinite alternate;
 }
 
+/* 🔥 pulse */
+@keyframes pulse{
+    from{transform:scale(1);}
+    to{transform:scale(1.05);}
+}
+
+/* LIST */
+ul{padding-left:20px}
+li{
+    margin:6px 0;
+    animation:fadeItem 0.5s ease;
+}
+
+/* 🔥 list animation */
+@keyframes fadeItem{
+    from{
+        opacity:0;
+        transform:translateX(-10px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+/* BUTTON */
 .btn{
     display:inline-block;
     background:#0d6efd;
@@ -31,13 +67,14 @@ h2{margin-top:0}
     padding:12px 20px;
     border-radius:6px;
     text-decoration:none;
+    transition:0.3s;
 }
 
 .btn:hover{
-    background:#0b5ed7;
+    transform:scale(1.05);
 }
 
-/* 🔥 MOBILE FIX */
+/* MOBILE */
 @media (max-width:768px){
     .container{
         margin:20px;
@@ -47,34 +84,40 @@ h2{margin-top:0}
 
 <div class="container">
 
-    <div class="card">
-        <h2>🧠 PCOD Risk Assessment</h2>
-        <p class="danger">Prediction: {{ risk }}</p>
-        <p>
+    <!-- RESULT -->
+    <div class="card animate">
+        <h2 class="animate">🧠 PCOD Risk Assessment</h2>
+        <p class="danger animate">Prediction: {{ risk }}</p>
+        <p class="animate">
             Based on BMI, stress, sleep, activity, lifestyle and family history.
         </p>
     </div>
 
-    <div class="card">
+    <!-- CONCERNS -->
+    <div class="card animate">
         <h2>⚠️ Possible Health Concerns</h2>
         <ul>
-            <li>Hormonal imbalance</li>
-            <li>Metabolic issues</li>
-            <li>Stress-related effects</li>
+            <li class="animate">Hormonal imbalance</li>
+            <li class="animate">Metabolic issues</li>
+            <li class="animate">Stress-related effects</li>
         </ul>
     </div>
 
-    <div class="card">
+    <!-- ADVICE -->
+    <div class="card animate">
         <h2>✅ Preventive Advice</h2>
         <ul>
             {% for a in advice %}
-            <li>{{ a }}</li>
+            <li class="animate">{{ a }}</li>
             {% endfor %}
         </ul>
     </div>
 
-    <div class="card" style="text-align:center">
-        <a href="/pcod" class="btn">🔁 Check Another Patient</a>
+    <!-- BUTTON -->
+    <div class="card animate" style="text-align:center">
+        <a href="/pcod" class="btn animate">
+            🔁 Check Another Patient
+        </a>
     </div>
 
 </div>

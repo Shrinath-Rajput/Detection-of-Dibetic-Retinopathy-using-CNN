@@ -8,63 +8,80 @@
     padding:0 10px;
 }
 
+/* HERO */
 .hero{
     background:linear-gradient(135deg,#ff4d4d,#ff7a7a);
     color:white;
     padding:40px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:30px
+    margin-bottom:30px;
+    transition:0.3s;
 }
+.hero:hover{ transform:translateY(-5px); }
 
 .hero h1{font-size:28px}
 
+/* GRID */
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px
+    gap:20px;
 }
 
+/* CARD */
 .card{
     background:white;
     padding:20px;
     border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.12)
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    transition:0.3s;
 }
 
+.card:hover{
+    transform:translateY(-8px) scale(1.02);
+    box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* VALUES */
 .value{
     font-size:26px;
     font-weight:bold;
-    margin:10px 0
+    margin:10px 0;
 }
 
+/* BADGES */
 .badge{
     display:inline-block;
     padding:6px 12px;
     border-radius:20px;
     font-size:12px;
-    font-weight:bold
+    font-weight:bold;
 }
 
 .ok{background:#d4edda;color:#155724}
 .warn{background:#fff3cd;color:#856404}
 .danger{background:#f8d7da;color:#721c24}
 
+/* TITLES */
 .section-title{
     margin:40px 0 15px;
-    color:#0d6efd
+    color:#0d6efd;
 }
 
+/* NOTE */
 .note{
     background:#f1f7ff;
     padding:15px;
     border-left:5px solid #0d6efd;
     border-radius:10px;
     font-size:14px;
-    margin-top:30px
+    margin-top:30px;
+    transition:0.3s;
 }
+.note:hover{ transform:translateX(5px); }
 
-/* 🔥 MOBILE FIX */
+/* MOBILE */
 @media (max-width:768px){
     .hero h1{font-size:22px}
     .value{font-size:22px}
@@ -74,26 +91,26 @@
 <div class="container">
 
     <!-- HERO -->
-    <div class="hero">
+    <div class="hero animate">
         <h1>❤️ Live Health Monitoring</h1>
         <p>Real-time IoT monitoring using ESP32 + MAX30102</p>
     </div>
 
-    <!-- LIVE VITALS -->
+    <!-- VITALS -->
     <div class="grid">
-        <div class="card">
+        <div class="card animate">
             <h3>❤️ Heart Rate</h3>
             <div class="value"><span id="hr">--</span> BPM</div>
             <span class="badge ok" id="hr_status">--</span>
         </div>
 
-        <div class="card">
+        <div class="card animate">
             <h3>🫁 SpO₂ Level</h3>
             <div class="value"><span id="spo2">--</span> %</div>
             <span class="badge ok" id="spo2_status">--</span>
         </div>
 
-        <div class="card">
+        <div class="card animate">
             <h3>📡 Sensor Status</h3>
             <div class="value" id="status">--</div>
             <p style="font-size:13px;margin-top:8px">
@@ -103,27 +120,28 @@
     </div>
 
     <!-- RISK -->
-    <h2 class="section-title">⚠️ Risk Prediction</h2>
-    <div class="card">
+    <h2 class="section-title animate">⚠️ Risk Prediction</h2>
+    <div class="card animate">
         <ul id="risk"></ul>
     </div>
 
     <!-- ADVICE -->
-    <h2 class="section-title">✅ Preventive Advice</h2>
-    <div class="card">
+    <h2 class="section-title animate">✅ Preventive Advice</h2>
+    <div class="card animate">
         <ul id="advice"></ul>
     </div>
 
-    <!-- EXTRA -->
-    <h2 class="section-title">📘 Benefits</h2>
+    <!-- BENEFITS -->
+    <h2 class="section-title animate">📘 Benefits</h2>
     <div class="grid">
-        <div class="card">✔ Continuous monitoring</div>
-        <div class="card">✔ Early detection</div>
-        <div class="card">✔ AI risk analysis</div>
-        <div class="card">✔ Elderly support</div>
+        <div class="card animate">✔ Continuous monitoring</div>
+        <div class="card animate">✔ Early detection</div>
+        <div class="card animate">✔ AI risk analysis</div>
+        <div class="card animate">✔ Elderly support</div>
     </div>
 
-    <div class="note">
+    <!-- NOTE -->
+    <div class="note animate">
         ⚠️ <b>Medical Disclaimer:</b><br>
         This system provides real-time vitals for awareness only.
     </div>
@@ -152,6 +170,7 @@ function fetchData(){
         d.risk.forEach(x=>{
             let li=document.createElement("li");
             li.innerText=x;
+            li.classList.add("animate");
             rEl.appendChild(li);
         });
 
@@ -160,6 +179,7 @@ function fetchData(){
         d.advice.forEach(x=>{
             let li=document.createElement("li");
             li.innerText=x;
+            li.classList.add("animate");
             aEl.appendChild(li);
         });
     });

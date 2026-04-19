@@ -8,44 +8,64 @@
     padding:60px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:50px
+    margin-bottom:50px;
+    transition:0.3s;
 }
-.hero h1{font-size:30px;margin-bottom:12px}
-.hero p{max-width:900px;margin:auto;font-size:15px;line-height:1.6}
+.hero:hover{ transform:translateY(-5px); }
 
-.section{margin-bottom:60px;padding:0 10px}
+.hero h1{font-size:30px}
+.hero p{max-width:900px;margin:auto;font-size:15px}
+
+.section{margin-bottom:60px}
 .section h2{text-align:center;color:#6f42c1;margin-bottom:25px}
 
+/* CARDS */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px
+    gap:20px;
 }
+
 .card{
     background:white;
     padding:20px;
     border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1)
+    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    transition:0.3s;
 }
 
+.card:hover{
+    transform:translateY(-8px) scale(1.02);
+    box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* FORM */
 .form-box{
     max-width:520px;
     margin:auto;
     background:white;
     padding:25px;
     border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15)
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    transition:0.3s;
 }
+.form-box:hover{ transform:translateY(-5px); }
 
-.form-box label{font-weight:bold}
 .form-box input,.form-box select{
     width:100%;
     padding:10px;
     margin:8px 0 15px;
     border-radius:8px;
-    border:1px solid #ccc
+    border:1px solid #ccc;
 }
 
+.form-box input:focus,.form-box select:focus{
+    border-color:#6f42c1;
+    box-shadow:0 0 6px rgba(111,66,193,0.4);
+    outline:none;
+}
+
+/* BUTTON */
 .form-box button{
     width:100%;
     background:#6f42c1;
@@ -53,112 +73,101 @@
     border:none;
     padding:14px;
     border-radius:30px;
-    font-size:15px;
-    cursor:pointer
+    cursor:pointer;
+    transition:0.3s;
 }
-.form-box button:hover{background:#5a379e}
+.form-box button:hover{
+    transform:scale(1.05);
+}
 
+/* NOTE */
 .note{
     background:#f4edff;
     padding:15px;
     border-left:5px solid #6f42c1;
     border-radius:10px;
-    font-size:14px
+    transition:0.3s;
 }
+.note:hover{ transform:translateX(5px); }
 
-/* 🔥 MOBILE FIX */
+/* MOBILE */
 @media(max-width:768px){
     .hero h1{font-size:22px}
-    .hero p{font-size:14px}
-    .form-box{padding:20px}
 }
 </style>
 
-<!-- ================= HERO ================= -->
-<div class="hero">
+<!-- HERO -->
+<div class="hero animate">
     <h1>🌸 PCOD Risk Assessment</h1>
-    <p>
-        AI-assisted questionnaire for early detection of PCOD risk and lifestyle-based insights.
-    </p>
+    <p>AI-based questionnaire for early detection</p>
 </div>
 
-<!-- ================= ABOUT ================= -->
-<div class="section">
+<!-- ABOUT -->
+<div class="section animate">
     <h2>What is PCOD?</h2>
-    <p style="max-width:900px;margin:auto;text-align:center">
-        PCOD is a hormonal disorder affecting women of reproductive age. Early detection helps manage symptoms and prevent complications.
+    <p style="text-align:center;max-width:900px;margin:auto">
+        Hormonal disorder affecting women of reproductive age.
     </p>
 </div>
 
-<!-- ================= SYMPTOMS ================= -->
+<!-- SYMPTOMS -->
 <div class="section">
-    <h2>Common Indicators</h2>
+    <h2 class="animate">Common Indicators</h2>
+
     <div class="cards">
-        <div class="card">⚖️ Weight gain</div>
-        <div class="card">😴 Fatigue</div>
-        <div class="card">😣 Stress</div>
-        <div class="card">🩸 Irregular periods</div>
-        <div class="card">🥗 Poor diet</div>
-        <div class="card">👩‍👧 Family history</div>
+        <div class="card animate">⚖️ Weight gain</div>
+        <div class="card animate">😴 Fatigue</div>
+        <div class="card animate">😣 Stress</div>
+        <div class="card animate">🩸 Irregular periods</div>
+        <div class="card animate">🥗 Poor diet</div>
+        <div class="card animate">👩‍👧 Family history</div>
     </div>
 </div>
 
-<!-- ================= FORM ================= -->
-<div class="section">
-    <h2>PCOD Risk Questionnaire</h2>
+<!-- FORM -->
+<div class="section animate">
+    <h2>PCOD Questionnaire</h2>
 
-    <div class="form-box">
+    <div class="form-box animate">
         <form action="/pcod_predict" method="POST">
 
-            <label>Age</label>
-            <input type="number" name="age" required>
+            <input type="number" name="age" placeholder="Age" required>
 
-            <label>Gender</label>
             <select name="gender">
                 <option>Female</option>
             </select>
 
-            <label>BMI</label>
-            <input type="number" step="0.1" name="bmi" required>
+            <input type="number" step="0.1" name="bmi" placeholder="BMI" required>
 
-            <label>Fatigue (1–10)</label>
-            <input type="number" name="fatigue" min="1" max="10">
+            <input type="number" name="fatigue" placeholder="Fatigue (1–10)">
+            <input type="number" name="sleep" placeholder="Sleep (1–10)">
+            <input type="number" name="stress" placeholder="Stress (1–10)">
 
-            <label>Sleep Quality (1–10)</label>
-            <input type="number" name="sleep" min="1" max="10">
-
-            <label>Stress Level (1–10)</label>
-            <input type="number" name="stress" min="1" max="10">
-
-            <label>Physical Activity</label>
             <select name="activity">
-                <option value="low">Low</option>
+                <option value="low">Low Activity</option>
                 <option value="moderate">Moderate</option>
                 <option value="high">High</option>
             </select>
 
-            <label>Diet Type</label>
             <select name="diet">
-                <option value="balanced">Balanced</option>
-                <option value="junk">Junk</option>
+                <option value="balanced">Balanced Diet</option>
+                <option value="junk">Junk Food</option>
             </select>
 
-            <label>Family History</label>
             <select name="family_history">
-                <option value="yes">Yes</option>
+                <option value="yes">Family History: Yes</option>
                 <option value="no">No</option>
             </select>
 
-            <button type="submit">🔍 Predict PCOD Risk</button>
+            <button type="submit">🔍 Predict Risk</button>
         </form>
     </div>
 </div>
 
-<!-- ================= NOTE ================= -->
-<div class="section">
+<!-- NOTE -->
+<div class="section animate">
     <div class="note">
-        ⚠️ <b>Medical Disclaimer:</b>  
-        AI-based assessment for awareness only.
+        ⚠️ AI-based prediction for awareness only.
     </div>
 </div>
 

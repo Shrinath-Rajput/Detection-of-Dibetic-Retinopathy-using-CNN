@@ -2,138 +2,150 @@
 {% block content %}
 
 <style>
-.hero-dr{
-    background:linear-gradient(135deg,#0d6efd,#4dabf7);
-    color:white;
-    padding:60px 20px;
-    border-radius:20px;
-    text-align:center;
-    margin-bottom:50px
+
+/* BACKGROUND */
+body{
+    background:linear-gradient(135deg,#f0f4ff,#eef7ff);
 }
-.hero-dr h1{font-size:32px;margin-bottom:12px}
-.hero-dr p{max-width:900px;margin:auto;font-size:16px;line-height:1.6}
 
-.section{margin-bottom:60px;padding:0 10px}
-.section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
+/* HERO */
+.hero-dr{
+    background:linear-gradient(135deg,#1e3a8a,#2563eb);
+    color:white;
+    padding:80px 20px;
+    border-radius:25px;
+    text-align:center;
+    margin-bottom:70px;
+    box-shadow:0 15px 40px rgba(37,99,235,0.3);
+    transition:0.3s;
+}
+.hero-dr:hover{ transform:translateY(-5px); }
 
+.hero-dr h1{font-size:34px}
+.hero-dr p{max-width:900px;margin:auto;font-size:17px}
+
+/* SECTION */
+.section{
+    margin-bottom:70px;
+}
+
+/* CARDS */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px
+    gap:20px;
 }
+
 .card{
     background:white;
-    padding:20px;
-    border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1)
+    padding:22px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    transition:0.3s;
 }
 
+.card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 40px rgba(37,99,235,0.25);
+}
+
+/* UPLOAD */
 .upload-box{
     max-width:500px;
-    margin:0 auto;
+    margin:auto;
     background:white;
-    padding:25px;
-    border-radius:16px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-    text-align:center
-}
-
-.upload-box input{
-    margin:15px 0;
-    width:100%;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.15);
+    text-align:center;
 }
 
 .upload-box button{
-    background:#0d6efd;
+    background:#2563eb;
     color:white;
+    padding:14px;
     border:none;
-    padding:12px;
+    border-radius:30px;
     width:100%;
-    border-radius:25px;
-    font-size:15px;
-    cursor:pointer
+    transition:0.3s;
 }
-.upload-box button:hover{background:#0b5ed7}
+.upload-box button:hover{
+    transform:scale(1.05);
+}
 
+/* NOTE */
 .note{
-    background:#f1f7ff;
-    padding:15px;
-    border-left:5px solid #0d6efd;
-    border-radius:10px;
-    font-size:14px
+    background:#eef4ff;
+    padding:18px;
+    border-left:5px solid #2563eb;
+    border-radius:12px;
 }
 
-/* 🔥 MOBILE FIX */
+/* MOBILE */
 @media(max-width:768px){
     .hero-dr h1{font-size:24px}
-    .hero-dr p{font-size:14px}
 }
+
 </style>
 
-<!-- ================= HERO ================= -->
-<div class="hero-dr">
+<!-- HERO -->
+<div class="hero-dr animate">
     <h1>👁️ Diabetic Retinopathy Detection</h1>
     <p>
-        Upload a retinal fundus image and let our AI-powered Deep Learning model
-        analyze early signs of Diabetic Retinopathy with high accuracy.
+        Upload retinal image and detect early signs using AI.
     </p>
 </div>
 
-<!-- ================= ABOUT ================= -->
-<div class="section">
-    <h2>What is Diabetic Retinopathy?</h2>
-    <p style="max-width:900px;margin:auto;text-align:center">
-        Diabetic Retinopathy is a diabetes-related eye disease caused by damage
-        to retinal blood vessels. If not detected early, it can lead to
-        permanent vision loss or blindness.
+<!-- ABOUT -->
+<div class="section animate">
+    <h2 style="text-align:center;">What is Diabetic Retinopathy?</h2>
+    <p style="text-align:center;max-width:900px;margin:auto">
+        Eye disease caused by diabetes affecting retinal blood vessels.
     </p>
 </div>
 
-<!-- ================= HOW AI ================= -->
+<!-- HOW -->
 <div class="section">
-    <h2>How Our AI Detects DR</h2>
+    <h2 class="animate" style="text-align:center;">How AI Works</h2>
+
     <div class="cards">
-        <div class="card">📸 Upload retinal image</div>
-        <div class="card">🧪 Preprocessing</div>
-        <div class="card">🧠 CNN feature extraction</div>
-        <div class="card">📊 DR classification</div>
-        <div class="card">✅ Confidence score</div>
-        <div class="card">👨‍⚕️ Clinical support</div>
+        <div class="card animate">📸 Upload Image</div>
+        <div class="card animate">🧪 Preprocess</div>
+        <div class="card animate">🧠 CNN Model</div>
+        <div class="card animate">📊 Prediction</div>
+        <div class="card animate">✅ Result</div>
+        <div class="card animate">👨‍⚕️ Support</div>
     </div>
 </div>
 
-<!-- ================= UPLOAD ================= -->
-<div class="section">
-    <h2>Upload Retinal Image</h2>
+<!-- UPLOAD -->
+<div class="section animate">
+    <h2 style="text-align:center;">Upload Image</h2>
 
-    <div class="upload-box">
+    <div class="upload-box animate">
         <form action="/predict" method="POST" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">🔍 Predict Diabetic Retinopathy</button>
+            <input type="file" name="image" required>
+            <button type="submit">🔍 Predict</button>
         </form>
-
-        <p style="margin-top:10px;font-size:13px">
-            Supported: JPG, PNG | Fundus images only
-        </p>
     </div>
 </div>
 
-<!-- ================= WHY ================= -->
+<!-- WHY -->
 <div class="section">
-    <h2>Why Early Detection Matters</h2>
+    <h2 class="animate" style="text-align:center;">Why Important</h2>
+
     <div class="cards">
-        <div class="card">✔ Prevents blindness</div>
-        <div class="card">✔ Early treatment</div>
-        <div class="card">✔ Less specialist dependency</div>
-        <div class="card">✔ Rural screening ready</div>
+        <div class="card animate">✔ Prevent blindness</div>
+        <div class="card animate">✔ Early detection</div>
+        <div class="card animate">✔ Low cost</div>
+        <div class="card animate">✔ Rural use</div>
     </div>
 </div>
 
-<!-- ================= NOTE ================= -->
-<div class="section">
+<!-- NOTE -->
+<div class="section animate">
     <div class="note">
-        ⚠️ <b>Medical Disclaimer:</b>  
-        This system provides AI-based prediction for awareness only.
+        ⚠️ This system is for awareness only.
     </div>
 </div>
 

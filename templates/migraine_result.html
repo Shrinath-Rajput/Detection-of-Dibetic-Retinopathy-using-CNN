@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <style>
@@ -8,8 +7,14 @@
     background:white;
     margin:40px auto;
     padding:25px;
-    border-radius:10px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+/* hover */
+.container:hover{
+    transform:translateY(-5px);
 }
 
 h2 {
@@ -17,16 +22,39 @@ h2 {
     text-align:center;
 }
 
+/* 🔥 risk animation */
 .risk {
-    font-size:18px;
+    font-size:20px;
     font-weight:bold;
     margin:15px 0;
     text-align:center;
+    animation:pulse 1.2s infinite alternate;
+}
+
+@keyframes pulse{
+    from{transform:scale(1);}
+    to{transform:scale(1.05);}
 }
 
 ul {
     margin-top:10px;
     padding-left:20px;
+}
+
+li{
+    margin:6px 0;
+    animation:fadeItem 0.5s ease;
+}
+
+@keyframes fadeItem{
+    from{
+        opacity:0;
+        transform:translateX(-10px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
 }
 
 .back {
@@ -38,13 +66,14 @@ ul {
     background:#0d6efd;
     padding:12px;
     border-radius:6px;
+    transition:0.3s;
 }
 
 .back:hover {
-    background:#0b5ed7;
+    transform:scale(1.05);
 }
 
-/* 🔥 MOBILE FIX */
+/* mobile */
 @media (max-width:768px){
     .container{
         margin:20px;
@@ -53,29 +82,31 @@ ul {
 }
 </style>
 
-<div class="container">
+<div class="container animate">
 
-    <h2>🧠 Migraine Risk Result</h2>
+    <h2 class="animate">🧠 Migraine Risk Result</h2>
 
-    <div class="risk">
+    <div class="risk animate">
         Risk Level: {{ risk }}
     </div>
 
-    <h4>Possible Triggers / Symptoms:</h4>
+    <h4 class="animate">Possible Triggers / Symptoms:</h4>
     <ul>
         {% for r in risks %}
-            <li>{{ r }}</li>
+            <li class="animate">{{ r }}</li>
         {% endfor %}
     </ul>
 
-    <h4>Preventive Advice:</h4>
+    <h4 class="animate">Preventive Advice:</h4>
     <ul>
         {% for a in advice %}
-            <li>{{ a }}</li>
+            <li class="animate">{{ a }}</li>
         {% endfor %}
     </ul>
 
-    <a class="back" href="/migraine">⬅ Back to Migraine Check</a>
+    <a class="back animate" href="/migraine">
+        ⬅ Back to Migraine Check
+    </a>
 
 </div>
 

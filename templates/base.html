@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <!-- 🔥 IMPORTANT (mobile fix) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>CareSense Assistant</title>
 
     <style>
@@ -15,15 +12,13 @@
             background:#f4f6f8;
         }
 
-        /* ================= NAVBAR ================= */
+        /* NAVBAR */
         .navbar {
             background:#0d6efd;
             padding:15px 30px;
             display:flex;
             justify-content:space-between;
             align-items:center;
-            position:relative;
-            z-index:1000;
             flex-wrap:wrap;
         }
 
@@ -36,59 +31,22 @@
         .menu {
             list-style:none;
             display:flex;
-            align-items:center;
             margin:0;
             padding:0;
-        }
-
-        .menu li {
-            position:relative;
         }
 
         .menu a {
             color:white;
             text-decoration:none;
-            margin-left:25px;
+            margin-left:20px;
             font-weight:bold;
-            cursor:pointer;
         }
 
-        /* ================= DROPDOWN ================= */
-        .dropdown {
-            position:relative;
+        .menu a:hover {
+            color:#ffd43b;
         }
 
-        .dropdown-menu {
-            display:none;
-            position:absolute;
-            top:100%;
-            right:0;
-            background:white;
-            min-width:200px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.2);
-            border-radius:6px;
-            z-index:2000;
-        }
-
-        .dropdown-menu li {
-            padding:10px;
-        }
-
-        .dropdown-menu li a {
-            color:#333;
-            margin:0;
-            display:block;
-        }
-
-        .dropdown-menu li a:hover {
-            background:#f1f1f1;
-        }
-
-        .dropdown:hover > .dropdown-menu {
-            display:block;
-        }
-
-        /* ================= MOBILE MENU ================= */
+        /* MOBILE */
         .menu-toggle {
             display:none;
             font-size:26px;
@@ -96,84 +54,94 @@
             cursor:pointer;
         }
 
-        /* ================= RESPONSIVE ================= */
-        @media (max-width: 768px) {
-
-            .menu-toggle {
-                display:block;
-            }
-
-            .menu {
+        @media(max-width:768px){
+            .menu-toggle{display:block}
+            .menu{
                 display:none;
                 flex-direction:column;
                 width:100%;
-                margin-top:10px;
             }
-
-            .menu.active {
-                display:flex;
-            }
-
-            .menu li {
-                margin:10px 0;
-            }
-
-            .menu a {
-                margin-left:0;
-            }
-
-            .dropdown-menu {
-                position:static;
-                box-shadow:none;
-            }
+            .menu.active{display:flex}
         }
 
-        /* ================= PAGE CONTENT ================= */
-        .content {
+        /* CONTENT */
+        .content{
             padding:40px;
-            position:relative;
-            z-index:1;
         }
+
+        /* 🔥 ANIMATION */
+        .animate{
+            opacity:0;
+            transform:translateY(40px);
+            transition:all 0.8s ease;
+        }
+
+        .animate.show{
+            opacity:1;
+            transform:translateY(0);
+        }
+
+        /* CARD */
+        .card{
+            transition:0.3s;
+        }
+        .card:hover{
+            transform:translateY(-10px) scale(1.03);
+            box-shadow:0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        /* BUTTON */
+        button{
+            transition:0.3s;
+        }
+        button:hover{
+            transform:scale(1.05);
+        }
+
     </style>
 </head>
 
 <body>
 
-<!-- ===== NAVBAR ===== -->
 <div class="navbar">
-    <div class="logo">🧠 CareSense Assistant</div>
+    <div class="logo">🧠 CareSense</div>
 
-    <!-- 🔥 MOBILE BUTTON -->
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
 
     <ul class="menu" id="menu">
         <li><a href="/">Home</a></li>
-        <li><a href="/dr">Diabetic Retinopathy</a></li>
-
-        <li class="dropdown">
-            <a href="#">Input Based Diseases ▾</a>
-            <ul class="dropdown-menu">
-                <li><a href="/pcod">PCOD</a></li>
-                <li><a href="/migraine">Migraine</a></li>
-                <li><a href="/diabetes">Diabetes</a></li>
-            </ul>
-        </li>
-
-        <li><a href="/live_health">Live Sensor</a></li>
+        <li><a href="/dr">DR</a></li>
+        <li><a href="/pcod">PCOD</a></li>
+        <li><a href="/diabetes">Diabetes</a></li>
+        <li><a href="/migraine">Migraine</a></li>
+        <li><a href="/live_health">Sensor</a></li>
         <li><a href="/chatbot">AI</a></li>
     </ul>
 </div>
 
-<!-- ===== PAGE CONTENT ===== -->
 <div class="content">
     {% block content %}{% endblock %}
 </div>
 
-<!-- 🔥 SCRIPT -->
 <script>
 function toggleMenu(){
     document.getElementById("menu").classList.toggle("active");
 }
+
+/* 🔥 ANIMATION ENGINE */
+const observer = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+        if(entry.isIntersecting){
+            entry.target.classList.add("show");
+        }
+    });
+});
+
+window.onload = () => {
+    document.querySelectorAll(".animate").forEach(el=>{
+        observer.observe(el);
+    });
+};
 </script>
 
 </body>

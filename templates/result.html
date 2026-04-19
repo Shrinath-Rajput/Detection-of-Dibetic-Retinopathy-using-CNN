@@ -1,13 +1,74 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+.container{
+    max-width:900px;
+    margin:30px auto;
+    padding:0 10px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    margin-bottom:20px;
+}
+
+.image-box{
+    text-align:center;
+    margin-bottom:15px;
+}
+.image-box img{
+    max-width:100%;
+    border-radius:10px;
+}
+
+/* status colors */
+.ok{color:green;font-weight:bold}
+.warn{color:orange;font-weight:bold}
+.danger{color:red;font-weight:bold}
+
+.note{
+    background:#f1f7ff;
+    padding:12px;
+    border-left:5px solid #0d6efd;
+    border-radius:8px;
+    font-size:14px;
+    margin-top:10px;
+}
+
+.btn{
+    display:block;
+    text-align:center;
+    background:#0d6efd;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+    text-decoration:none;
+    margin-top:20px;
+}
+.btn:hover{background:#0b5ed7}
+
+/* 🔥 MOBILE FIX */
+@media (max-width:768px){
+    h1{font-size:22px}
+}
+</style>
+
 <div class="container">
 
-    <h1>🧠  CareSense Assistant– Result Summary</h1>
+    <h1>🧠 CareSense Assistant – Result Summary</h1>
 
     <!-- ================= DR RESULT ================= -->
     <div class="card">
-        <h2>Diabetic Retinopathy Prediction</h2>
+        <h2>👁️ Diabetic Retinopathy Prediction</h2>
 
         <div class="image-box">
             <img src="{{ image_path }}" alt="Uploaded Retina Image">
@@ -19,9 +80,8 @@
 
     <!-- ================= HEALTH MONITORING ================= -->
     {% if health %}
-    <hr>
     <div class="card">
-        <h2>❤️ Live Health Monitoring (MAX30102)</h2>
+        <h2>❤️ Live Health Monitoring</h2>
 
         {% if health.error %}
             <p class="danger">Sensor Error: {{ health.error }}</p>
@@ -34,7 +94,7 @@
             <h3>Body Analysis</h3>
             <ul>
                 <li>
-                    Heart Rate Status:
+                    Heart Rate:
                     {% if health["Body Analysis"]["heart_rate"][0] == "Normal" %}
                         <span class="ok">Normal</span>
                     {% else %}
@@ -43,7 +103,7 @@
                 </li>
 
                 <li>
-                    SpO₂ Status:
+                    SpO₂:
                     {% if health["Body Analysis"]["spo2"][0] == "Normal" %}
                         <span class="ok">Normal</span>
                     {% else %}
@@ -60,8 +120,7 @@
             </ul>
 
             <p class="note">
-                ⚠️ This system provides <b>risk prediction</b> based on sensor data.<br>
-                It is <b>not a medical diagnosis</b>.
+                ⚠️ AI-based risk analysis only — not a medical diagnosis.
             </p>
 
         {% endif %}

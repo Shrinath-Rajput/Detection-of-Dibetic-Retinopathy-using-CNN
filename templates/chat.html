@@ -1,73 +1,123 @@
-import os
-import json
-import uuid
-import numpy as np
-from flask import Flask, render_template, request, redirect, url_for, make_response
-from tensorflow.keras.models import load_model
-from src.utils.preprocess import preprocess_image
+{% extends "base.html" %}
 
-app = Flask(__name__)
+{% block content %}
 
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+<div class="chat-container">
+    <h2>🤖 AI Health Assistant</h2>
 
-model = load_model("dr_cnn_model.h5")
+    <div id="chat-box" class="chat-box"></div>
 
-with open("class_indices.json") as f:
-    class_indices = json.load(f)
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Ask something..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
 
-INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
+<style>
+.chat-container{
+    max-width:600px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
 
+.chat-box{
+    height:350px;
+    overflow-y:auto;
+    border:1px solid #ddd;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:8px;
+    background:#f9f9f9;
+}
 
-# ==========================
-# HOME
-# ==========================
-@app.route("/")
-def home():
-    response = make_response(render_template("index.html"))
-    response.headers["Cache-Control"] = "no-store"
-    return response
+.message{
+    margin:10px 0;
+    padding:8px 12px;
+    border-radius:6px;
+    max-width:75%;
+}
 
+.user{
+    background:#0d6efd;
+    color:white;
+    margin-left:auto;
+    text-align:right;
+}
 
-# ==========================
-# PREDICT (POST ONLY)
-# ==========================
-@app.route("/predict", methods=["POST"])
-def predict():
-    file = request.files.get("image")
-    if not file or file.filename == "":
-        return redirect("/")
+.bot{
+    background:#e9ecef;
+    color:black;
+}
 
-    filename = f"{uuid.uuid4()}.png"
-    image_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(image_path)
+.input-area{
+    display:flex;
+    gap:10px;
+}
 
-    image = preprocess_image(image_path)
-    preds = model.predict(image)
+.input-area input{
+    flex:1;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
 
-    idx = int(np.argmax(preds))
-    confidence = round(float(np.max(preds)) * 100, 2)
-    label = INDEX_TO_CLASS[idx]
+.input-area button{
+    background:#0d6efd;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+}
 
-    response = make_response(
-        render_template(
-            "result.html",
-            prediction=label,
-            confidence=confidence,
-            image_path=f"/static/uploads/{filename}"
-        )
-    )
-    response.headers["Cache-Control"] = "no-store"
-    return response
+.input-area button:hover{
+    background:#0b5ed7;
+}
 
+/* 🔥 Mobile responsive */
+@media (max-width:768px){
+    .chat-container{
+        padding:15px;
+    }
 
-# ==========================
-# BLOCK RESULT URL
-# ==========================
-@app.route("/result")
-def block_result():
-    return redirect("/")
-    
+    .chat-box{
+        height:300px;
+    }
+}
+</style>
 
-if __name__ == "__main__":
-    app.run(debug=True)
+<script>
+function sendMessage(){
+    let input = document.getElementById("user-input");
+    let message = input.value.trim();
+    if(message === "") return;
+
+    appendMessage(message, "user");
+
+    fetch("/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({message: message})
+    })
+    .then(res => res.json())
+    .then(data => {
+        appendMessage(data.reply, "bot");
+    });
+
+    input.value = "";
+}
+
+function appendMessage(text, type){
+    let box = document.getElementById("chat-box");
+    let div = document.createElement("div");
+    div.classList.add("message", type);
+    div.innerText = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+</script>
+
+{% endblock %}

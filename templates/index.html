@@ -5,57 +5,68 @@
 .hero-dr{
     background:linear-gradient(135deg,#0d6efd,#4dabf7);
     color:white;
-    padding:70px 30px;
+    padding:60px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:60px
+    margin-bottom:50px
 }
-.hero-dr h1{font-size:36px;margin-bottom:15px}
-.hero-dr p{max-width:900px;margin:auto;font-size:17px;line-height:1.6}
+.hero-dr h1{font-size:32px;margin-bottom:12px}
+.hero-dr p{max-width:900px;margin:auto;font-size:16px;line-height:1.6}
 
-.section{margin-bottom:70px}
-.section h2{text-align:center;color:#0d6efd;margin-bottom:30px}
+.section{margin-bottom:60px;padding:0 10px}
+.section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
 
 .cards{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:25px
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px
 }
 .card{
     background:white;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.1)
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.1)
 }
 
 .upload-box{
     max-width:500px;
     margin:0 auto;
     background:white;
-    padding:35px;
-    border-radius:18px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
     text-align:center
 }
 
-.upload-box input{margin:15px 0}
+.upload-box input{
+    margin:15px 0;
+    width:100%;
+}
+
 .upload-box button{
     background:#0d6efd;
     color:white;
     border:none;
-    padding:12px 30px;
+    padding:12px;
+    width:100%;
     border-radius:25px;
-    font-size:16px;
+    font-size:15px;
     cursor:pointer
 }
 .upload-box button:hover{background:#0b5ed7}
 
 .note{
     background:#f1f7ff;
-    padding:20px;
+    padding:15px;
     border-left:5px solid #0d6efd;
     border-radius:10px;
     font-size:14px
+}
+
+/* 🔥 MOBILE FIX */
+@media(max-width:768px){
+    .hero-dr h1{font-size:24px}
+    .hero-dr p{font-size:14px}
 }
 </style>
 
@@ -68,26 +79,26 @@
     </p>
 </div>
 
-<!-- ================= ABOUT DR ================= -->
+<!-- ================= ABOUT ================= -->
 <div class="section">
     <h2>What is Diabetic Retinopathy?</h2>
-    <p style="max-width:1000px;margin:auto;text-align:center">
+    <p style="max-width:900px;margin:auto;text-align:center">
         Diabetic Retinopathy is a diabetes-related eye disease caused by damage
         to retinal blood vessels. If not detected early, it can lead to
-        permanent vision loss or blindness. Early screening is critical.
+        permanent vision loss or blindness.
     </p>
 </div>
 
-<!-- ================= HOW AI WORKS ================= -->
+<!-- ================= HOW AI ================= -->
 <div class="section">
     <h2>How Our AI Detects DR</h2>
     <div class="cards">
-        <div class="card">📸 Retinal image is uploaded</div>
-        <div class="card">🧪 Image preprocessing & enhancement</div>
-        <div class="card">🧠 CNN extracts retinal features</div>
-        <div class="card">📊 DR stage classification</div>
-        <div class="card">✅ Confidence score generated</div>
-        <div class="card">👨‍⚕️ Decision support for doctors</div>
+        <div class="card">📸 Upload retinal image</div>
+        <div class="card">🧪 Preprocessing</div>
+        <div class="card">🧠 CNN feature extraction</div>
+        <div class="card">📊 DR classification</div>
+        <div class="card">✅ Confidence score</div>
+        <div class="card">👨‍⚕️ Clinical support</div>
     </div>
 </div>
 
@@ -97,34 +108,32 @@
 
     <div class="upload-box">
         <form action="/predict" method="POST" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*" required><br>
+            <input type="file" name="image" accept="image/*" required>
             <button type="submit">🔍 Predict Diabetic Retinopathy</button>
         </form>
 
-        <p style="margin-top:15px;font-size:14px">
-            Supported formats: JPG, PNG <br>
-            Retinal fundus images only
+        <p style="margin-top:10px;font-size:13px">
+            Supported: JPG, PNG | Fundus images only
         </p>
     </div>
 </div>
 
-<!-- ================= WHY IMPORTANT ================= -->
+<!-- ================= WHY ================= -->
 <div class="section">
     <h2>Why Early Detection Matters</h2>
     <div class="cards">
-        <div class="card">✔ Prevents irreversible vision loss</div>
-        <div class="card">✔ Enables early treatment planning</div>
-        <div class="card">✔ Reduces dependency on specialists</div>
-        <div class="card">✔ Suitable for rural & remote screening</div>
+        <div class="card">✔ Prevents blindness</div>
+        <div class="card">✔ Early treatment</div>
+        <div class="card">✔ Less specialist dependency</div>
+        <div class="card">✔ Rural screening ready</div>
     </div>
 </div>
 
-<!-- ================= MEDICAL NOTE ================= -->
+<!-- ================= NOTE ================= -->
 <div class="section">
     <div class="note">
         ⚠️ <b>Medical Disclaimer:</b>  
-        This system provides AI-based risk prediction and clinical decision
-        support. It is not a replacement for professional medical diagnosis.
+        This system provides AI-based prediction for awareness only.
     </div>
 </div>
 

@@ -5,44 +5,44 @@
 .hero{
     background:linear-gradient(135deg,#6f42c1,#9b59b6);
     color:white;
-    padding:70px 30px;
+    padding:60px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:60px
+    margin-bottom:50px
 }
-.hero h1{font-size:36px;margin-bottom:15px}
-.hero p{max-width:900px;margin:auto;font-size:17px;line-height:1.6}
+.hero h1{font-size:30px;margin-bottom:12px}
+.hero p{max-width:900px;margin:auto;font-size:15px;line-height:1.6}
 
-.section{margin-bottom:70px}
-.section h2{text-align:center;color:#6f42c1;margin-bottom:30px}
+.section{margin-bottom:60px;padding:0 10px}
+.section h2{text-align:center;color:#6f42c1;margin-bottom:25px}
 
 .cards{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:25px
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px
 }
 .card{
     background:white;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.1)
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.1)
 }
 
 .form-box{
     max-width:520px;
     margin:auto;
     background:white;
-    padding:35px;
-    border-radius:20px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.15)
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15)
 }
 
 .form-box label{font-weight:bold}
 .form-box input,.form-box select{
     width:100%;
     padding:10px;
-    margin:8px 0 18px;
-    border-radius:10px;
+    margin:8px 0 15px;
+    border-radius:8px;
     border:1px solid #ccc
 }
 
@@ -53,17 +53,24 @@
     border:none;
     padding:14px;
     border-radius:30px;
-    font-size:16px;
+    font-size:15px;
     cursor:pointer
 }
 .form-box button:hover{background:#5a379e}
 
 .note{
     background:#f4edff;
-    padding:20px;
+    padding:15px;
     border-left:5px solid #6f42c1;
     border-radius:10px;
     font-size:14px
+}
+
+/* 🔥 MOBILE FIX */
+@media(max-width:768px){
+    .hero h1{font-size:22px}
+    .hero p{font-size:14px}
+    .form-box{padding:20px}
 }
 </style>
 
@@ -71,18 +78,15 @@
 <div class="hero">
     <h1>🌸 PCOD Risk Assessment</h1>
     <p>
-        Evaluate your risk of Polycystic Ovary Disease using an AI-assisted
-        clinical questionnaire designed for early screening and awareness.
+        AI-assisted questionnaire for early detection of PCOD risk and lifestyle-based insights.
     </p>
 </div>
 
-<!-- ================= WHAT IS PCOD ================= -->
+<!-- ================= ABOUT ================= -->
 <div class="section">
     <h2>What is PCOD?</h2>
-    <p style="max-width:1000px;margin:auto;text-align:center">
-        PCOD (Polycystic Ovary Disease) is a hormonal disorder common among women
-        of reproductive age. Early detection helps manage symptoms and prevents
-        long-term complications like infertility and diabetes.
+    <p style="max-width:900px;margin:auto;text-align:center">
+        PCOD is a hormonal disorder affecting women of reproductive age. Early detection helps manage symptoms and prevent complications.
     </p>
 </div>
 
@@ -90,11 +94,11 @@
 <div class="section">
     <h2>Common Indicators</h2>
     <div class="cards">
-        <div class="card">⚖️ Weight gain & high BMI</div>
-        <div class="card">😴 Fatigue & low energy</div>
-        <div class="card">😣 Stress & mood swings</div>
+        <div class="card">⚖️ Weight gain</div>
+        <div class="card">😴 Fatigue</div>
+        <div class="card">😣 Stress</div>
         <div class="card">🩸 Irregular periods</div>
-        <div class="card">🥗 Poor lifestyle habits</div>
+        <div class="card">🥗 Poor diet</div>
         <div class="card">👩‍👧 Family history</div>
     </div>
 </div>
@@ -117,7 +121,7 @@
             <label>BMI</label>
             <input type="number" step="0.1" name="bmi" required>
 
-            <label>Fatigue Level (1–10)</label>
+            <label>Fatigue (1–10)</label>
             <input type="number" name="fatigue" min="1" max="10">
 
             <label>Sleep Quality (1–10)</label>
@@ -136,10 +140,10 @@
             <label>Diet Type</label>
             <select name="diet">
                 <option value="balanced">Balanced</option>
-                <option value="junk">Junk / Processed</option>
+                <option value="junk">Junk</option>
             </select>
 
-            <label>Family History of PCOD</label>
+            <label>Family History</label>
             <select name="family_history">
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
@@ -150,12 +154,11 @@
     </div>
 </div>
 
-<!-- ================= DISCLAIMER ================= -->
+<!-- ================= NOTE ================= -->
 <div class="section">
     <div class="note">
         ⚠️ <b>Medical Disclaimer:</b>  
-        This tool provides AI-assisted risk assessment and awareness support.
-        It does not replace professional medical diagnosis.
+        AI-based assessment for awareness only.
     </div>
 </div>
 

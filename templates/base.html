@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
+    <!-- 🔥 IMPORTANT (mobile fix) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CareSense Assistant</title>
 
     <style>
@@ -20,6 +24,7 @@
             align-items:center;
             position:relative;
             z-index:1000;
+            flex-wrap:wrap;
         }
 
         .logo {
@@ -83,6 +88,46 @@
             display:block;
         }
 
+        /* ================= MOBILE MENU ================= */
+        .menu-toggle {
+            display:none;
+            font-size:26px;
+            color:white;
+            cursor:pointer;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 768px) {
+
+            .menu-toggle {
+                display:block;
+            }
+
+            .menu {
+                display:none;
+                flex-direction:column;
+                width:100%;
+                margin-top:10px;
+            }
+
+            .menu.active {
+                display:flex;
+            }
+
+            .menu li {
+                margin:10px 0;
+            }
+
+            .menu a {
+                margin-left:0;
+            }
+
+            .dropdown-menu {
+                position:static;
+                box-shadow:none;
+            }
+        }
+
         /* ================= PAGE CONTENT ================= */
         .content {
             padding:40px;
@@ -98,7 +143,10 @@
 <div class="navbar">
     <div class="logo">🧠 CareSense Assistant</div>
 
-    <ul class="menu">
+    <!-- 🔥 MOBILE BUTTON -->
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+    <ul class="menu" id="menu">
         <li><a href="/">Home</a></li>
         <li><a href="/dr">Diabetic Retinopathy</a></li>
 
@@ -112,8 +160,6 @@
         </li>
 
         <li><a href="/live_health">Live Sensor</a></li>
-
-        <!-- ✅ ONLY THIS LINE ADDED -->
         <li><a href="/chatbot">AI</a></li>
     </ul>
 </div>
@@ -122,6 +168,13 @@
 <div class="content">
     {% block content %}{% endblock %}
 </div>
+
+<!-- 🔥 SCRIPT -->
+<script>
+function toggleMenu(){
+    document.getElementById("menu").classList.toggle("active");
+}
+</script>
 
 </body>
 </html>

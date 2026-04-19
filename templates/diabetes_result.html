@@ -2,23 +2,81 @@
 <html>
 <head>
     <title>Diabetes Prediction Result</title>
+
+    <!-- 🔥 MOBILE FIX -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body{
+            margin:0;
+            font-family:Arial, sans-serif;
+            background:#f4f6f8;
+        }
+
+        .container{
+            max-width:700px;
+            margin:40px auto;
+            background:white;
+            padding:30px;
+            border-radius:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2{
+            text-align:center;
+        }
+
+        .risk{
+            color:red;
+            text-align:center;
+        }
+
+        ul{
+            padding-left:20px;
+        }
+
+        .btn{
+            display:inline-block;
+            margin-top:15px;
+            padding:10px 15px;
+            background:#0d6efd;
+            color:white;
+            text-decoration:none;
+            border-radius:6px;
+        }
+
+        .btn:hover{
+            background:#0b5ed7;
+        }
+
+        /* 🔥 MOBILE RESPONSIVE */
+        @media (max-width:768px){
+            .container{
+                margin:20px;
+                padding:20px;
+            }
+
+            h2{
+                font-size:20px;
+            }
+
+            .btn{
+                width:100%;
+                text-align:center;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
 {% include "_navbar.html" %}
 
-<div style="
-    max-width:700px;
-    margin:40px auto;
-    background:white;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1)
-">
+<div class="container">
 
     <h2>🧪 Diabetes Risk Result</h2>
 
-    <h3 style="color:red">{{ risk }}</h3>
+    <h3 class="risk">{{ risk }}</h3>
 
     <h4>Preventive Advice</h4>
     <ul>
@@ -27,8 +85,7 @@
         {% endfor %}
     </ul>
 
-    <br>
-    <a href="/diabetes">Check Another Patient</a>
+    <a href="/diabetes" class="btn">Check Another Patient</a>
 
 </div>
 

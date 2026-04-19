@@ -1,26 +1,76 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3>🤖 AI Healthcare Chatbot</h3>
+<h3 style="text-align:center;">🤖 AI Healthcare Chatbot</h3>
 
-<div id="chat-box" style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:auto;">
-    <p><strong>Bot:</strong> Hello! Ask me anything.</p>
+<div id="chat-box" class="chat-box">
+    <p class="bot-msg"><strong>Bot:</strong> Hello! Ask me anything.</p>
 </div>
 
 <br>
 
-<div class="input-group">
+<div class="input-group chat-input">
     <input type="text" id="userInput" class="form-control" placeholder="Ask a question...">
     <button class="btn btn-primary" onclick="sendMessage()">Send</button>
 </div>
 
+<style>
+.chat-box{
+    border:1px solid #ccc;
+    padding:10px;
+    height:320px;
+    overflow-y:auto;
+    background:#f9f9f9;
+    border-radius:8px;
+}
+
+.bot-msg{
+    background:#e9ecef;
+    padding:8px;
+    border-radius:6px;
+    margin:5px 0;
+}
+
+.user-msg{
+    background:#0d6efd;
+    color:white;
+    padding:8px;
+    border-radius:6px;
+    margin:5px 0;
+    text-align:right;
+}
+
+/* mobile fix */
+.chat-input{
+    display:flex;
+    gap:10px;
+}
+
+@media (max-width:768px){
+    .chat-box{
+        height:260px;
+    }
+
+    .chat-input{
+        flex-direction:column;
+    }
+
+    .chat-input button{
+        width:100%;
+    }
+}
+</style>
+
 <script>
 function sendMessage() {
-    let msg = document.getElementById("userInput").value;
-    if (msg.trim() === "") return;
+    let input = document.getElementById("userInput");
+    let msg = input.value.trim();
+    if (msg === "") return;
 
     let chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML += `<p><strong>You:</strong> ${msg}</p>`;
+
+    // user message
+    chatBox.innerHTML += `<div class="user-msg"><strong>You:</strong> ${msg}</div>`;
 
     fetch("/chat", {
         method: "POST",
@@ -31,11 +81,11 @@ function sendMessage() {
     })
     .then(res => res.json())
     .then(data => {
-        chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.reply}</p>`;
+        chatBox.innerHTML += `<div class="bot-msg"><strong>Bot:</strong> ${data.reply}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    document.getElementById("userInput").value = "";
+    input.value = "";
 }
 </script>
 

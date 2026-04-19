@@ -1,8 +1,11 @@
 <div class="navbar">
     <h2>🧠 CareSense Assistant</h2>
-    <div>
-        <a href="/">Home</a>
 
+    <!-- Toggle button for mobile -->
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+    <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
         <a href="/dr">Diabetic Retinopathy</a>
 
         <div class="dropdown-wrapper">
@@ -15,8 +18,6 @@
         </div>
 
         <a href="/live_health">Live Sensor</a>
-
-       
         <a href="/chatbot">AI</a>
     </div>
 </div>
@@ -28,15 +29,33 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    flex-wrap:wrap;
 }
-.navbar h2{ color:white; margin:0 }
+
+.navbar h2{
+    color:white;
+    margin:0;
+    font-size:20px;
+}
+
 .navbar a{
     color:white;
     text-decoration:none;
     margin-left:20px;
     font-weight:bold;
 }
-.dropdown-wrapper{ position:relative; display:inline-block }
+
+.nav-links{
+    display:flex;
+    align-items:center;
+}
+
+/* Dropdown */
+.dropdown-wrapper{
+    position:relative;
+    display:inline-block;
+}
+
 .dropdown-menu{
     display:none;
     position:absolute;
@@ -47,12 +66,66 @@
     box-shadow:0 4px 12px rgba(0,0,0,0.2);
     z-index:1000;
 }
+
 .dropdown-menu a{
     color:black;
     display:block;
     padding:10px;
     margin:0;
 }
-.dropdown-menu a:hover{ background:#f1f1f1 }
-.dropdown-wrapper:hover .dropdown-menu{ display:block }
+
+.dropdown-menu a:hover{
+    background:#f1f1f1;
+}
+
+.dropdown-wrapper:hover .dropdown-menu{
+    display:block;
+}
+
+/* MOBILE MENU BUTTON */
+.menu-toggle{
+    display:none;
+    font-size:24px;
+    color:white;
+    cursor:pointer;
+}
+
+/* 🔥 RESPONSIVE */
+@media (max-width: 768px){
+
+    .menu-toggle{
+        display:block;
+    }
+
+    .nav-links{
+        display:none;
+        width:100%;
+        flex-direction:column;
+        margin-top:10px;
+    }
+
+    .nav-links a{
+        margin:10px 0;
+        display:block;
+    }
+
+    .nav-links.active{
+        display:flex;
+    }
+
+    .dropdown-menu{
+        position:static;
+        box-shadow:none;
+    }
+
+    .dropdown-wrapper:hover .dropdown-menu{
+        display:block;
+    }
+}
 </style>
+
+<script>
+function toggleMenu(){
+    document.getElementById("navLinks").classList.toggle("active");
+}
+</script>

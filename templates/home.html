@@ -5,195 +5,153 @@
 .fade-up{opacity:0;transform:translateY(30px);animation:fadeUp 1s ease forwards}
 @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
 
-.section{margin-bottom:90px}
-.section h2{text-align:center;color:#0d6efd;margin-bottom:30px}
+.section{margin-bottom:70px;padding:0 10px}
+.section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
 
 .hero{
     background:linear-gradient(135deg,#0d6efd,#4dabf7);
     color:white;
-    padding:90px 30px;
+    padding:70px 20px;
     border-radius:20px;
     text-align:center;
-    margin-bottom:90px
+    margin-bottom:70px
 }
-.hero h1{font-size:44px;margin-bottom:15px}
-.hero p{max-width:950px;margin:auto;font-size:18px;line-height:1.7}
+.hero h1{font-size:34px;margin-bottom:12px}
+.hero p{max-width:900px;margin:auto;font-size:16px;line-height:1.6}
 
 .cards{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:25px
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px
 }
 .card{
     background:white;
-    padding:30px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    padding:22px;
+    border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
     transition:.3s
 }
 .card:hover{
-    transform:translateY(-8px);
-    box-shadow:0 14px 35px rgba(13,110,253,.3)
+    transform:translateY(-5px);
+    box-shadow:0 12px 30px rgba(13,110,253,.25)
 }
 
 .highlight{
     background:linear-gradient(135deg,#0d6efd,#4dabf7);
     color:white;
-    padding:80px 35px;
+    padding:50px 20px;
     border-radius:20px;
     text-align:center
 }
 
 .stats{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:25px;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:20px;
     text-align:center
 }
 .stat{
     background:white;
-    padding:25px;
+    padding:20px;
     border-radius:15px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.1)
+    box-shadow:0 6px 15px rgba(0,0,0,0.1)
 }
-.stat h3{font-size:36px;color:#0d6efd}
+.stat h3{font-size:28px;color:#0d6efd}
 
-.cta{text-align:center;margin-top:70px}
+.cta{text-align:center;margin-top:50px}
 .cta a{
     background:#0d6efd;
     color:white;
-    padding:18px 40px;
-    border-radius:40px;
+    padding:15px 30px;
+    border-radius:30px;
     font-weight:bold;
     text-decoration:none;
-    box-shadow:0 10px 25px rgba(13,110,253,.4)
+    box-shadow:0 8px 20px rgba(13,110,253,.4)
 }
 .cta a:hover{background:#0b5ed7}
+
+/* 🔥 MOBILE FIX */
+@media(max-width:768px){
+    .hero h1{font-size:24px}
+    .hero p{font-size:14px}
+}
 </style>
 
 <!-- ================= HERO ================= -->
 <div class="hero fade-up">
     <h1>🧠 CareSense Assistant</h1>
     <p>
-        An AI-powered clinical decision support system for <b>early detection of
-        Diabetic Retinopathy</b> using Deep Learning, retinal image analysis,
-        and real-time IoT-based patient monitoring.
+        AI-powered clinical decision support system for <b>early detection of
+        Diabetic Retinopathy</b> using deep learning and real-time monitoring.
     </p>
 </div>
 
-<!-- ================= PROBLEM STATEMENT ================= -->
+<!-- ================= PROBLEM ================= -->
 <div class="section fade-up">
-    <h2>🚨Statement</h2>
-    <p style="max-width:1000px;margin:auto;text-align:center">
-        Diabetic Retinopathy (DR) is a leading cause of blindness worldwide.
-        Due to lack of early screening, manual diagnosis, and shortage of
-        ophthalmologists—especially in rural areas—patients are often diagnosed
-        at advanced stages, resulting in irreversible vision loss.
+    <h2>🚨 Problem Statement</h2>
+    <p style="max-width:900px;margin:auto;text-align:center">
+        Diabetic Retinopathy is a leading cause of blindness. Due to lack of
+        early screening and specialists, patients are often diagnosed too late.
     </p>
 </div>
 
 <!-- ================= SOLUTION ================= -->
 <div class="section fade-up">
-    <h2>💡Proposed Solution</h2>
+    <h2>💡 Solution</h2>
     <div class="cards">
-        <div class="card">
-            <b>AI-based Retinal Image Analysis</b>
-            <p>
-                CNN models automatically analyze retinal fundus images to detect
-                microaneurysms, hemorrhages, and exudates indicating DR stages.
-            </p>
-        </div>
-        <div class="card">
-            <b>Automated Disease Classification</b>
-            <p>
-                The system classifies DR into Normal, Mild, Moderate, or Severe
-                stages with confidence scores to support doctors.
-            </p>
-        </div>
-        <div class="card">
-            <b>Real-time IoT Health Monitoring</b>
-            <p>
-                Live monitoring of Heart Rate and SpO₂ using MAX30102 sensors
-                enhances overall patient health assessment.
-            </p>
-        </div>
+        <div class="card">AI-based retinal image analysis</div>
+        <div class="card">Automatic DR stage classification</div>
+        <div class="card">Real-time IoT health monitoring</div>
     </div>
 </div>
 
-<!-- ================= SYSTEM WORKFLOW ================= -->
+<!-- ================= WORKFLOW ================= -->
 <div class="section fade-up">
-    <h2>⚙️ System Workflow</h2>
+    <h2>⚙️ Workflow</h2>
     <div class="cards">
-        <div class="card">1️⃣ Patient uploads retinal image</div>
-        <div class="card">2️⃣ Image preprocessing & normalization</div>
-        <div class="card">3️⃣ CNN extracts retinal features</div>
-        <div class="card">4️⃣ DR stage prediction with confidence</div>
-        <div class="card">5️⃣ Live sensor data analyzed</div>
-        <div class="card">6️⃣ AI-assisted clinical decision support</div>
+        <div class="card">Upload retinal image</div>
+        <div class="card">Preprocessing</div>
+        <div class="card">CNN analysis</div>
+        <div class="card">Prediction</div>
+        <div class="card">Live sensor analysis</div>
+        <div class="card">Decision support</div>
     </div>
 </div>
 
-<!-- ================= TECHNOLOGY STACK ================= -->
+<!-- ================= TECH ================= -->
 <div class="section fade-up">
-    <h2>🧪 Technology Stack</h2>
+    <h2>🧪 Tech Stack</h2>
     <div class="cards">
-        <div class="card">🔹 Python, Flask (Backend)</div>
-        <div class="card">🔹 TensorFlow & CNN (Deep Learning)</div>
-        <div class="card">🔹 OpenCV (Image Processing)</div>
-        <div class="card">🔹 MAX30102 IoT Sensor</div>
-        <div class="card">🔹 HTML, CSS, Jinja2 (Frontend)</div>
-        <div class="card">🔹 Real-time Data Analysis</div>
+        <div class="card">Python + Flask</div>
+        <div class="card">TensorFlow CNN</div>
+        <div class="card">OpenCV</div>
+        <div class="card">IoT Sensors</div>
     </div>
 </div>
 
 <!-- ================= IMPACT ================= -->
 <div class="section fade-up">
-    <h2>📊 Clinical Impact</h2>
+    <h2>📊 Impact</h2>
     <div class="stats">
-        <div class="stat">
-            <h3>90%+</h3>
-            <p>Early Detection Accuracy</p>
-        </div>
-        <div class="stat">
-            <h3>60%</h3>
-            <p>Reduction in Diagnosis Time</p>
-        </div>
-        <div class="stat">
-            <h3>24×7</h3>
-            <p>Live Patient Monitoring</p>
-        </div>
-        <div class="stat">
-            <h3>Scalable</h3>
-            <p>Rural Healthcare Ready</p>
-        </div>
-    </div>
-</div>
-
-<!-- ================= FUTURE SCOPE ================= -->
-<div class="section fade-up">
-    <h2>🚀 Future Enhancements</h2>
-    <div class="cards">
-        <div class="card"> Multi-disease retinal analysis</div>
-        <div class="card"> Integration with hospital EMR systems</div>
-        <div class="card"> Cloud-based large-scale screening</div>
-        <div class="card"> Mobile app for remote diagnosis</div>
+        <div class="stat"><h3>90%+</h3><p>Accuracy</p></div>
+        <div class="stat"><h3>60%</h3><p>Faster Diagnosis</p></div>
+        <div class="stat"><h3>24×7</h3><p>Monitoring</p></div>
+        <div class="stat"><h3>Scalable</h3><p>Healthcare</p></div>
     </div>
 </div>
 
 <!-- ================= WHY ================= -->
 <div class="highlight fade-up">
-    <h2>💙 Why CareSense Assistant?</h2>
-    <p style="max-width:950px;margin:auto;font-size:17px">
-        Clinsense-AI bridges the gap between patients and specialists by providing
-        fast, accurate, and affordable early diagnosis. It empowers doctors,
-        reduces healthcare burden, and helps prevent avoidable blindness.
+    <h2>💙 Why CareSense?</h2>
+    <p style="max-width:900px;margin:auto">
+        Provides fast, affordable, and accurate diagnosis helping prevent blindness.
     </p>
 </div>
 
 <!-- ================= CTA ================= -->
 <div class="cta fade-up">
-    <h2>Ready to Experience Smart Diagnosis?</h2>
-    <a href="/dr">🚀 Start Diagnosis</a>
+    <h2>Start Smart Diagnosis</h2>
+    <a href="/dr">🚀 Start Now</a>
 </div>
 
 {% endblock %}

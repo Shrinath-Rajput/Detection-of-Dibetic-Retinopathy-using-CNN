@@ -1,24 +1,55 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center">
-    <h2 class="fw-bold">Live Health Monitoring</h2>
+
+<div class="text-center mb-4">
+    <h2 class="fw-bold">❤️ Live Health Monitoring</h2>
     <p class="text-muted">MAX30102 Sensor Data</p>
 </div>
 
 <div class="row text-center">
-    <div class="col-md-6">
+
+    <div class="col-md-6 mb-3">
         <div class="card shadow p-4">
             <h5>Heart Rate</h5>
-            <h2 class="text-danger">-- BPM</h2>
+            <h2 class="text-danger">
+                <span id="hr">--</span> BPM
+            </h2>
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-6 mb-3">
         <div class="card shadow p-4">
             <h5>SpO₂</h5>
-            <h2 class="text-success">-- %</h2>
+            <h2 class="text-success">
+                <span id="spo2">--</span> %
+            </h2>
         </div>
     </div>
+
 </div>
+
+<div class="text-center mt-3">
+    <p id="status" class="fw-bold text-primary">Connecting...</p>
+</div>
+
+<script>
+function fetchSensor(){
+    fetch("/live_sensor")
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("hr").innerText = data.heart_rate ?? "--";
+        document.getElementById("spo2").innerText = data.spo2 ?? "--";
+        document.getElementById("status").innerText = data.status ?? "No Data";
+    })
+    .catch(() => {
+        document.getElementById("status").innerText = "Sensor not connected ❌";
+    });
+}
+
+/* 🔁 auto refresh */
+setInterval(fetchSensor, 2000);
+fetchSensor();
+</script>
+
 {% endblock %}

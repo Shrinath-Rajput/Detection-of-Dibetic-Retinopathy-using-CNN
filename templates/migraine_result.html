@@ -2,102 +2,165 @@
 {% block content %}
 
 <style>
-.container {
-    max-width:600px;
-    background:white;
-    margin:40px auto;
-    padding:25px;
-    border-radius:12px;
-    box-shadow:0 8px 25px rgba(0,0,0,0.1);
-    transition:0.3s;
-}
-
-/* hover */
-.container:hover{
-    transform:translateY(-5px);
-}
-
-h2 {
-    color:#0d6efd;
-    text-align:center;
-}
-
-/* 🔥 risk animation */
-.risk {
-    font-size:20px;
-    font-weight:bold;
-    margin:15px 0;
-    text-align:center;
-    animation:pulse 1.2s infinite alternate;
-}
-
-@keyframes pulse{
-    from{transform:scale(1);}
-    to{transform:scale(1.05);}
-}
-
-ul {
-    margin-top:10px;
-    padding-left:20px;
-}
-
-li{
-    margin:6px 0;
-    animation:fadeItem 0.5s ease;
-}
-
-@keyframes fadeItem{
-    from{
-        opacity:0;
-        transform:translateX(-10px);
+    .result-container {
+        max-width: 700px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        margin: 40px auto;
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 51, 102, 0.15);
+        transition: all 0.4s ease;
     }
-    to{
-        opacity:1;
-        transform:translateX(0);
+
+    .result-container:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.2);
     }
-}
 
-.back {
-    margin-top:20px;
-    display:block;
-    text-align:center;
-    text-decoration:none;
-    color:white;
-    background:#0d6efd;
-    padding:12px;
-    border-radius:6px;
-    transition:0.3s;
-}
-
-.back:hover {
-    transform:scale(1.05);
-}
-
-/* mobile */
-@media (max-width:768px){
-    .container{
-        margin:20px;
-        padding:20px;
+    h2 {
+        color: #003366;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 25px;
     }
-}
+
+    /* RISK BADGE */
+    .risk {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 25px 0;
+        text-align: center;
+        animation: pulse 1.2s infinite alternate;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(248, 113, 113, 0.08));
+        border-radius: 12px;
+        border-left: 4px solid #dc2626;
+        color: #dc2626;
+    }
+
+    @keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.05); }
+    }
+
+    h4 {
+        color: #003366;
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+
+    /* LIST */
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        margin: 12px 0 12px 30px;
+        position: relative;
+        animation: fadeItem 0.5s ease;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 51, 102, 0.08);
+        color: #1a1f3a;
+    }
+
+    li:last-child {
+        border-bottom: none;
+    }
+
+    li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #16a34a;
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+    @keyframes fadeItem {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .back {
+        margin-top: 30px;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        padding: 14px 28px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+        width: 100%;
+    }
+
+    .back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+    }
+
+    .animate {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .result-container {
+            margin: 20px;
+            padding: 25px;
+        }
+
+        h2 {
+            font-size: 24px;
+        }
+
+        .back {
+            width: 100%;
+        }
+    }
 </style>
 
-<div class="container animate">
+<div class="result-container animate">
 
-    <h2 class="animate">🧠 Migraine Risk Result</h2>
+    <h2 class="animate">🧠 Migraine Risk Assessment</h2>
 
     <div class="risk animate">
         Risk Level: {{ risk }}
     </div>
 
-    <h4 class="animate">Possible Triggers / Symptoms:</h4>
+    <h4 class="animate">⚡ Identified Triggers / Symptoms:</h4>
     <ul>
         {% for r in risks %}
             <li class="animate">{{ r }}</li>
         {% endfor %}
     </ul>
 
-    <h4 class="animate">Preventive Advice:</h4>
+    <h4 class="animate">✅ Preventive Recommendations:</h4>
     <ul>
         {% for a in advice %}
             <li class="animate">{{ a }}</li>
@@ -105,7 +168,7 @@ li{
     </ul>
 
     <a class="back animate" href="/migraine">
-        ⬅ Back to Migraine Check
+        ⬅️ Perform Another Assessment
     </a>
 
 </div>

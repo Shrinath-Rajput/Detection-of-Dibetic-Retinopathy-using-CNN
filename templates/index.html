@@ -2,151 +2,199 @@
 {% block content %}
 
 <style>
+    .upload-section {
+        margin-bottom: 60px;
+    }
 
-/* BACKGROUND */
-body{
-    background:linear-gradient(135deg,#f0f4ff,#eef7ff);
-}
+    .upload-box {
+        max-width: 500px;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 15px 50px rgba(0, 51, 102, 0.15);
+        transition: all 0.4s ease;
+        text-align: center;
+    }
 
-/* HERO */
-.hero-dr{
-    background:linear-gradient(135deg,#1e3a8a,#2563eb);
-    color:white;
-    padding:80px 20px;
-    border-radius:25px;
-    text-align:center;
-    margin-bottom:70px;
-    box-shadow:0 15px 40px rgba(37,99,235,0.3);
-    transition:0.3s;
-}
-.hero-dr:hover{ transform:translateY(-5px); }
+    .upload-box:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 70px rgba(0, 51, 102, 0.2);
+    }
 
-.hero-dr h1{font-size:34px}
-.hero-dr p{max-width:900px;margin:auto;font-size:17px}
+    .upload-box h3 {
+        color: #003366;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
 
-/* SECTION */
-.section{
-    margin-bottom:70px;
-}
+    .file-input-wrapper {
+        margin: 20px 0;
+        position: relative;
+    }
 
-/* CARDS */
-.cards{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px;
-}
+    input[type="file"] {
+        display: none;
+    }
 
-.card{
-    background:white;
-    padding:22px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
-    transition:0.3s;
-}
+    .file-input-label {
+        display: inline-block;
+        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+    }
 
-.card:hover{
-    transform:translateY(-10px);
-    box-shadow:0 20px 40px rgba(37,99,235,0.25);
-}
+    .file-input-label:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+    }
 
-/* UPLOAD */
-.upload-box{
-    max-width:500px;
-    margin:auto;
-    background:white;
-    padding:30px;
-    border-radius:20px;
-    box-shadow:0 15px 35px rgba(0,0,0,0.15);
-    text-align:center;
-}
+    .file-name {
+        color: #4a5568;
+        font-size: 13px;
+        margin-top: 10px;
+        min-height: 20px;
+    }
 
-.upload-box button{
-    background:#2563eb;
-    color:white;
-    padding:14px;
-    border:none;
-    border-radius:30px;
-    width:100%;
-    transition:0.3s;
-}
-.upload-box button:hover{
-    transform:scale(1.05);
-}
+    button[type="submit"] {
+        margin-top: 20px;
+    }
 
-/* NOTE */
-.note{
-    background:#eef4ff;
-    padding:18px;
-    border-left:5px solid #2563eb;
-    border-radius:12px;
-}
+    .why-section h3 {
+        font-size: 18px;
+        color: #003366;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
 
-/* MOBILE */
-@media(max-width:768px){
-    .hero-dr h1{font-size:24px}
-}
-
+    .why-section p {
+        color: #4a5568;
+        font-size: 14px;
+        line-height: 1.6;
+    }
 </style>
 
 <!-- HERO -->
-<div class="hero-dr animate">
+<div class="hero animate">
     <h1>👁️ Diabetic Retinopathy Detection</h1>
     <p>
-        Upload retinal image and detect early signs using AI.
+        Advanced AI analysis of retinal images to detect early signs of diabetic retinopathy using deep learning CNN models trained on thousands of fundus images.
     </p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
-    <h2 style="text-align:center;">What is Diabetic Retinopathy?</h2>
-    <p style="text-align:center;max-width:900px;margin:auto">
-        Eye disease caused by diabetes affecting retinal blood vessels.
+    <h2>What is Diabetic Retinopathy?</h2>
+    <p class="section-intro">
+        An eye disease caused by high blood sugar levels damaging blood vessels in the retina. Early detection through AI-powered image analysis can prevent vision loss and blindness.
     </p>
 </div>
 
 <!-- HOW -->
 <div class="section">
-    <h2 class="animate" style="text-align:center;">How AI Works</h2>
+    <h2 class="animate">🤖 How AI Analysis Works</h2>
 
     <div class="cards">
-        <div class="card animate">📸 Upload Image</div>
-        <div class="card animate">🧪 Preprocess</div>
-        <div class="card animate">🧠 CNN Model</div>
-        <div class="card animate">📊 Prediction</div>
-        <div class="card animate">✅ Result</div>
-        <div class="card animate">👨‍⚕️ Support</div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">📸</div>
+            <h3>Upload Image</h3>
+            <p>Submit a high-quality retinal fundus image</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">🔧</div>
+            <h3>Preprocessing</h3>
+            <p>Image enhancement and normalization</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">🧠</div>
+            <h3>CNN Analysis</h3>
+            <p>Deep learning model inference</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">📊</div>
+            <h3>Classification</h3>
+            <p>Severity assessment with confidence</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">❤️</div>
+            <h3>Health Integration</h3>
+            <p>Combine with sensor data</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">✅</div>
+            <h3>Results</h3>
+            <p>Detailed analysis & recommendations</p>
+        </div>
     </div>
 </div>
 
 <!-- UPLOAD -->
-<div class="section animate">
-    <h2 style="text-align:center;">Upload Image</h2>
+<div class="section animate upload-section">
+    <h2>Upload Retinal Image</h2>
 
     <div class="upload-box animate">
+        <h3>🖼️ Select Image File</h3>
         <form action="/predict" method="POST" enctype="multipart/form-data">
-            <input type="file" name="image" required>
-            <button type="submit">🔍 Predict</button>
+            <div class="file-input-wrapper">
+                <label for="image" class="file-input-label">Choose File</label>
+                <input type="file" name="image" id="image" required accept="image/*">
+                <div class="file-name" id="fileName">No file selected</div>
+            </div>
+            <button type="submit">🔍 Analyze Retina</button>
         </form>
     </div>
 </div>
 
 <!-- WHY -->
 <div class="section">
-    <h2 class="animate" style="text-align:center;">Why Important</h2>
+    <h2 class="animate">✨ Why Use AI Detection?</h2>
 
     <div class="cards">
-        <div class="card animate">✔ Prevent blindness</div>
-        <div class="card animate">✔ Early detection</div>
-        <div class="card animate">✔ Low cost</div>
-        <div class="card animate">✔ Rural use</div>
+        <div class="card animate why-section">
+            <div style="font-size: 24px; margin-bottom: 10px;">⛔</div>
+            <h3>Prevent Blindness</h3>
+            <p>Early detection prevents permanent vision loss</p>
+        </div>
+        <div class="card animate why-section">
+            <div style="font-size: 24px; margin-bottom: 10px;">🎯</div>
+            <h3>Early Detection</h3>
+            <p>AI catches subtle signs before symptoms appear</p>
+        </div>
+        <div class="card animate why-section">
+            <div style="font-size: 24px; margin-bottom: 10px;">💰</div>
+            <h3>Cost Effective</h3>
+            <p>Affordable screening for everyone</p>
+        </div>
+        <div class="card animate why-section">
+            <div style="font-size: 24px; margin-bottom: 10px;">🌍</div>
+            <h3>Accessible</h3>
+            <p>Rural and remote screening possible</p>
+        </div>
     </div>
 </div>
 
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ This system is for awareness only.
+        ⚠️ <strong>Medical Disclaimer:</strong> This system is for informational awareness only. Always consult with a qualified ophthalmologist for professional medical diagnosis and treatment recommendations.
     </div>
 </div>
+
+<script>
+    // Update file name display
+    document.getElementById('image').addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            document.getElementById('fileName').textContent = '✓ ' + this.files[0].name;
+        }
+    });
+</script>
 
 {% endblock %}

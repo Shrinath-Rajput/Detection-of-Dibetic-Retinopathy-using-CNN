@@ -2,165 +2,180 @@
 {% block content %}
 
 <style>
+    /* Home Page Specific Styles */
+    .cta {
+        text-align: center;
+        margin-top: 60px;
+        padding: 60px 40px;
+        background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, rgba(0, 153, 255, 0.05) 100%);
+        border-radius: 20px;
+        border: 1px solid rgba(0, 82, 163, 0.1);
+    }
 
-/* BACKGROUND */
-body{
-    background:linear-gradient(135deg,#eef2ff,#f8fbff);
-}
+    .cta h2 {
+        font-size: 32px;
+        color: #003366;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
 
-/* HERO */
-.hero{
-    background:linear-gradient(135deg,#1e3a8a,#2563eb);
-    color:white;
-    padding:80px 20px;
-    border-radius:25px;
-    text-align:center;
-    margin-bottom:70px;
-    box-shadow:0 15px 40px rgba(37,99,235,0.3);
-    transition:0.3s;
-}
-.hero:hover{ transform:translateY(-5px); }
+    .cta a {
+        display: inline-block;
+        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        color: white;
+        padding: 16px 40px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+        font-size: 16px;
+    }
 
-.hero h1{font-size:38px}
-.hero p{max-width:900px;margin:auto;font-size:17px;opacity:0.9}
+    .cta a:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+    }
 
-/* SECTION */
-.section{
-    margin-bottom:70px;
-}
-.section h2{
-    text-align:center;
-    color:#1e3a8a;
-    margin-bottom:30px;
-}
+    .section-intro {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto 40px;
+        font-size: 16px;
+        color: #4a5568;
+        line-height: 1.7;
+    }
 
-/* CARDS */
-.cards{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px;
-}
-
-.card{
-    background:white;
-    padding:22px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
-    transition:0.3s;
-}
-
-/* hover */
-.card:hover{
-    transform:translateY(-10px) scale(1.03);
-    box-shadow:0 20px 40px rgba(37,99,235,0.25);
-}
-
-/* STATS */
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:20px;
-}
-
-.stat{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-    transition:0.3s;
-}
-
-.stat:hover{
-    transform:scale(1.05);
-}
-
-/* CTA */
-.cta{
-    text-align:center;
-    margin-top:50px;
-}
-.cta a{
-    background:#2563eb;
-    color:white;
-    padding:15px 30px;
-    border-radius:30px;
-    text-decoration:none;
-    font-weight:bold;
-    transition:0.3s;
-}
-.cta a:hover{ transform:scale(1.08); }
-
+    .feature-highlight {
+        font-weight: 600;
+        color: #0052a3;
+    }
 </style>
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🧠 CareSense Assistant</h1>
+    <h1>🏥 CareSense Assistant</h1>
     <p>
-        AI-powered clinical decision support system for early detection of Diabetic Retinopathy.
+        Advanced AI-powered clinical decision support system for early detection of Diabetic Retinopathy, PCOD, Migraine, Diabetes, and real-time health monitoring.
     </p>
 </div>
 
 <!-- PROBLEM -->
 <div class="section animate">
-    <h2>🚨 Problem Statement</h2>
-    <p style="text-align:center;max-width:900px;margin:auto">
-        Diabetic Retinopathy causes blindness if not detected early.
+    <h2>🚨 The Challenge</h2>
+    <p class="section-intro">
+        <span class="feature-highlight">Diabetic Retinopathy</span> causes preventable blindness if not detected early. Combined with other health conditions, timely diagnosis and monitoring are critical for better patient outcomes.
     </p>
 </div>
 
 <!-- SOLUTION -->
 <div class="section">
-    <h2 class="animate">💡 Solution</h2>
+    <h2 class="animate">💡 Our Solution</h2>
 
     <div class="cards">
-        <div class="card animate">AI-based retinal analysis</div>
-        <div class="card animate">Automatic classification</div>
-        <div class="card animate">IoT monitoring</div>
+        <div class="card animate">
+            <div style="font-size: 32px; margin-bottom: 10px;">🤖</div>
+            <h3>AI-Based Analysis</h3>
+            <p>Advanced CNN models for retinal analysis</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
+            <h3>Smart Classification</h3>
+            <p>Automatic disease classification with confidence scores</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 32px; margin-bottom: 10px;">📡</div>
+            <h3>IoT Monitoring</h3>
+            <p>Real-time health monitoring via ESP32 + MAX30102</p>
+        </div>
     </div>
 </div>
 
 <!-- WORKFLOW -->
 <div class="section">
-    <h2 class="animate">⚙️ Workflow</h2>
+    <h2 class="animate">⚙️ How It Works</h2>
 
     <div class="cards">
-        <div class="card animate">Upload Image</div>
-        <div class="card animate">Preprocessing</div>
-        <div class="card animate">CNN Model</div>
-        <div class="card animate">Prediction</div>
-        <div class="card animate">Sensor Data</div>
-        <div class="card animate">Final Output</div>
+        <div class="card animate">
+            <div style="font-size: 28px;">📸</div>
+            <h3>Upload Image</h3>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px;">🔄</div>
+            <h3>Preprocessing</h3>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px;">🧠</div>
+            <h3>CNN Analysis</h3>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px;">📈</div>
+            <h3>Prediction</h3>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px;">❤️</div>
+            <h3>Health Data</h3>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px;">✅</div>
+            <h3>Results</h3>
+        </div>
     </div>
 </div>
 
 <!-- TECH -->
 <div class="section">
-    <h2 class="animate">🧪 Tech Stack</h2>
+    <h2 class="animate">🧪 Technology Stack</h2>
 
     <div class="cards">
-        <div class="card animate">Python + Flask</div>
-        <div class="card animate">TensorFlow</div>
-        <div class="card animate">OpenCV</div>
-        <div class="card animate">IoT Sensors</div>
+        <div class="card animate">
+            <h3>Backend</h3>
+            <p>Python + Flask</p>
+        </div>
+        <div class="card animate">
+            <h3>AI/ML</h3>
+            <p>TensorFlow & Keras</p>
+        </div>
+        <div class="card animate">
+            <h3>Vision</h3>
+            <p>OpenCV</p>
+        </div>
+        <div class="card animate">
+            <h3>IoT</h3>
+            <p>ESP32 + MAX30102</p>
+        </div>
     </div>
 </div>
 
 <!-- IMPACT -->
 <div class="section">
-    <h2 class="animate">📊 Impact</h2>
+    <h2 class="animate">📊 Impact & Results</h2>
 
     <div class="stats">
-        <div class="stat animate"><h3>90%+</h3><p>Accuracy</p></div>
-        <div class="stat animate"><h3>60%</h3><p>Faster</p></div>
-        <div class="stat animate"><h3>24×7</h3><p>Monitoring</p></div>
-        <div class="stat animate"><h3>Scalable</h3><p>System</p></div>
+        <div class="stat animate">
+            <h3>90%+</h3>
+            <p>Detection Accuracy</p>
+        </div>
+        <div class="stat animate">
+            <h3>60%</h3>
+            <p>Faster Diagnosis</p>
+        </div>
+        <div class="stat animate">
+            <h3>24×7</h3>
+            <p>Continuous Monitoring</p>
+        </div>
+        <div class="stat animate">
+            <h3>∞</h3>
+            <p>Highly Scalable</p>
+        </div>
     </div>
 </div>
 
 <!-- CTA -->
 <div class="cta animate">
-    <h2>Start Smart Diagnosis</h2>
-    <a href="/dr">🚀 Start Now</a>
+    <h2>🚀 Begin Your Health Journey</h2>
+    <p style="margin-bottom: 20px; color: #4a5568;">Start with AI-powered diagnostics today</p>
+    <a href="/dr">Start DR Analysis</a>
 </div>
 
 {% endblock %}

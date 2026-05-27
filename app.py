@@ -285,7 +285,13 @@ def migraine_predict():
         return render_template("migraine_result.html", risk=risk, risks=risks, advice=advice)
 
     except Exception as e:
-        return f"MIGRAINE Error: {e}"
+        # Fallback: render template with error message instead of plain text
+        return render_template(
+            "migraine_result.html",
+            risk="Unable to calculate risk",
+            risks=["Please fill all fields correctly"],
+            advice=["Try submitting the form again", "Contact support if issue persists"]
+        )
 
 
 # =========================

@@ -2,188 +2,185 @@
 {% block content %}
 
 <style>
-.hero{
-    background:linear-gradient(135deg,#ff6b6b,#f06595);
-    color:white;
-    padding:60px 20px;
-    border-radius:20px;
-    text-align:center;
-    margin-bottom:50px;
-    transition:0.3s;
-}
-.hero:hover{ transform:translateY(-5px); }
+    .hero {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(240, 101, 149, 0.9) 50%, rgba(244, 63, 94, 0.7) 100%);
+    }
 
-.hero h1{font-size:30px}
-.hero p{max-width:900px;margin:auto;font-size:15px}
+    .form-info {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto 40px;
+        font-size: 15px;
+        color: #4a5568;
+        line-height: 1.7;
+    }
 
-.section{margin-bottom:60px}
-.section h2{text-align:center;color:#e64980;margin-bottom:25px}
+    .form-box {
+        max-width: 650px !important;
+    }
 
-/* CARDS */
-.cards{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
-}
-
-.card{
-    background:white;
-    padding:20px;
-    border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1);
-    transition:0.3s;
-}
-
-.card:hover{
-    transform:translateY(-8px) scale(1.02);
-    box-shadow:0 15px 35px rgba(0,0,0,0.2);
-}
-
-/* FORM */
-.form-box{
-    max-width:750px;
-    margin:auto;
-    background:white;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-    transition:0.3s;
-}
-.form-box:hover{ transform:translateY(-5px); }
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-}
-
-input,select{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
-}
-
-input:focus,select:focus{
-    border-color:#e64980;
-    box-shadow:0 0 6px rgba(230,73,128,0.4);
-}
-
-/* BUTTON */
-button{
-    width:100%;
-    background:#e64980;
-    color:white;
-    border:none;
-    padding:14px;
-    border-radius:30px;
-    margin-top:20px;
-    transition:0.3s;
-}
-button:hover{
-    transform:scale(1.05);
-}
-
-/* NOTE */
-.note{
-    background:#fff0f6;
-    padding:15px;
-    border-left:5px solid #e64980;
-    border-radius:10px;
-    transition:0.3s;
-}
-.note:hover{ transform:translateX(5px); }
-
-/* MOBILE */
-@media(max-width:768px){
-    .hero h1{font-size:22px}
-    .form-grid{grid-template-columns:1fr}
-}
+    button {
+        background: linear-gradient(135deg, #dc2626 0%, #f06595 100%);
+    }
 </style>
 
 <!-- HERO -->
 <div class="hero animate">
     <h1>🧠 Migraine Risk Prediction</h1>
     <p>
-        AI-powered questionnaire to assess migraine risk and triggers.
+        AI-powered questionnaire to assess migraine risk, identify triggers, and provide personalized prevention strategies based on comprehensive health assessment.
     </p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
     <h2>What is Migraine?</h2>
-    <p style="text-align:center;max-width:900px;margin:auto">
-        Neurological disorder causing severe headaches and sensitivity.
+    <p class="form-info">
+        Migraine is a neurological disorder characterized by intense, debilitating headaches often accompanied by sensitivity to light, sound, and nausea. Understanding personal triggers and early warning signs is essential for effective management and prevention.
     </p>
 </div>
 
 <!-- TRIGGERS -->
 <div class="section">
-    <h2 class="animate">Common Triggers</h2>
+    <h2 class="animate">⚡ Common Triggers</h2>
 
     <div class="cards">
-        <div class="card animate">💡 Light sensitivity</div>
-        <div class="card animate">😣 Stress</div>
-        <div class="card animate">☕ Caffeine</div>
-        <div class="card animate">😴 Poor sleep</div>
-        <div class="card animate">🍽 Skipped meals</div>
-        <div class="card animate">🧬 Hormonal changes</div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">💡</div>
+            <h3>Light Sensitivity</h3>
+            <p>Bright or flashing lights</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">😣</div>
+            <h3>Stress</h3>
+            <p>Emotional or mental stress</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">☕</div>
+            <h3>Caffeine</h3>
+            <p>Caffeine intake patterns</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
+            <h3>Poor Sleep</h3>
+            <p>Irregular sleep schedule</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">🍽️</div>
+            <h3>Skipped Meals</h3>
+            <p>Hunger and fasting</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">🧬</div>
+            <h3>Hormonal Changes</h3>
+            <p>Hormone fluctuations</p>
+        </div>
     </div>
 </div>
 
 <!-- FORM -->
 <div class="section animate">
-    <h2>Migraine Risk Questionnaire</h2>
+    <h2>Migraine Risk Assessment Form</h2>
 
     <div class="form-box animate">
         <form action="/migraine_predict" method="POST">
 
             <div class="form-grid">
 
-                <input type="number" name="age" placeholder="Age" required>
+                <input type="number" name="age" placeholder="Age (years)" required min="1" max="120">
 
-                <select name="gender">
+                <select name="gender" required>
+                    <option value="">-- Select Gender --</option>
                     <option>Male</option>
                     <option>Female</option>
                 </select>
 
-                <select name="family">
+                <select name="family" required>
+                    <option value="">-- Family History --</option>
                     <option value="yes">Family History: Yes</option>
+                    <option value="no">No Family History</option>
+                </select>
+
+                <input type="number" name="frequency" placeholder="Frequency (per month)" min="0" max="30">
+                <input type="number" name="duration" placeholder="Duration (hours)" min="0" max="72">
+                <input type="number" name="intensity" placeholder="Intensity (1-10)" min="1" max="10">
+
+                <select name="unilateral">
+                    <option value="">-- One-sided Pain --</option>
+                    <option value="yes">Yes</option>
                     <option value="no">No</option>
                 </select>
 
-                <input type="number" name="frequency" placeholder="Frequency / month">
-                <input type="number" name="duration" placeholder="Duration (hours)">
-                <input type="number" name="intensity" placeholder="Intensity (1–10)">
+                <select name="throbbing">
+                    <option value="">-- Throbbing Pain --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <select name="unilateral"><option>One-sided Pain</option><option value="yes">Yes</option><option value="no">No</option></select>
-                <select name="throbbing"><option>Throbbing</option><option value="yes">Yes</option><option value="no">No</option></select>
-                <select name="nausea"><option>Nausea</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="nausea">
+                    <option value="">-- Nausea --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <select name="light"><option>Light Sensitivity</option><option value="yes">Yes</option><option value="no">No</option></select>
-                <select name="sound"><option>Sound Sensitivity</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="light">
+                    <option value="">-- Light Sensitivity --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <select name="aura"><option>Aura</option><option value="yes">Yes</option><option value="no">No</option></select>
-                <select name="dizziness"><option>Dizziness</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="sound">
+                    <option value="">-- Sound Sensitivity --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <select name="activity_worse"><option>Activity Worsens</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="aura">
+                    <option value="">-- Aura Symptoms --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <input type="number" name="sleep" placeholder="Sleep Hours">
+                <select name="dizziness">
+                    <option value="">-- Dizziness --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <select name="insomnia"><option>Insomnia</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="activity_worse">
+                    <option value="">-- Activity Worsens Pain --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
-                <input type="number" name="stress" placeholder="Stress (1–10)">
+                <input type="number" name="sleep" placeholder="Sleep Hours (per night)" min="0" max="24">
 
-                <select name="meals"><option>Skipped Meals</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="insomnia">
+                    <option value="">-- Insomnia --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+
+                <input type="number" name="stress" placeholder="Stress Level (1-10)" min="1" max="10">
+
+                <select name="meals">
+                    <option value="">-- Skipped Meals --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
                 <select name="caffeine">
-                    <option>-- Caffeine --</option>
+                    <option value="">-- Caffeine Intake --</option>
                     <option value="high">High</option>
                     <option value="moderate">Moderate</option>
                     <option value="low">Low</option>
                 </select>
 
-                <select name="hormonal"><option>Hormonal Trigger</option><option value="yes">Yes</option><option value="no">No</option></select>
+                <select name="hormonal">
+                    <option value="">-- Hormonal Trigger --</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
 
             </div>
 
@@ -195,7 +192,7 @@ button:hover{
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ AI-based prediction for awareness only.
+        ⚠️ <strong>Medical Disclaimer:</strong> This assessment is for informational awareness only. Consult with a neurologist or healthcare provider for professional diagnosis and personalized treatment plans.
     </div>
 </div>
 

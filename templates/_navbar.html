@@ -1,5 +1,5 @@
 <div class="navbar">
-    <h2>🧠 CareSense Assistant</h2>
+    <h2>🏥 CareSense</h2>
 
     <!-- Toggle button for mobile -->
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -9,7 +9,7 @@
         <a href="/dr">Diabetic Retinopathy</a>
 
         <div class="dropdown-wrapper">
-            <a href="#">Input Based Diseases ▾</a>
+            <a href="#">Input-Based Diseases ▾</a>
             <div class="dropdown-menu">
                 <a href="/pcod">PCOD</a>
                 <a href="/migraine">Migraine</a>
@@ -18,36 +18,82 @@
         </div>
 
         <a href="/live_health">Live Sensor</a>
-        <a href="/chatbot">AI</a>
+        <a href="/chatbot">AI Chat</a>
     </div>
 </div>
 
 <style>
 .navbar{
-    background:#0d6efd;
-    padding:15px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding:16px 40px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     flex-wrap:wrap;
+    box-shadow: 0 8px 32px rgba(0, 51, 102, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.navbar:hover {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 12px 40px rgba(0, 51, 102, 0.12);
 }
 
 .navbar h2{
-    color:white;
+    color: #003366;
     margin:0;
-    font-size:20px;
+    font-size:24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .navbar a{
-    color:white;
+    color:#1a1f3a;
     text-decoration:none;
-    margin-left:20px;
-    font-weight:bold;
+    margin:0 12px;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.navbar a:hover{
+    background: rgba(0, 51, 102, 0.08);
+    color: #0052a3;
+    transform: translateY(-2px);
+}
+
+.navbar a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #0052a3, #0099ff);
+    transition: width 0.3s ease;
+}
+
+.navbar a:hover::after {
+    width: 100%;
 }
 
 .nav-links{
     display:flex;
     align-items:center;
+    gap: 8px;
 }
 
 /* Dropdown */
@@ -59,23 +105,42 @@
 .dropdown-menu{
     display:none;
     position:absolute;
-    background:white;
-    min-width:180px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    min-width:200px;
     right:0;
-    border-radius:6px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.2);
-    z-index:1000;
+    border-radius:14px;
+    box-shadow: 0 10px 40px rgba(0, 51, 102, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    z-index:1001;
+    padding: 8px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .dropdown-menu a{
-    color:black;
+    color:#1a1f3a;
     display:block;
-    padding:10px;
-    margin:0;
+    padding:12px 16px;
+    margin:4px 0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
 .dropdown-menu a:hover{
-    background:#f1f1f1;
+    background: linear-gradient(135deg, rgba(0, 51, 102, 0.1), rgba(0, 153, 255, 0.1));
+    color: #0052a3;
 }
 
 .dropdown-wrapper:hover .dropdown-menu{
@@ -85,9 +150,14 @@
 /* MOBILE MENU BUTTON */
 .menu-toggle{
     display:none;
-    font-size:24px;
-    color:white;
+    font-size:26px;
+    color: #003366;
     cursor:pointer;
+    transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+    transform: scale(1.2);
 }
 
 /* 🔥 RESPONSIVE */
@@ -97,16 +167,27 @@
         display:block;
     }
 
+    .navbar {
+        padding: 14px 20px;
+    }
+
+    .navbar h2 {
+        font-size: 20px;
+    }
+
     .nav-links{
         display:none;
         width:100%;
         flex-direction:column;
-        margin-top:10px;
+        margin-top:15px;
+        gap: 0;
     }
 
     .nav-links a{
-        margin:10px 0;
-        display:block;
+        margin:8px 0;
+        padding: 12px;
+        width: 100%;
+        text-align: center;
     }
 
     .nav-links.active{
@@ -115,7 +196,7 @@
 
     .dropdown-menu{
         position:static;
-        box-shadow:none;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .dropdown-wrapper:hover .dropdown-menu{

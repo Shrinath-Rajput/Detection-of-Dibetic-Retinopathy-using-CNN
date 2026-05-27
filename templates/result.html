@@ -2,161 +2,280 @@
 {% block content %}
 
 <style>
-.container{
-    max-width:900px;
-    margin:30px auto;
-    padding:0 10px;
-}
+    .result-container {
+        max-width: 900px;
+        margin: 30px auto;
+    }
 
-h1{
-    text-align:center;
-    margin-bottom:25px;
-}
+    .result-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
 
-/* CARD */
-.card{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 8px 25px rgba(0,0,0,0.1);
-    margin-bottom:20px;
-    transition:0.3s;
-}
+    .result-header h1 {
+        font-size: 32px;
+        color: #003366;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
 
-/* hover */
-.card:hover{
-    transform:translateY(-6px);
-}
+    /* RESULT CARD */
+    .result-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 30px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 51, 102, 0.1);
+        margin-bottom: 25px;
+        transition: all 0.4s ease;
+    }
 
-/* IMAGE */
-.image-box{
-    text-align:center;
-    margin-bottom:15px;
-}
-.image-box img{
-    max-width:100%;
-    border-radius:10px;
-    transition:0.3s;
-}
-.image-box img:hover{
-    transform:scale(1.03);
-}
+    .result-card:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.15);
+    }
 
-/* COLORS */
-.ok{color:green;font-weight:bold}
-.warn{color:orange;font-weight:bold}
-.danger{color:red;font-weight:bold}
+    .result-card h2 {
+        color: #003366;
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
 
-/* NOTE */
-.note{
-    background:#f1f7ff;
-    padding:12px;
-    border-left:5px solid #0d6efd;
-    border-radius:8px;
-    font-size:14px;
-    margin-top:10px;
-}
+    /* IMAGE */
+    .image-box {
+        text-align: center;
+        margin: 20px 0;
+    }
 
-/* LIST */
-li{
-    margin:6px 0;
-    animation:fadeItem 0.5s ease;
-}
+    .image-box img {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.15);
+        transition: all 0.3s ease;
+    }
 
-@keyframes fadeItem{
-    from{opacity:0; transform:translateX(-10px);}
-    to{opacity:1; transform:translateX(0);}
-}
+    .image-box img:hover {
+        transform: scale(1.03);
+        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.25);
+    }
 
-/* BUTTON */
-.btn{
-    display:block;
-    text-align:center;
-    background:#0d6efd;
-    color:white;
-    padding:12px;
-    border-radius:8px;
-    text-decoration:none;
-    margin-top:20px;
-    transition:0.3s;
-}
-.btn:hover{
-    transform:scale(1.05);
-}
+    /* PREDICTION RESULT */
+    .prediction-result {
+        background: linear-gradient(135deg, rgba(0, 51, 102, 0.05), rgba(0, 153, 255, 0.05));
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid #0052a3;
+        margin: 20px 0;
+    }
 
-/* MOBILE */
-@media (max-width:768px){
-    h1{font-size:22px}
-}
+    .prediction-label {
+        font-size: 14px;
+        color: #4a5568;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .prediction-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: #003366;
+    }
+
+    /* HEALTH SECTION */
+    .health-metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(0, 51, 102, 0.1);
+    }
+
+    .health-metric:last-child {
+        border-bottom: none;
+    }
+
+    .metric-label {
+        font-weight: 600;
+        color: #1a1f3a;
+    }
+
+    .metric-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0052a3;
+    }
+
+    /* STATUS BADGE */
+    .status-badge {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 5px 0;
+    }
+
+    .status-ok {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.2));
+        color: #16a34a;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .status-warn {
+        background: linear-gradient(135deg, rgba(202, 138, 4, 0.2), rgba(250, 204, 21, 0.2));
+        color: #b45309;
+        border: 1px solid rgba(202, 138, 4, 0.3);
+    }
+
+    .status-danger {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(248, 113, 113, 0.2));
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    /* LIST ITEMS */
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    ul li {
+        padding: 12px 0 12px 30px;
+        position: relative;
+        border-bottom: 1px solid rgba(0, 51, 102, 0.08);
+        animation: slideInLeft 0.5s ease;
+    }
+
+    ul li:last-child {
+        border-bottom: none;
+    }
+
+    ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #16a34a;
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* BUTTON */
+    .btn-back {
+        display: inline-block;
+        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+        margin-top: 20px;
+    }
+
+    .btn-back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+    }
 </style>
 
-<div class="container">
+<div class="result-container">
 
-    <h1 class="animate">🧠 CareSense Assistant – Result Summary</h1>
+    <div class="result-header animate">
+        <h1>🎯 Analysis Results</h1>
+        <p style="color: #4a5568; font-size: 15px;">Comprehensive health assessment report</p>
+    </div>
 
     <!-- DR RESULT -->
-    <div class="card animate">
-        <h2>👁️ Diabetic Retinopathy Prediction</h2>
+    <div class="result-card animate">
+        <h2>👁️ Diabetic Retinopathy Analysis</h2>
 
         <div class="image-box">
-            <img src="{{ image_path }}" alt="Uploaded Retina Image">
+            <img src="{{ image_path }}" alt="Retinal Image Analysis">
         </div>
 
-        <p><b>Prediction:</b> {{ prediction }}</p>
-        <p><b>Confidence:</b> {{ confidence }} %</p>
+        <div class="prediction-result">
+            <div class="prediction-label">AI Prediction:</div>
+            <div class="prediction-value">{{ prediction }}</div>
+        </div>
+
+        <div class="health-metric">
+            <span class="metric-label">Confidence Score:</span>
+            <span class="metric-value">{{ confidence }}%</span>
+        </div>
     </div>
 
     <!-- HEALTH -->
     {% if health %}
-    <div class="card animate">
+    <div class="result-card animate">
         <h2>❤️ Live Health Monitoring</h2>
 
         {% if health.error %}
-            <p class="danger">Sensor Error: {{ health.error }}</p>
+            <p class="status-badge status-danger">⚠️ Sensor Error: {{ health.error }}</p>
         {% else %}
 
-            <h3>Sensor Readings</h3>
-            <p><b>Heart Rate:</b> {{ health["Heart Rate"] }} BPM</p>
-            <p><b>SpO₂:</b> {{ health["SpO2"] }} %</p>
+            <h3 style="color: #003366; margin-top: 20px; margin-bottom: 15px;">📊 Sensor Readings</h3>
+            <div class="health-metric">
+                <span class="metric-label">Heart Rate:</span>
+                <span class="metric-value">{{ health["Heart Rate"] }} BPM</span>
+            </div>
+            <div class="health-metric">
+                <span class="metric-label">SpO₂ Level:</span>
+                <span class="metric-value">{{ health["SpO2"] }}%</span>
+            </div>
 
-            <h3>Body Analysis</h3>
-            <ul>
-                <li>
-                    Heart Rate:
-                    {% if health["Body Analysis"]["heart_rate"][0] == "Normal" %}
-                        <span class="ok">Normal</span>
-                    {% else %}
-                        <span class="warn">{{ health["Body Analysis"]["heart_rate"][0] }}</span>
-                    {% endif %}
-                </li>
+            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">🔍 Body Analysis</h3>
+            <div class="health-metric">
+                <span class="metric-label">Heart Rate Status:</span>
+                {% if health["Body Analysis"]["heart_rate"][0] == "Normal" %}
+                    <span class="status-badge status-ok">✓ {{ health["Body Analysis"]["heart_rate"][0] }}</span>
+                {% else %}
+                    <span class="status-badge status-warn">⚠️ {{ health["Body Analysis"]["heart_rate"][0] }}</span>
+                {% endif %}
+            </div>
 
-                <li>
-                    SpO₂:
-                    {% if health["Body Analysis"]["spo2"][0] == "Normal" %}
-                        <span class="ok">Normal</span>
-                    {% else %}
-                        <span class="danger">{{ health["Body Analysis"]["spo2"][0] }}</span>
-                    {% endif %}
-                </li>
-            </ul>
+            <div class="health-metric">
+                <span class="metric-label">SpO₂ Status:</span>
+                {% if health["Body Analysis"]["spo2"][0] == "Normal" %}
+                    <span class="status-badge status-ok">✓ {{ health["Body Analysis"]["spo2"][0] }}</span>
+                {% else %}
+                    <span class="status-badge status-danger">✕ {{ health["Body Analysis"]["spo2"][0] }}</span>
+                {% endif %}
+            </div>
 
-            <h3>Risk Prediction</h3>
+            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">⚠️ Risk Prediction</h3>
             <ul>
                 {% for r in health["Risk Prediction"] %}
                     <li class="animate">{{ r }}</li>
                 {% endfor %}
             </ul>
 
-            <p class="note">
-                ⚠️ AI-based risk analysis only — not a medical diagnosis.
+            <p class="note" style="margin-top: 20px;">
+                ⚠️ AI-based risk analysis for awareness only — not a medical diagnosis.
             </p>
 
         {% endif %}
     </div>
     {% endif %}
 
-    <a href="/" class="btn animate">
-        🔁 Test Another Patient
+    <a href="/" class="btn-back animate">
+        🏠 Return to Home
     </a>
 
 </div>

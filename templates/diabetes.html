@@ -2,150 +2,98 @@
 {% block content %}
 
 <style>
-.hero{
-    background:linear-gradient(135deg,#0d6efd,#4dabf7);
-    color:white;
-    padding:60px 20px;
-    border-radius:20px;
-    text-align:center;
-    margin-bottom:50px;
-    transition:0.3s;
-}
-.hero:hover{ transform:translateY(-5px); }
-
-.hero h1{font-size:32px;margin-bottom:15px}
-.hero p{max-width:900px;margin:auto;font-size:16px}
-
-.section{margin-bottom:60px;padding:0 10px}
-.section h2{text-align:center;color:#0d6efd;margin-bottom:25px}
-
-.cards{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px
-}
-
-.card{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.1);
-    transition:0.3s;
-}
-.card:hover{
-    transform:translateY(-10px);
-    box-shadow:0 20px 40px rgba(0,0,0,0.2);
-}
-
-.form-box{
-    max-width:1000px;
-    margin:auto;
-    background:white;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-}
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px
-}
-
-input,select{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
-}
-
-input:focus,select:focus{
-    border-color:#0d6efd;
-    box-shadow:0 0 6px rgba(13,110,253,0.4);
-}
-
-button{
-    width:100%;
-    background:#0d6efd;
-    color:white;
-    padding:14px;
-    border:none;
-    border-radius:30px;
-    margin-top:20px;
-    transition:0.3s;
-}
-button:hover{ transform:scale(1.05); }
-
-.note{
-    background:#f1f7ff;
-    padding:15px;
-    border-left:5px solid #0d6efd;
-    border-radius:10px;
-}
-
-/* mobile */
-@media(max-width:768px){
-    .form-grid{grid-template-columns:1fr}
-    .hero h1{font-size:24px}
-}
+    .form-info {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto 40px;
+        font-size: 15px;
+        color: #4a5568;
+        line-height: 1.7;
+    }
 </style>
 
 <!-- HERO -->
 <div class="hero animate">
     <h1>🩺 Diabetes Risk Prediction</h1>
     <p>
-        AI-powered questionnaire system to assess diabetes risk using lifestyle and history.
+        AI-powered questionnaire system to assess diabetes risk using lifestyle, medical history, and biometric data through advanced machine learning.
     </p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
     <h2>What is Diabetes?</h2>
-    <p style="text-align:center">
-        Diabetes is a chronic condition where blood sugar levels are too high.
+    <p class="form-info">
+        Diabetes is a chronic metabolic condition characterized by elevated blood glucose levels. Type 2 diabetes, the most common form, develops when the body can't effectively use insulin. Early detection and lifestyle modifications can prevent or delay complications.
     </p>
 </div>
 
 <!-- CARDS -->
 <div class="section">
-    <h2 class="animate">How Our AI Works</h2>
+    <h2 class="animate">🔍 Our Assessment Process</h2>
 
     <div class="cards">
-        <div class="card animate">📝 Questionnaire</div>
-        <div class="card animate">📊 Risk scoring</div>
-        <div class="card animate">🧠 AI analysis</div>
-        <div class="card animate">⚠️ Classification</div>
-        <div class="card animate">📋 Advice</div>
-        <div class="card animate">👨‍⚕️ Support</div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">📝</div>
+            <h3>Questionnaire</h3>
+            <p>Comprehensive health assessment</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">📊</div>
+            <h3>Risk Scoring</h3>
+            <p>AI-based risk calculation</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">🧠</div>
+            <h3>AI Analysis</h3>
+            <p>Machine learning assessment</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">⚠️</div>
+            <h3>Classification</h3>
+            <p>Risk level determination</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">📋</div>
+            <h3>Recommendations</h3>
+            <p>Personalized advice</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 28px; margin-bottom: 10px;">👨‍⚕️</div>
+            <h3>Medical Support</h3>
+            <p>Professional guidance</p>
+        </div>
     </div>
 </div>
 
 <!-- FORM -->
 <div class="section animate">
-    <h2>Diabetes Prediction</h2>
+    <h2>Diabetes Risk Assessment Form</h2>
 
     <div class="form-box animate">
         <form action="/diabetes_predict" method="POST">
 
             <div class="form-grid">
-                <input type="number" name="age" placeholder="Age" required>
-                <select name="gender">
+                <input type="number" name="age" placeholder="Age (years)" required min="1" max="120">
+                <select name="gender" required>
+                    <option value="">-- Select Gender --</option>
                     <option>Male</option>
                     <option>Female</option>
                 </select>
 
-                <input type="number" name="height" placeholder="Height">
-                <input type="number" name="weight" placeholder="Weight">
+                <input type="number" name="height" placeholder="Height (cm)" required min="50" max="250">
+                <input type="number" name="weight" placeholder="Weight (kg)" required min="20" max="300">
 
-                <input type="number" step="0.1" name="bmi" placeholder="BMI">
+                <input type="number" step="0.1" name="bmi" placeholder="BMI (optional)" min="10" max="60">
 
-                <select name="family">
+                <select name="family" required>
+                    <option value="">-- Family History --</option>
                     <option>Family History: Yes</option>
                     <option>No</option>
                 </select>
             </div>
 
-            <button type="submit">🔍 Predict Risk</button>
+            <button type="submit">🔍 Predict Diabetes Risk</button>
         </form>
     </div>
 </div>
@@ -153,7 +101,7 @@ button:hover{ transform:scale(1.05); }
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ This system is for awareness only.
+        ⚠️ <strong>Medical Disclaimer:</strong> This assessment is for awareness only and should not be used as a substitute for professional medical diagnosis. Please consult with a healthcare provider for accurate diagnosis and treatment.
     </div>
 </div>
 

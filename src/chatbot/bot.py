@@ -1,76 +1,62 @@
-import wikipedia
-import requests
+import os
+import google.generativeai as genai
 
 # -------------------------
-# Helper: greeting check
+# Configure Gemini API
 # -------------------------
-def is_greeting(text):
-    greetings = [
-        "hi", "hello", "hey", "good morning",
-        "good afternoon", "good evening"
-    ]
-    return text.lower().strip() in greetings
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyAFWeR3aVkOiXREIXDmJdPd6mr06akABZQ")
+genai.configure(api_key=GEMINI_API_KEY)
 
+# Medical assistant system prompt
+SYSTEM_PROMPT = (
+    "You are CareSense AI healthcare assistant. "
+    "Give concise, useful healthcare information and general guidance. "
+    "Do not diagnose with certainty. "
+    "Always recommend consulting healthcare professionals for serious concerns. "
+    "Keep responses brief and clear."
+)
 
 # -------------------------
 # Main chatbot function
 # -------------------------
 def chatbot_response(user_message: str) -> str:
+    """Get intelligent response using Gemini API"""
+    
+    # Input validation
     if not user_message or len(user_message.strip()) < 2:
         return "Please ask a clear question 🙂"
 
-    query = user_message.strip()
-
-    # 1️⃣ HANDLE GREETINGS (IMPORTANT FIX)
-    if is_greeting(query):
-        return "Hello 👋 I'm your AI Assistant. You can ask me any question."
-
-    # 2️⃣ VERY SHORT / VAGUE QUESTIONS
-    if len(query.split()) <= 1:
-        return "Please ask a complete question so I can help you better 🙂"
-
-    # 3️⃣ TRY WIKIPEDIA (ONLY FOR REAL QUESTIONS)
     try:
-        wikipedia.set_lang("en")
-        summary = wikipedia.summary(query, sentences=2)
-        return summary
-    except wikipedia.exceptions.DisambiguationError:
-        return (
-            "Your question is a bit broad.\n"
-            "👉 Please be more specific.\n"
-            "Example: 'Virat Kohli cricketer' or 'Python programming language'"
+        # Initialize Gemini model
+        model = genai.GenerativeModel(
+            model_name="gemini-pro",
+            system_instruction=SYSTEM_PROMPT
         )
-    except wikipedia.exceptions.PageError:
-        pass
-    except Exception:
-        pass
-
-    # 4️⃣ TRY DUCKDUCKGO (FACTUAL BACKUP)
-    try:
-        url = "https://api.duckduckgo.com/"
-        params = {
-            "q": query,
-            "format": "json",
-            "no_html": 1,
-            "skip_disambig": 1
-        }
-        res = requests.get(url, params=params, timeout=5)
-        data = res.json()
-
-        if data.get("AbstractText"):
-            return data["AbstractText"]
-
-        if data.get("Answer"):
-            return data["Answer"]
-
-        if data.get("Definition"):
-            return data["Definition"]
-
-    except Exception:
-        pass
-
-    # 5️⃣ CLEAN FINAL FALLBACK (NO FALTU)
-    return (
-        "I couldn't find a reliable answer for this question.\n\n"
-        "👉 Please try rephrasing it or ask with more details."
-    )
+        
+        # Generate response
+        response = model.generate_content(
+            user_message,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=150,
+                temperature=0.7
+            )
+        )
+        
+        # Extract text from response
+        if response and response.text:
+            return response.text.strip()
+        else:
+            return "I couldn't generate a response. Please try again. 🙂"
+            
+    except Exception as e:
+        # Graceful error handling
+        error_msg = str(e).lower()
+        
+        if "api_key" in error_msg or "authentication" in error_msg:
+            return "API configuration issue. Please contact support. ⚠️"
+        elif "network" in error_msg or "timeout" in error_msg:
+            return "Network connection issue. Please check your internet. 🌐"
+        elif "rate limit" in error_msg:
+            return "Service temporarily busy. Please try again in a moment. ⏳"
+        else:
+            return "Unable to process your request. Please try again. 🙂"

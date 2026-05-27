@@ -2,191 +2,259 @@
 {% block content %}
 
 <style>
-.container{
-    max-width:1100px;
-    margin:30px auto;
-    padding:0 10px;
-}
+    .vital-card {
+        text-align: center;
+    }
 
-/* HERO */
-.hero{
-    background:linear-gradient(135deg,#ff4d4d,#ff7a7a);
-    color:white;
-    padding:40px 20px;
-    border-radius:20px;
-    text-align:center;
-    margin-bottom:30px;
-    transition:0.3s;
-}
-.hero:hover{ transform:translateY(-5px); }
+    .vital-value {
+        font-size: 36px;
+        font-weight: 800;
+        color: #003366;
+        margin: 15px 0;
+        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 
-.hero h1{font-size:28px}
+    .vital-unit {
+        font-size: 14px;
+        color: #4a5568;
+        font-weight: 500;
+    }
 
-/* GRID */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px;
-}
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 10px;
+        animation: pulse 2s ease-in-out infinite;
+    }
 
-/* CARD */
-.card{
-    background:white;
-    padding:20px;
-    border-radius:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.12);
-    transition:0.3s;
-}
+    .status-ok {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.2));
+        color: #16a34a;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
 
-.card:hover{
-    transform:translateY(-8px) scale(1.02);
-    box-shadow:0 15px 35px rgba(0,0,0,0.2);
-}
+    .status-warn {
+        background: linear-gradient(135deg, rgba(202, 138, 4, 0.2), rgba(250, 204, 21, 0.2));
+        color: #b45309;
+        border: 1px solid rgba(202, 138, 4, 0.3);
+    }
 
-/* VALUES */
-.value{
-    font-size:26px;
-    font-weight:bold;
-    margin:10px 0;
-}
+    .status-danger {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(248, 113, 113, 0.2));
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.3);
+    }
 
-/* BADGES */
-.badge{
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:20px;
-    font-size:12px;
-    font-weight:bold;
-}
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
 
-.ok{background:#d4edda;color:#155724}
-.warn{background:#fff3cd;color:#856404}
-.danger{background:#f8d7da;color:#721c24}
+    .section-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #003366;
+        margin-top: 50px;
+        margin-bottom: 25px;
+        position: relative;
+    }
 
-/* TITLES */
-.section-title{
-    margin:40px 0 15px;
-    color:#0d6efd;
-}
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: linear-gradient(90deg, #0052a3, #0099ff);
+        margin-top: 12px;
+        border-radius: 2px;
+    }
 
-/* NOTE */
-.note{
-    background:#f1f7ff;
-    padding:15px;
-    border-left:5px solid #0d6efd;
-    border-radius:10px;
-    font-size:14px;
-    margin-top:30px;
-    transition:0.3s;
-}
-.note:hover{ transform:translateX(5px); }
+    ul {
+        list-style: none;
+        padding: 0;
+    }
 
-/* MOBILE */
-@media (max-width:768px){
-    .hero h1{font-size:22px}
-    .value{font-size:22px}
-}
+    ul li {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 51, 102, 0.1);
+        animation: slideInLeft 0.5s ease;
+    }
+
+    ul li:last-child {
+        border-bottom: none;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
 </style>
 
-<div class="container">
+<!-- HERO -->
+<div class="hero animate">
+    <h1>❤️ Live Health Monitoring</h1>
+    <p>
+        Real-time IoT monitoring using ESP32 + MAX30102 sensors for continuous vital sign tracking and AI-powered health analysis.
+    </p>
+</div>
 
-    <!-- HERO -->
-    <div class="hero animate">
-        <h1>❤️ Live Health Monitoring</h1>
-        <p>Real-time IoT monitoring using ESP32 + MAX30102</p>
+<!-- VITALS SECTION -->
+<h2 class="section-title animate">📊 Live Vital Signs</h2>
+<div class="grid">
+    <div class="card vital-card animate">
+        <h3>❤️ Heart Rate</h3>
+        <div class="vital-value" id="hr">--</div>
+        <div class="vital-unit">Beats Per Minute (BPM)</div>
+        <span class="status-badge status-ok" id="hr_status">--</span>
     </div>
 
-    <!-- VITALS -->
-    <div class="grid">
-        <div class="card animate">
-            <h3>❤️ Heart Rate</h3>
-            <div class="value"><span id="hr">--</span> BPM</div>
-            <span class="badge ok" id="hr_status">--</span>
-        </div>
-
-        <div class="card animate">
-            <h3>🫁 SpO₂ Level</h3>
-            <div class="value"><span id="spo2">--</span> %</div>
-            <span class="badge ok" id="spo2_status">--</span>
-        </div>
-
-        <div class="card animate">
-            <h3>📡 Sensor Status</h3>
-            <div class="value" id="status">--</div>
-            <p style="font-size:13px;margin-top:8px">
-                Live data from IoT device
-            </p>
-        </div>
+    <div class="card vital-card animate">
+        <h3>🫁 Oxygen Level</h3>
+        <div class="vital-value" id="spo2">--</div>
+        <div class="vital-unit">SpO₂ Percentage (%)</div>
+        <span class="status-badge status-ok" id="spo2_status">--</span>
     </div>
 
-    <!-- RISK -->
-    <h2 class="section-title animate">⚠️ Risk Prediction</h2>
+    <div class="card vital-card animate">
+        <h3>📡 Sensor Status</h3>
+        <div class="vital-value" style="font-size: 24px; margin: 20px 0;" id="status">--</div>
+        <p style="font-size: 13px; color: #4a5568; margin: 8px 0;">
+            Live data streaming from IoT device
+        </p>
+    </div>
+</div>
+
+<!-- RISK PREDICTION -->
+<h2 class="section-title animate">⚠️ Health Risk Analysis</h2>
+<div class="card animate">
+    <ul id="risk"></ul>
+</div>
+
+<!-- PREVENTIVE ADVICE -->
+<h2 class="section-title animate">✅ Recommendations</h2>
+<div class="card animate">
+    <ul id="advice"></ul>
+</div>
+
+<!-- BENEFITS -->
+<h2 class="section-title animate">🎯 Why Live Monitoring?</h2>
+<div class="benefits-grid">
     <div class="card animate">
-        <ul id="risk"></ul>
+        <div style="font-size: 28px; margin-bottom: 10px;">🔄</div>
+        <h3>Continuous Monitoring</h3>
+        <p style="font-size: 14px; color: #4a5568;">24/7 real-time health tracking</p>
     </div>
-
-    <!-- ADVICE -->
-    <h2 class="section-title animate">✅ Preventive Advice</h2>
     <div class="card animate">
-        <ul id="advice"></ul>
+        <div style="font-size: 28px; margin-bottom: 10px;">🎯</div>
+        <h3>Early Detection</h3>
+        <p style="font-size: 14px; color: #4a5568;">Identify health issues early</p>
     </div>
-
-    <!-- BENEFITS -->
-    <h2 class="section-title animate">📘 Benefits</h2>
-    <div class="grid">
-        <div class="card animate">✔ Continuous monitoring</div>
-        <div class="card animate">✔ Early detection</div>
-        <div class="card animate">✔ AI risk analysis</div>
-        <div class="card animate">✔ Elderly support</div>
+    <div class="card animate">
+        <div style="font-size: 28px; margin-bottom: 10px;">🧠</div>
+        <h3>AI Risk Analysis</h3>
+        <p style="font-size: 14px; color: #4a5568;">Machine learning insights</p>
     </div>
-
-    <!-- NOTE -->
-    <div class="note animate">
-        ⚠️ <b>Medical Disclaimer:</b><br>
-        This system provides real-time vitals for awareness only.
+    <div class="card animate">
+        <div style="font-size: 28px; margin-bottom: 10px;">👴</div>
+        <h3>Elderly Support</h3>
+        <p style="font-size: 14px; color: #4a5568;">Safe continuous care for seniors</p>
     </div>
+</div>
 
+<!-- NOTE -->
+<div class="section animate">
+    <div class="note">
+        ⚠️ <strong>Medical Disclaimer:</strong><br>
+        This system provides real-time vital signs for awareness and monitoring purposes only. It should not replace professional medical advice. In case of emergency, immediately contact emergency services or consult a healthcare provider.
+    </div>
 </div>
 
 <script>
-function fetchData(){
+    function fetchData(){
 
-    fetch("/live_sensor")
-    .then(r=>r.json())
-    .then(d=>{
-        document.getElementById("hr").innerText=d.heart_rate ?? "--";
-        document.getElementById("spo2").innerText=d.spo2 ?? "--";
-        document.getElementById("status").innerText=d.status ?? "--";
-    });
+        fetch("/live_sensor")
+        .then(r=>r.json())
+        .then(d=>{
+            document.getElementById("hr").innerText = d.heart_rate ?? "--";
+            document.getElementById("spo2").innerText = d.spo2 ?? "--";
+            document.getElementById("status").innerText = d.status ?? "--";
+        })
+        .catch(e => console.log("Sensor fetch error:", e));
 
-    fetch("/health_analysis")
-    .then(r=>r.json())
-    .then(d=>{
-        document.getElementById("hr_status").innerText=d.heart_rate_status ?? "--";
-        document.getElementById("spo2_status").innerText=d.spo2_status ?? "--";
+        fetch("/health_analysis")
+        .then(r=>r.json())
+        .then(d=>{
+            let hrStatus = d.heart_rate_status ?? "--";
+            let spo2Status = d.spo2_status ?? "--";
 
-        let rEl=document.getElementById("risk");
-        rEl.innerHTML="";
-        d.risk.forEach(x=>{
-            let li=document.createElement("li");
-            li.innerText=x;
-            li.classList.add("animate");
-            rEl.appendChild(li);
-        });
+            let hrElement = document.getElementById("hr_status");
+            let spo2Element = document.getElementById("spo2_status");
 
-        let aEl=document.getElementById("advice");
-        aEl.innerHTML="";
-        d.advice.forEach(x=>{
-            let li=document.createElement("li");
-            li.innerText=x;
-            li.classList.add("animate");
-            aEl.appendChild(li);
-        });
-    });
-}
+            hrElement.innerText = hrStatus;
+            spo2Element.innerText = spo2Status;
 
-setInterval(fetchData,2000);
-fetchData();
+            // Update status colors
+            hrElement.className = "status-badge " + getStatusClass(hrStatus);
+            spo2Element.className = "status-badge " + getStatusClass(spo2Status);
+
+            // Risk
+            let rEl = document.getElementById("risk");
+            rEl.innerHTML = "";
+            (d.risk || []).forEach(x => {
+                let li = document.createElement("li");
+                li.innerText = x;
+                li.classList.add("animate");
+                rEl.appendChild(li);
+            });
+
+            // Advice
+            let aEl = document.getElementById("advice");
+            aEl.innerHTML = "";
+            (d.advice || []).forEach(x => {
+                let li = document.createElement("li");
+                li.innerText = x;
+                li.classList.add("animate");
+                aEl.appendChild(li);
+            });
+        })
+        .catch(e => console.log("Health analysis fetch error:", e));
+    }
+
+    function getStatusClass(status) {
+        status = (status || "").toLowerCase();
+        if (status.includes("normal") || status.includes("healthy")) {
+            return "status-ok";
+        } else if (status.includes("warning") || status.includes("caution")) {
+            return "status-warn";
+        } else {
+            return "status-danger";
+        }
+    }
+
+    setInterval(fetchData, 2000);
+    fetchData();
 </script>
 
 {% endblock %}

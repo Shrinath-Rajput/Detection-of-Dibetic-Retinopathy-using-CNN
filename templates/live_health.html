@@ -1,3 +1,4 @@
+<!-- live_health.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -112,15 +113,11 @@
     }
 </style>
 
-<!-- HERO -->
 <div class="hero animate">
     <h1>❤️ Live Health Monitoring</h1>
-    <p>
-        Real-time IoT monitoring using ESP32 + MAX30102 sensors for continuous vital sign tracking and AI-powered health analysis.
-    </p>
+    <p>Real-time IoT monitoring using ESP32 + MAX30102 sensors for continuous vital sign tracking and AI-powered health analysis.</p>
 </div>
 
-<!-- VITALS SECTION -->
 <h2 class="section-title animate">📊 Live Vital Signs</h2>
 <div class="grid">
     <div class="card vital-card animate">
@@ -140,25 +137,20 @@
     <div class="card vital-card animate">
         <h3>📡 Sensor Status</h3>
         <div class="vital-value" style="font-size: 24px; margin: 20px 0;" id="status">--</div>
-        <p style="font-size: 13px; color: #4a5568; margin: 8px 0;">
-            Live data streaming from IoT device
-        </p>
+        <p style="font-size: 13px; color: #4a5568; margin: 8px 0;">Live data streaming from IoT device</p>
     </div>
 </div>
 
-<!-- RISK PREDICTION -->
 <h2 class="section-title animate">⚠️ Health Risk Analysis</h2>
 <div class="card animate">
     <ul id="risk"></ul>
 </div>
 
-<!-- PREVENTIVE ADVICE -->
 <h2 class="section-title animate">✅ Recommendations</h2>
 <div class="card animate">
     <ul id="advice"></ul>
 </div>
 
-<!-- BENEFITS -->
 <h2 class="section-title animate">🎯 Why Live Monitoring?</h2>
 <div class="benefits-grid">
     <div class="card animate">
@@ -183,7 +175,6 @@
     </div>
 </div>
 
-<!-- NOTE -->
 <div class="section animate">
     <div class="note">
         ⚠️ <strong>Medical Disclaimer:</strong><br>
@@ -192,69 +183,93 @@
 </div>
 
 <script>
-    function fetchData(){
+async function fetchData() {
+    try {
+        const sensorResponse = await fetch("/get_sensor_data?t=" + Date.now(), {
+            cache: 'no-store',
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
 
-        fetch("/live_sensor")
-        .then(r=>r.json())
-        .then(d=>{
-            document.getElementById("hr").innerText = d.heart_rate ?? "--";
-            document.getElementById("spo2").innerText = d.spo2 ?? "--";
-            document.getElementById("status").innerText = d.status ?? "--";
-        })
-        .catch(e => console.log("Sensor fetch error:", e));
+        if (!sensorResponse.ok) throw new Error(`HTTP ${sensorResponse.status}`);
 
-        fetch("/health_analysis")
-        .then(r=>r.json())
-        .then(d=>{
-            let hrStatus = d.heart_rate_status ?? "--";
-            let spo2Status = d.spo2_status ?? "--";
+        const sensor = await sensorResponse.json();
 
-            let hrElement = document.getElementById("hr_status");
-            let spo2Element = document.getElementById("spo2_status");
+        const hrElement = document.getElementById("hr");
+        const spo2Element = document.getElementById("spo2");
+        const statusElement = document.getElementById("status");
 
-            hrElement.innerText = hrStatus;
-            spo2Element.innerText = spo2Status;
+        if (hrElement) hrElement.innerText = sensor.heart_rate !== undefined ? sensor.heart_rate : "--";
+        if (spo2Element) spo2Element.innerText = sensor.spo2 !== undefined ? sensor.spo2 : "--";
+        if (statusElement) statusElement.innerText = sensor.status || "DISCONNECTED";
 
-            // Update status colors
-            hrElement.className = "status-badge " + getStatusClass(hrStatus);
-            spo2Element.className = "status-badge " + getStatusClass(spo2Status);
+        const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
+            cache: 'no-store',
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
 
-            // Risk
-            let rEl = document.getElementById("risk");
-            rEl.innerHTML = "";
-            (d.risk || []).forEach(x => {
-                let li = document.createElement("li");
-                li.innerText = x;
-                li.classList.add("animate");
-                rEl.appendChild(li);
-            });
+        if (!analysisResponse.ok) throw new Error(`HTTP ${analysisResponse.status}`);
 
-            // Advice
-            let aEl = document.getElementById("advice");
-            aEl.innerHTML = "";
-            (d.advice || []).forEach(x => {
-                let li = document.createElement("li");
-                li.innerText = x;
-                li.classList.add("animate");
-                aEl.appendChild(li);
-            });
-        })
-        .catch(e => console.log("Health analysis fetch error:", e));
-    }
+        const data = await analysisResponse.json();
 
-    function getStatusClass(status) {
-        status = (status || "").toLowerCase();
-        if (status.includes("normal") || status.includes("healthy")) {
-            return "status-ok";
-        } else if (status.includes("warning") || status.includes("caution")) {
-            return "status-warn";
-        } else {
-            return "status-danger";
+        const hrStatusEl = document.getElementById("hr_status");
+        if (hrStatusEl) {
+            hrStatusEl.innerText = data.heart_rate_status || "WAITING";
+            hrStatusEl.className = "status-badge " + (data.heart_rate_status === "NORMAL" ? "status-ok" : data.heart_rate_status === "WAITING" ? "status-ok" : "status-danger");
         }
-    }
 
-    setInterval(fetchData, 2000);
+        const spo2StatusEl = document.getElementById("spo2_status");
+        if (spo2StatusEl) {
+            spo2StatusEl.innerText = data.spo2_status || "WAITING";
+            spo2StatusEl.className = "status-badge " + (data.spo2_status === "NORMAL" ? "status-ok" : data.spo2_status === "WAITING" ? "status-ok" : "status-danger");
+        }
+
+        const riskBox = document.getElementById("risk");
+        if (riskBox) {
+            riskBox.innerHTML = "";
+            if (data.risk && Array.isArray(data.risk) && data.risk.length > 0) {
+                data.risk.forEach(item => {
+                    const li = document.createElement("li");
+                    li.innerText = item;
+                    riskBox.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.innerText = "No risks detected. Keep monitoring!";
+                riskBox.appendChild(li);
+            }
+        }
+
+        const adviceBox = document.getElementById("advice");
+        if (adviceBox) {
+            adviceBox.innerHTML = "";
+            if (data.advice && Array.isArray(data.advice)) {
+                data.advice.forEach(item => {
+                    const li = document.createElement("li");
+                    li.innerText = item;
+                    adviceBox.appendChild(li);
+                });
+            }
+        }
+
+    } catch(err) {
+        console.error("Fetch Error:", err);
+        const statusElement = document.getElementById("status");
+        if (statusElement) statusElement.innerText = "DISCONNECTED";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     fetchData();
+    setInterval(fetchData, 1000);
+});
 </script>
 
 {% endblock %}

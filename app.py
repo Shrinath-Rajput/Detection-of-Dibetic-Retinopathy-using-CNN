@@ -1,7 +1,9 @@
+# app.py
 import os
 import json
 import numpy as np
 import tensorflow as tf
+import time
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
@@ -9,19 +11,14 @@ from werkzeug.utils import secure_filename
 from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response
 
-# =========================
-# Flask Init
-# =========================
 app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
 
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config['JSON_SORT_KEYS'] = False
 
-# =========================
-# ✅ DOWNLOAD MODEL FIRST
-# =========================
 import gdown
 
 MODEL_PATH = "dr_cnn_model.h5"
@@ -30,9 +27,6 @@ if not os.path.exists(MODEL_PATH):
     url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
     gdown.download(url, MODEL_PATH, quiet=False)
 
-# =========================
-# ✅ LOAD MODEL AFTER DOWNLOAD
-# =========================
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 with open("class_indices.json") as f:
@@ -40,19 +34,14 @@ with open("class_indices.json") as f:
 
 INDEX_TO_CLASS = {v: k for k, v in class_indices.items()}
 
-# =========================
-# Start Sensor Thread
-# =========================
+print("[STARTUP] Initializing sensor thread...")
 start_sensor_thread()
+print(f"[STARTUP] Sensor data: {sensor_data}")
 
-# =========================
-# Helper Functions
-# =========================
 def preprocess_image(img_path):
     img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     img = tf.keras.preprocessing.image.img_to_array(img) / 255.0
     return np.expand_dims(img, axis=0)
-
 
 def analyze_health(hr, spo2):
     hr_status = "UNKNOWN"
@@ -60,15 +49,33 @@ def analyze_health(hr, spo2):
     risk = []
     advice = []
 
+    try:
+        if hr != "--":
+            hr = int(hr)
+        else:
+            hr = None
+    except:
+        hr = None
+
+    try:
+        if spo2 != "--":
+            spo2 = int(spo2)
+        else:
+            spo2 = None
+    except:
+        spo2 = None
+
     if hr is not None:
         if hr < 60:
             hr_status = "LOW"
             risk.append("Low heart rate (Bradycardia)")
         elif hr > 100:
             hr_status = "HIGH"
-            risk.append("High heart rate (Stress / Hypertension)")
+            risk.append("High heart rate (Stress/Hypertension)")
         else:
             hr_status = "NORMAL"
+    else:
+        hr_status = "WAITING"
 
     if spo2 is not None:
         if spo2 < 95:
@@ -76,16 +83,24 @@ def analyze_health(hr, spo2):
             risk.append("Low oxygen level (Breathing issue)")
         else:
             spo2_status = "NORMAL"
+    else:
+        spo2_status = "WAITING"
 
     if not risk:
-        advice.append("All vitals are normal. Maintain healthy lifestyle.")
+        advice = [
+            "All vitals are normal. Maintain healthy lifestyle.",
+            "Continue monitoring your health regularly.",
+            "Stay active and exercise regularly.",
+            "Ensure proper sleep and rest."
+        ]
     else:
-        advice.extend([
+        advice = [
             "Take proper rest",
             "Practice deep breathing",
             "Reduce stress",
+            "Drink enough water",
             "Consult doctor if values persist"
-        ])
+        ]
 
     return {
         "heart_rate_status": hr_status,
@@ -94,19 +109,13 @@ def analyze_health(hr, spo2):
         "advice": advice
     }
 
-# =========================
-# ROUTES
-# =========================
-
 @app.route("/")
 def home():
     return render_template("home.html")
 
-
 @app.route("/dr")
 def dr_page():
     return render_template("index.html")
-
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -128,20 +137,23 @@ def predict():
         image_path=path
     )
 
-
 @app.route("/live_health")
 def live_health():
     return render_template("live_health.html")
 
-
-@app.route("/live_sensor")
-def live_sensor():
-    return jsonify({
-        "heart_rate": sensor_data.get("heart_rate"),
-        "spo2": sensor_data.get("spo2"),
-        "status": sensor_data.get("status")
-    })
-
+@app.route("/get_sensor_data")
+def get_sensor_data():
+    data = {
+        "heart_rate": sensor_data.get("heart_rate", "--"),
+        "spo2": sensor_data.get("spo2", "--"),
+        "status": sensor_data.get("status", "DISCONNECTED")
+    }
+    response = jsonify(data)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['X-Accel-Expires'] = '0'
+    return response
 
 @app.route("/health_analysis")
 def health_analysis():
@@ -149,11 +161,9 @@ def health_analysis():
     spo2 = sensor_data.get("spo2")
     return jsonify(analyze_health(hr, spo2))
 
-
 @app.route("/pcod")
 def pcod():
     return render_template("pcod.html")
-
 
 @app.route("/pcod_predict", methods=["POST"])
 def pcod_predict():
@@ -165,7 +175,6 @@ def pcod_predict():
         activity = request.form.get("activity", "moderate")
         diet = request.form.get("diet", "balanced")
         family = request.form.get("family_history", "no")
-
 
         score = 0
         score += 2 if bmi >= 25 else 0
@@ -190,11 +199,9 @@ def pcod_predict():
     except Exception as e:
         return f"PCOD Error: {e}"
 
-
 @app.route("/diabetes")
 def diabetes():
     return render_template("diabetes.html")
-
 
 @app.route("/diabetes_predict", methods=["POST"])
 def diabetes_predict():
@@ -234,11 +241,9 @@ def diabetes_predict():
     except Exception as e:
         return f"DIABETES Error: {e}"
 
-
 @app.route("/migraine")
 def migraine():
     return render_template("migraine.html")
-
 
 @app.route("/migraine_predict", methods=["POST"])
 def migraine_predict():
@@ -285,7 +290,6 @@ def migraine_predict():
         return render_template("migraine_result.html", risk=risk, risks=risks, advice=advice)
 
     except Exception as e:
-        # Fallback: render template with error message instead of plain text
         return render_template(
             "migraine_result.html",
             risk="Unable to calculate risk",
@@ -293,14 +297,9 @@ def migraine_predict():
             advice=["Try submitting the form again", "Contact support if issue persists"]
         )
 
-
-# =========================
-# CHATBOT ROUTES
-# =========================
 @app.route("/chatbot")
 def chatbot():
     return render_template("chatbot.html")
-
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -308,10 +307,6 @@ def chat():
     reply = chatbot_response(user_msg)
     return jsonify({"reply": reply})
 
-
-# =========================
-# MAIN (Render fix)
-# =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

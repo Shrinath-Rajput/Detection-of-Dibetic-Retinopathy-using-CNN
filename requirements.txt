@@ -17,4 +17,3 @@ mlflow
 gdown
 wikipedia
 requests
-google-generativeai

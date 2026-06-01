@@ -2,59 +2,146 @@
 {% block content %}
 
 <style>
-    /* Home Page Specific Styles */
+    /* Home Page Specific Premium Styles */
     .cta {
         text-align: center;
-        margin-top: 60px;
-        padding: 60px 40px;
-        background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, rgba(0, 153, 255, 0.05) 100%);
-        border-radius: 20px;
-        border: 1px solid rgba(0, 82, 163, 0.1);
+        margin-top: 100px;
+        padding: 100px 60px;
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(236, 72, 153, 0.1) 100%);
+        border-radius: 32px;
+        border: 2px solid rgba(0, 217, 255, 0.35);
+        box-shadow: 0 30px 100px rgba(0, 217, 255, 0.25), 0 0 80px rgba(139, 92, 246, 0.15);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+        backdrop-filter: blur(30px);
+    }
+
+    .cta::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(0, 217, 255, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 25s ease-in-out infinite;
+        z-index: 1;
+        filter: blur(60px);
+    }
+
+    .cta::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: 5%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 30s ease-in-out infinite reverse;
+        z-index: 1;
+        filter: blur(60px);
+    }
+
+    .cta:hover {
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.2) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(236, 72, 153, 0.15) 100%);
+        border-color: rgba(0, 217, 255, 0.5);
+        box-shadow: 0 40px 140px rgba(0, 217, 255, 0.35), 0 0 100px rgba(139, 92, 246, 0.25);
+        transform: translateY(-15px);
     }
 
     .cta h2 {
-        font-size: 32px;
-        color: #003366;
-        margin-bottom: 20px;
-        font-weight: 700;
+        font-size: 48px;
+        color: white;
+        margin-bottom: 25px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 50%, #EC4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -1.5px;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.3));
+    }
+
+    .cta p {
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 40px !important;
+        font-size: 19px;
+        position: relative;
+        z-index: 2;
+        font-weight: 500;
     }
 
     .cta a {
         display: inline-block;
-        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 50%, #EC4899 100%);
+        background-size: 200% 200%;
+        animation: rotate-gradient 6s ease infinite;
         color: white;
-        padding: 16px 40px;
-        border-radius: 12px;
+        padding: 18px 50px;
+        border-radius: 14px;
         text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+        font-weight: 800;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+        box-shadow: 0 15px 60px rgba(0, 217, 255, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
         font-size: 16px;
+        position: relative;
+        z-index: 2;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        letter-spacing: -0.3px;
     }
 
     .cta a:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+        transform: translateY(-10px) scale(1.08);
+        box-shadow: 0 25px 80px rgba(0, 217, 255, 0.5), 0 0 60px rgba(139, 92, 246, 0.4);
+        border-color: rgba(255, 255, 255, 0.6);
     }
 
     .section-intro {
         text-align: center;
         max-width: 900px;
-        margin: 0 auto 40px;
-        font-size: 16px;
-        color: #4a5568;
-        line-height: 1.7;
+        margin: 0 auto 60px;
+        font-size: 18px;
+        color: var(--text-secondary);
+        line-height: 2;
+        font-weight: 500;
     }
 
     .feature-highlight {
-        font-weight: 600;
-        color: #0052a3;
+        font-weight: 800;
+        color: #00D9FF;
+        text-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .cta {
+            padding: 60px 30px;
+            margin-top: 80px;
+        }
+
+        .cta h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .cta a {
+            padding: 16px 40px;
+            font-size: 16px;
+        }
+
+        .section-intro {
+            font-size: 16px;
+        }
     }
 </style>
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🏥 CareSense Assistant</h1>
+    <h1>🏥 CareSense AI Assistant</h1>
     <p>
         Advanced AI-powered clinical decision support system for early detection of Diabetic Retinopathy, PCOD, Migraine, Diabetes, and real-time health monitoring.
     </p>
@@ -74,19 +161,19 @@
 
     <div class="cards">
         <div class="card animate">
-            <div style="font-size: 32px; margin-bottom: 10px;">🤖</div>
+            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">🤖</div>
             <h3>AI-Based Analysis</h3>
-            <p>Advanced CNN models for retinal analysis</p>
+            <p>Advanced CNN models for retinal analysis with real-time processing</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
+            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📊</div>
             <h3>Smart Classification</h3>
-            <p>Automatic disease classification with confidence scores</p>
+            <p>Automatic disease classification with confidence scores and risk levels</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 32px; margin-bottom: 10px;">📡</div>
+            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📡</div>
             <h3>IoT Monitoring</h3>
-            <p>Real-time health monitoring via ESP32 + MAX30102</p>
+            <p>Real-time health monitoring via ESP32 + MAX30102 sensor</p>
         </div>
     </div>
 </div>
@@ -97,28 +184,34 @@
 
     <div class="cards">
         <div class="card animate">
-            <div style="font-size: 28px;">📸</div>
+            <div style="font-size: 40px;">📸</div>
             <h3>Upload Image</h3>
+            <p>Secure image upload</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 28px;">🔄</div>
+            <div style="font-size: 40px;">🔄</div>
             <h3>Preprocessing</h3>
+            <p>Advanced processing</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 28px;">🧠</div>
+            <div style="font-size: 40px;">🧠</div>
             <h3>CNN Analysis</h3>
+            <p>AI processing</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 28px;">📈</div>
+            <div style="font-size: 40px;">📈</div>
             <h3>Prediction</h3>
+            <p>Result generation</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 28px;">❤️</div>
+            <div style="font-size: 40px;">❤️</div>
             <h3>Health Data</h3>
+            <p>Vital monitoring</p>
         </div>
         <div class="card animate">
-            <div style="font-size: 28px;">✅</div>
+            <div style="font-size: 40px;">✅</div>
             <h3>Results</h3>
+            <p>Comprehensive report</p>
         </div>
     </div>
 </div>
@@ -129,19 +222,19 @@
 
     <div class="cards">
         <div class="card animate">
-            <h3>Backend</h3>
+            <h3>⚙️ Backend</h3>
             <p>Python + Flask</p>
         </div>
         <div class="card animate">
-            <h3>AI/ML</h3>
+            <h3>🤖 AI/ML</h3>
             <p>TensorFlow & Keras</p>
         </div>
         <div class="card animate">
-            <h3>Vision</h3>
+            <h3>👁️ Vision</h3>
             <p>OpenCV</p>
         </div>
         <div class="card animate">
-            <h3>IoT</h3>
+            <h3>📱 IoT</h3>
             <p>ESP32 + MAX30102</p>
         </div>
     </div>
@@ -174,8 +267,8 @@
 <!-- CTA -->
 <div class="cta animate">
     <h2>🚀 Begin Your Health Journey</h2>
-    <p style="margin-bottom: 20px; color: #4a5568;">Start with AI-powered diagnostics today</p>
-    <a href="/dr">Start DR Analysis</a>
+    <p>Start with AI-powered diagnostics today and take control of your health</p>
+    <a href="/dr">Start DR Analysis →</a>
 </div>
 
 {% endblock %}

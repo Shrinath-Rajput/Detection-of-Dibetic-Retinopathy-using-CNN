@@ -3,16 +3,22 @@
 
 <style>
     .hero {
-        background: linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(240, 101, 149, 0.9) 50%, rgba(244, 63, 94, 0.7) 100%);
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.95) 0%, rgba(240, 101, 149, 0.98) 50%, rgba(244, 63, 94, 0.9) 100%) !important;
     }
 
     .form-info {
         text-align: center;
         max-width: 900px;
         margin: 0 auto 40px;
-        font-size: 15px;
+        font-size: 17px;
         color: #4a5568;
-        line-height: 1.7;
+        line-height: 2;
+        font-weight: 500;
+    }
+
+    .form-info strong {
+        color: #FF6B6B;
+        font-weight: 800;
     }
 
     .form-box {
@@ -20,7 +26,10 @@
     }
 
     button {
-        background: linear-gradient(135deg, #dc2626 0%, #f06595 100%);
+        width: 100%;
+        background: linear-gradient(135deg, #dc2626 0%, #f06595 50%, #EC4899 100%) !important;
+        background-size: 200% 200%;
+        animation: rotate-gradient 6s ease infinite;
     }
 </style>
 

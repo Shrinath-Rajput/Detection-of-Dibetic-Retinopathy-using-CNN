@@ -1,0 +1,8 @@
+Status: 200
+Response (first 500 chars): {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hello again! You're looking for a comprehensive list of diabetic symptoms, and I can certainly continue to provide that for you. As we were discussing, the body's inability to properly use glucose for energy leads to a variety of signs.\n\nLet's pick up where we left off:\n\n**2. Increased Hunger (Polyphagia) and Unexplained Weight Loss (continued):**\nYour body thinks it's starving and signals for m

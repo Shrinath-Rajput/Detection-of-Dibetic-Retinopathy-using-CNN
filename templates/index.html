@@ -7,33 +7,53 @@
     }
 
     .upload-box {
-        max-width: 500px;
+        max-width: 550px;
         margin: auto;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: 40px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 15px 50px rgba(0, 51, 102, 0.15);
-        transition: all 0.4s ease;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        padding: 50px;
+        border-radius: 28px;
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.18), 0 0 1px rgba(255, 255, 255, 0.4) inset;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
         text-align: center;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 1s ease-out 0.3s both;
+    }
+
+    .upload-box::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(0, 217, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 30s ease-in-out infinite;
     }
 
     .upload-box:hover {
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 20px 70px rgba(0, 51, 102, 0.2);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.95) 100%);
+        box-shadow: 0 30px 90px rgba(0, 51, 102, 0.25), 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        transform: translateY(-15px);
     }
 
     .upload-box h3 {
-        color: #003366;
-        font-size: 20px;
-        margin-bottom: 20px;
+        color: #003D66;
+        font-size: 24px;
+        margin-bottom: 25px;
+        font-weight: 900;
+        position: relative;
+        z-index: 1;
     }
 
     .file-input-wrapper {
-        margin: 20px 0;
+        margin: 25px 0;
         position: relative;
+        z-index: 1;
     }
 
     input[type="file"] {
@@ -42,43 +62,61 @@
 
     .file-input-label {
         display: inline-block;
-        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+        background: linear-gradient(135deg, #0052A3 0%, #0099FF 40%, #00D9FF 100%);
+        background-size: 200% 200%;
+        animation: rotate-gradient 6s ease infinite;
         color: white;
-        padding: 12px 30px;
-        border-radius: 10px;
+        padding: 14px 40px;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+        font-weight: 800;
+        box-shadow: 0 12px 40px rgba(0, 82, 163, 0.3), 0 0 20px rgba(0, 217, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        font-size: 16px;
+        letter-spacing: -0.3px;
     }
 
     .file-input-label:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
+        transform: translateY(-6px);
+        box-shadow: 0 20px 60px rgba(0, 82, 163, 0.4), 0 0 40px rgba(0, 217, 255, 0.3);
     }
 
     .file-name {
-        color: #4a5568;
-        font-size: 13px;
-        margin-top: 10px;
+        color: #0052A3;
+        font-size: 14px;
+        margin-top: 15px;
         min-height: 20px;
+        font-weight: 600;
     }
 
     button[type="submit"] {
-        margin-top: 20px;
+        margin-top: 25px;
     }
 
     .why-section h3 {
-        font-size: 18px;
-        color: #003366;
-        font-weight: 600;
-        margin-bottom: 10px;
+        font-size: 20px;
+        color: #003D66;
+        font-weight: 800;
+        margin-bottom: 12px;
     }
 
     .why-section p {
         color: #4a5568;
-        font-size: 14px;
-        line-height: 1.6;
+        font-size: 16px;
+        line-height: 1.9;
+        font-weight: 500;
+    }
+
+    .section-intro {
+        font-size: 18px;
+        color: #4a5568;
+        line-height: 2;
+    }
+
+    .section-intro strong {
+        color: #00D9FF;
+        font-weight: 800;
     }
 </style>
 

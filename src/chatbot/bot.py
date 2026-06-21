@@ -1,100 +1,163 @@
 import os
 import requests
+from dotenv import load_dotenv
+import json
 
-# -------------------------
-# Gemini REST API Configuration
-# -------------------------
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyAFWeR3aVkOiXREIXDmJdPd6mr06akABZQ")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+load_dotenv()
 
-# Medical assistant system prompt
-SYSTEM_PROMPT = (
-    "You are CareSense AI healthcare assistant. "
-    "Give useful healthcare information and general guidance. "
-    "Do not diagnose with certainty. "
-    "Always recommend consulting healthcare professionals for serious concerns. "
-    "Keep responses brief and clear."
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Gemini 2.0 Flash API
+GEMINI_API_URL = (
+    "https://generativelanguage.googleapis.com/v1/models/"
+    "gemini-2.0-flash:generateContent"
 )
 
-# -------------------------
-# Main chatbot function using REST API
-# -------------------------
-def chatbot_response(user_message: str) -> str:
-    """Get intelligent response using Gemini REST API"""
-    
-    # Input validation
+SYSTEM_PROMPT = """
+You are a helpful AI assistant. Answer any question the user asks.
+Be informative, accurate, and concise.
+"""
+
+def chatbot_response(user_message):
+    """
+    Send user message to Gemini API and return the generated response.
+    Sends the exact user message, returns the exact Gemini response.
+    No hardcoded answers. All responses are dynamically generated.
+    """
+
     if not user_message or len(user_message.strip()) < 2:
-        return "Please ask a clear question 🙂"
+        return "Please enter a valid question."
 
     try:
-        # Check API key
-        if not GEMINI_API_KEY or GEMINI_API_KEY == "":
-            return "API configuration missing. Please set GEMINI_API_KEY environment variable. ⚠️"
+        # Diagnostic: Log API key info
+        api_key_prefix = GEMINI_API_KEY[:10] if GEMINI_API_KEY else "NOT_SET"
+        api_key_suffix = GEMINI_API_KEY[-10:] if GEMINI_API_KEY else "NOT_SET"
+        api_key_length = len(GEMINI_API_KEY) if GEMINI_API_KEY else 0
         
-        # Prepare request
-        headers = {
-            "Content-Type": "application/json"
-        }
+        print("\n" + "=" * 80)
+        print("[GEMINI API DIAGNOSTIC]")
+        print("=" * 80)
+        print(f"Loaded API Key (first 10)  : {api_key_prefix}")
+        print(f"Loaded API Key (last 10)   : {api_key_suffix}")
+        print(f"API Key Length             : {api_key_length}")
+        print(f"API Key Source             : .env file (GEMINI_API_KEY)")
+        print("=" * 80)
         
+        print("\n[GEMINI API CALL]")
+        print("=" * 80)
+        print(f"API URL         : {GEMINI_API_URL}")
+        print(f"Request Method  : POST")
+        print(f"User Message    : {user_message}")
+        print("=" * 80)
+
+        # Prepare request payload - send exact user message
         payload = {
             "contents": [
                 {
-                    "role": "user",
                     "parts": [
                         {
-                            "text": f"{SYSTEM_PROMPT}\n\nUser question: {user_message}"
+                            "text": user_message
                         }
                     ]
                 }
-            ],
-            "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 150,
-                "topP": 0.95,
-                "topK": 40
-            }
+            ]
         }
-        
-        # Call Gemini API
+
+        # Make API request
         response = requests.post(
             f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            headers=headers,
+            headers={
+                "Content-Type": "application/json"
+            },
             json=payload,
-            timeout=10
+            timeout=20
         )
+
+        print(f"\nStatus Code     : {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"\nFull Response Body:")
+        print("-" * 80)
         
-        # Handle response
+        # Pretty print response
+        try:
+            response_json = response.json()
+            print(json.dumps(response_json, indent=2))
+        except:
+            print(response.text)
+            
+        print("-" * 80)
+
+        # Handle successful response
         if response.status_code == 200:
             data = response.json()
-            
-            # Extract text from response
-            try:
-                candidates = data.get("candidates", [])
-                if candidates and len(candidates) > 0:
-                    content = candidates[0].get("content", {})
-                    parts = content.get("parts", [])
-                    if parts and len(parts) > 0:
-                        return parts[0].get("text", "I couldn't generate a response. Try again. 🙂").strip()
-            except (KeyError, IndexError, TypeError):
-                return "Error parsing API response. Try again. 🙂"
-            
-            return "I couldn't generate a response. Try again. 🙂"
-        
-        elif response.status_code == 401:
-            return "Invalid API key. Please check GEMINI_API_KEY configuration. 🔑"
-        elif response.status_code == 429:
-            return "API rate limit exceeded. Please try again in a moment. ⏳"
-        elif response.status_code >= 500:
-            return "Gemini service is temporarily unavailable. Try again later. 🌐"
+
+            if (
+                "candidates" in data
+                and len(data["candidates"]) > 0
+                and "content" in data["candidates"][0]
+                and "parts" in data["candidates"][0]["content"]
+                and len(data["candidates"][0]["content"]["parts"]) > 0
+            ):
+                # Return exact Gemini response
+                reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                print(f"\n[SUCCESS] Received response from Gemini")
+                return reply
+
+            print(f"\n[ERROR] Unexpected response structure from Gemini")
+            return "Unable to generate response. Please try again."
+
+        # Handle API errors with diagnostics
         else:
-            return f"API error ({response.status_code}). Please try again. ⚠️"
+            error_code = response.status_code
+            print(f"\n[API ERROR] Status {error_code}")
             
+            try:
+                error_detail = response.json()
+                error_message = error_detail.get("error", {}).get("message", "Unknown error")
+                print(f"[ERROR MESSAGE] {error_message}")
+                
+                # Specific diagnostics for common errors
+                if error_code == 429:
+                    print("\n[QUOTA ISSUE]")
+                    print("- Gemini API quota exhausted")
+                    print("- Check Google Cloud Console quota status")
+                    print("- Enable billing if not already enabled")
+                    print("- Request quota increase if needed")
+                    
+                elif error_code == 403:
+                    print("\n[PERMISSION ISSUE]")
+                    print("- API key doesn't have permission")
+                    print("- Generative Language API may not be enabled")
+                    print("- Check Google Cloud Console > Enable APIs")
+                    
+                elif error_code == 401:
+                    print("\n[AUTHENTICATION ISSUE]")
+                    print("- API key is invalid or corrupted")
+                    print("- Regenerate key from Google Cloud Console")
+                    
+                elif error_code == 404:
+                    print("\n[API NOT FOUND]")
+                    print("- Model or endpoint not found")
+                    print("- Check if Generative Language API is enabled")
+                    
+            except:
+                print(f"[ERROR DETAIL] {response.text}")
+            
+            return f"Service error ({error_code}). Please try again later."
+
     except requests.exceptions.Timeout:
-        return "Request timeout. Please check your internet connection. 🌐"
-    except requests.exceptions.ConnectionError:
-        return "Connection error. Please check your internet. 🌐"
-    except requests.exceptions.RequestException as e:
-        return "Network error. Please try again. 🌐"
+        error_msg = "Request timed out. Please try again."
+        print(f"\n[TIMEOUT] {error_msg}")
+        return error_msg
+
+    except requests.exceptions.ConnectionError as e:
+        error_msg = f"Connection error. Please check your internet connection."
+        print(f"\n[CONNECTION ERROR] {str(e)}")
+        return error_msg
+
     except Exception as e:
-        # Generic fallback
-        return f"Unexpected error. Please try again. 🙂"
+        error_msg = "An unexpected error occurred. Please try again."
+        print(f"\n[ERROR] {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return error_msg

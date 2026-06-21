@@ -3,15 +3,10 @@
 
 <style>
     .chat-container {
-<<<<<<< HEAD
-        max-width: 800px;
-        margin: 0 auto;
-=======
         max-width: 950px;
         margin: 0 auto;
         padding: 20px;
         animation: fadeInUp 1s ease-out 0.3s both;
->>>>>>> 867749d (all)
     }
 
     .chat-header {
@@ -36,112 +31,6 @@
         font-weight: 500;
     }
 
-<<<<<<< HEAD
-    .chat-box {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 24px;
-        height: 450px;
-=======
-    .chat-controls {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        margin-bottom: 25px;
-    }
-
-    .chat-controls button {
-        padding: 10px 20px;
-        border: 2px solid #FF6B6B;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 700;
-        transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
-    }
-
-    .clear-btn {
-        background: linear-gradient(135deg, #FF6B6B, #EC4899);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-    }
-
-    .clear-btn:hover {
-        background: linear-gradient(135deg, #FF5252, #E63384);
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(255, 107, 107, 0.4);
-    }
-
-    .chat-box {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-        backdrop-filter: blur(30px);
-        -webkit-backdrop-filter: blur(30px);
-        border: 2px solid rgba(255, 255, 255, 0.6);
-        padding: 28px;
-        height: 550px;
->>>>>>> 867749d (all)
-        overflow-y: auto;
-        border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.15), 0 0 1px rgba(255, 255, 255, 0.4) inset;
-        margin-bottom: 25px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .chat-box::-webkit-scrollbar {
-<<<<<<< HEAD
-        width: 6px;
-    }
-
-    .chat-box::-webkit-scrollbar-track {
-        background: rgba(0, 51, 102, 0.1);
-=======
-        width: 10px;
-    }
-
-    .chat-box::-webkit-scrollbar-track {
-        background: linear-gradient(180deg, rgba(0, 217, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
->>>>>>> 867749d (all)
-        border-radius: 10px;
-    }
-
-    .chat-box::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, #00D9FF, #8B5CF6);
-        border-radius: 10px;
-<<<<<<< HEAD
-=======
-        transition: background 0.3s ease;
-        box-shadow: 0 0 8px rgba(0, 217, 255, 0.2);
-    }
-
-    .chat-box::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(180deg, #00BCCC, #7C3AED);
->>>>>>> 867749d (all)
-    }
-
-    /* Message Animations */
-    @keyframes fadeMsg {
-        from {
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-<<<<<<< HEAD
-    .bot-msg {
-        background: linear-gradient(135deg, rgba(0, 51, 102, 0.08), rgba(0, 153, 255, 0.08));
-        padding: 14px 18px;
-        border-radius: 12px;
-        border-left: 3px solid #0052a3;
-=======
     @keyframes slideInLeft {
         from {
             opacity: 0;
@@ -181,7 +70,6 @@
         border-radius: 16px;
         border-left: 5px solid #0052A3;
         border: 2px solid rgba(0, 217, 255, 0.15);
->>>>>>> 867749d (all)
         margin: 0;
         animation: fadeMsg 0.4s ease;
         max-width: 85%;
@@ -189,9 +77,6 @@
         word-wrap: break-word;
         font-size: 15px;
         color: #1a1f3a;
-<<<<<<< HEAD
-        line-height: 1.5;
-=======
         line-height: 1.7;
         box-shadow: 0 4px 12px rgba(0, 51, 102, 0.08), 0 0 20px rgba(0, 217, 255, 0.05);
         transition: all 0.3s ease;
@@ -212,7 +97,6 @@
 
     .bot-msg p:last-child {
         margin-bottom: 0;
->>>>>>> 867749d (all)
     }
 
     .bot-msg strong {
@@ -220,8 +104,6 @@
         font-weight: 800;
     }
 
-<<<<<<< HEAD
-=======
     .bot-msg ul, .bot-msg ol {
         margin: 10px 0;
         padding-left: 20px;
@@ -230,31 +112,20 @@
     .bot-msg li {
         margin: 6px 0;
     }
-
->>>>>>> 867749d (all)
     .user-msg {
         background: linear-gradient(135deg, #0052A3 0%, #0099FF 50%, #00D9FF 100%);
         background-size: 200% 200%;
         animation: rotate-gradient 6s ease infinite;
         color: white;
-<<<<<<< HEAD
-        padding: 14px 18px;
-        border-radius: 12px;
-=======
         padding: 16px 20px;
         border-radius: 16px;
         border: 2px solid rgba(255, 255, 255, 0.3);
->>>>>>> 867749d (all)
         margin: 0;
         text-align: right;
         animation: fadeMsg 0.4s ease;
         max-width: 85%;
         align-self: flex-end;
         word-wrap: break-word;
-<<<<<<< HEAD
-        font-size: 14px;
-        line-height: 1.5;
-=======
         font-size: 15px;
         line-height: 1.7;
         box-shadow: 0 8px 24px rgba(0, 82, 163, 0.25), 0 0 20px rgba(0, 217, 255, 0.15);
@@ -264,15 +135,74 @@
     .user-msg:hover {
         box-shadow: 0 12px 36px rgba(0, 82, 163, 0.35), 0 0 40px rgba(0, 217, 255, 0.25);
         transform: translateX(-4px);
->>>>>>> 867749d (all)
+    }
+
+    .user-msg strong {
+        font-weight: 800;
+    }
+    @keyframes fadeMsg {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes rotate-gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .chat-box {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        padding: 28px;
+        height: 550px;
+        overflow-y: auto;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.15), 0 0 1px rgba(255, 255, 255, 0.4) inset;
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .chat-box::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+        background: linear-gradient(180deg, rgba(0, 217, 255, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        border-radius: 10px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #00D9FF, #8B5CF6);
+        border-radius: 10px;
+        transition: background 0.3s ease;
+        box-shadow: 0 0 8px rgba(0, 217, 255, 0.2);
+    }
+
+    .chat-box::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #00BCCC, #7C3AED);
     }
 
     .user-msg strong {
         font-weight: 800;
     }
 
-<<<<<<< HEAD
-=======
     .bot-avatar {
         width: 36px;
         height: 36px;
@@ -286,11 +216,6 @@
         font-weight: 800;
         flex-shrink: 0;
         box-shadow: 0 4px 12px rgba(0, 82, 163, 0.25);
-    }
-</style>
-        font-size: 18px;
-        flex-shrink: 0;
-        margin-top: 4px;
     }
 
     /* Typing Indicator */
@@ -347,8 +272,6 @@
             transform: rotate(360deg);
         }
     }
-
->>>>>>> 867749d (all)
     /* Input Group */
     .chat-input {
         display: flex;
@@ -486,7 +409,12 @@
             },
             body: JSON.stringify({ message: msg })
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+        })
         .then(data => {
             let botDiv = document.createElement("div");
             botDiv.className = "bot-msg";
@@ -497,6 +425,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         })
         .catch(error => {
+            console.error("Chatbot Error:", error);
             let botDiv = document.createElement("div");
             botDiv.className = "bot-msg";
             botDiv.innerHTML = `<strong>🤖 CareSense Bot:</strong> I apologize, but I encountered an error. Please try again.`;

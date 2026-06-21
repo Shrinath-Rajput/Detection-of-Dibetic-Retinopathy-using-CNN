@@ -301,11 +301,41 @@ def migraine_predict():
 def chatbot():
     return render_template("chatbot.html")
 
+@app.route("/chat-health", methods=["GET"])
+def chat_health():
+    """Debug endpoint to verify chatbot route is available"""
+    return jsonify({"status": "ok", "message": "Chat endpoint is available"}), 200
+
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_msg = request.json.get("message", "")
-    reply = chatbot_response(user_msg)
-    return jsonify({"reply": reply})
+    try:
+        # Get JSON data
+        data = request.get_json(force=True, silent=True)
+        
+        if data is None:
+            print("[CHAT ERROR] No JSON data received")
+            return jsonify({"reply": "Invalid request format"}), 400
+        
+        user_msg = data.get("message", "").strip()
+        
+        if not user_msg:
+            print("[CHAT ERROR] Empty message received")
+            return jsonify({"reply": "Please ask a question"}), 400
+        
+        print(f"[CHAT] User message: {user_msg}")
+        
+        # Call chatbot
+        try:
+            reply = chatbot_response(user_msg)
+            print(f"[CHAT] Bot reply: {reply}")
+            return jsonify({"reply": reply}), 200
+        except Exception as bot_error:
+            print(f"[CHAT BOT ERROR] {str(bot_error)}")
+            return jsonify({"reply": "Chatbot service error. Please try again."}), 500
+            
+    except Exception as e:
+        print(f"[CHAT ROUTE ERROR] {str(e)}")
+        return jsonify({"reply": "Server error. Please try again."}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

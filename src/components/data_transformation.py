@@ -1,35 +1,46 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 from src.logger import logging
 from src.exception import CustomException
 
+
 class DataTransformation:
 
-    def get_data_generators(self, dataset_path):
+    def get_data_generators(self):
+
         try:
-            logging.info("Starting Data Transformation")
 
-            datagen = ImageDataGenerator(
+            train_path = "data/train"
+            val_path = "data/val"
+
+            train_datagen = ImageDataGenerator(
                 rescale=1./255,
-                validation_split=0.2
+                rotation_range=20,
+                zoom_range=0.2,
+                shear_range=0.2,
+                horizontal_flip=True
             )
 
-            train_data = datagen.flow_from_directory(
-                dataset_path,
-                target_size=(224, 224),
+            val_datagen = ImageDataGenerator(
+                rescale=1./255
+            )
+
+            train_data = train_datagen.flow_from_directory(
+                train_path,
+                target_size=(224,224),
                 batch_size=32,
-                class_mode="categorical",
-                subset="training"
+                class_mode='categorical'
             )
 
-            val_data = datagen.flow_from_directory(
-                dataset_path,
-                target_size=(224, 224),
+            val_data = val_datagen.flow_from_directory(
+                val_path,
+                target_size=(224,224),
                 batch_size=32,
-                class_mode="categorical",
-                subset="validation"
+                class_mode='categorical'
             )
 
-            logging.info("Data Generators Created")
+            print(train_data.class_indices)
+
             return train_data, val_data
 
         except Exception as e:

@@ -3,5 +3,7 @@
     "Moderate": 1,
     "No_DR": 2,
     "Proliferate_DR": 3,
-    "Severe": 4
+    "Severe": 4,
+    "cataract": 5,
+    "glaucoma": 6
 }

@@ -1,31 +1,47 @@
-import mlflow
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+
 from src.logger import logging
 from src.exception import CustomException
+
 
 class ModelTrainer:
 
     def train(self, train_data, val_data):
+
         try:
-            logging.info("Model Training Started")
 
-            model = Sequential([
-                Conv2D(32, (3,3), activation='relu', input_shape=(224,224,3)),
-                MaxPooling2D(2,2),
+            logging.info("Starting Model Training")
 
-                Conv2D(64, (3,3), activation='relu'),
-                MaxPooling2D(2,2),
+            base_model = MobileNetV2(
+                weights="imagenet",
+                include_top=False,
+                input_shape=(224, 224, 3)
+            )
 
-                Conv2D(128, (3,3), activation='relu'),
-                MaxPooling2D(2,2),
+            base_model.trainable = False
 
-                Flatten(),
-                Dense(128, activation='relu'),
-                Dropout(0.5),
-                Dense(5, activation='softmax')
-            ])
+            x = base_model.output
+            x = GlobalAveragePooling2D()(x)
+
+            x = Dense(
+                256,
+                activation='relu'
+            )(x)
+
+            x = Dropout(0.5)(x)
+
+            predictions = Dense(
+                7,
+                activation='softmax'
+            )(x)
+
+            model = Model(
+                inputs=base_model.input,
+                outputs=predictions
+            )
 
             model.compile(
                 optimizer='adam',
@@ -33,22 +49,37 @@ class ModelTrainer:
                 metrics=['accuracy']
             )
 
-            with mlflow.start_run():
-                history = model.fit(
-                    train_data,
-                    validation_data=val_data,
-                    epochs=10
-                )
+            early_stop = EarlyStopping(
+                monitor='val_loss',
+                patience=5,
+                restore_best_weights=True
+            )
 
-                mlflow.log_param("epochs", 10)
-                mlflow.log_param("optimizer", "adam")
-                mlflow.log_metric("train_accuracy", history.history["accuracy"][-1])
-                mlflow.log_metric("val_accuracy", history.history["val_accuracy"][-1])
+            reduce_lr = ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.2,
+                patience=3,
+                verbose=1
+            )
 
-                model.save("dr_cnn_model.h5")
-                mlflow.log_artifact("dr_cnn_model.h5")
+            history = model.fit(
+                train_data,
+                validation_data=val_data,
+                epochs=20,
+                callbacks=[
+                    early_stop,
+                    reduce_lr
+                ]
+            )
 
-            logging.info("Model Training Completed")
+            model.save("dr_cnn_model.h5")
+
+            print("\n✅ MODEL SAVED SUCCESSFULLY")
+            print("📁 File: dr_cnn_model.h5")
+            print(f"🎯 Final Train Accuracy: {history.history['accuracy'][-1]:.4f}")
+            print(f"🎯 Final Val Accuracy: {history.history['val_accuracy'][-1]:.4f}")
+
+            logging.info("Training Completed Successfully")
 
         except Exception as e:
             raise CustomException(e)

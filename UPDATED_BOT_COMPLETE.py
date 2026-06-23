@@ -1,16 +1,21 @@
+#!/usr/bin/env python3
+"""
+Complete Updated bot.py File
+Chatbot response handler with rate limiting, retry logic, and comprehensive diagnostics
+"""
+
 import os
 import requests
 from dotenv import load_dotenv
 import json
 import time
-from datetime import datetime, timedelta
-from functools import wraps
+from datetime import datetime
 
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Gemini 1.5 Flash API (more stable than 2.0)
+# Gemini 1.5 Flash API (proven stable, fixed from 2.0-flash)
 GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1/models/"
     "gemini-1.5-flash:generateContent"

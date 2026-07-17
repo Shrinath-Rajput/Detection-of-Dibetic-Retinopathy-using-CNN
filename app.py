@@ -1,4 +1,8 @@
 # app.py
+from flask import send_file, session
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+import io
 import os
 import json
 import numpy as np
@@ -168,6 +172,8 @@ def pcod():
 @app.route("/pcod_predict", methods=["POST"])
 def pcod_predict():
     try:
+        age = int(request.form.get("age", 0))
+        gender = request.form.get("gender", "")
         bmi = float(request.form.get("bmi", 0))
         fatigue = int(request.form.get("fatigue", 0))
         sleep = int(request.form.get("sleep", 0))
@@ -193,7 +199,18 @@ def pcod_predict():
             "Reduce stress",
             "Consult gynecologist if symptoms persist"
         ]
-
+        from flask import session
+        session["pcod_age"] = age
+        session["pcod_gender"] = gender
+        session["pcod_bmi"] = bmi
+        session["pcod_fatigue"] = fatigue
+        session["pcod_sleep"] = sleep
+        session["pcod_stress"] = stress
+        session["pcod_activity"] = activity
+        session["pcod_diet"] = diet
+        session["pcod_family"] = family
+        session["pcod_risk"] = risk
+        session["pcod_advice"] = advice
         return render_template("pcod_result.html", risk=risk, advice=advice)
 
     except Exception as e:
@@ -296,6 +313,7 @@ def migraine_predict():
             risks=["Please fill all fields correctly"],
             advice=["Try submitting the form again", "Contact support if issue persists"]
         )
+    
 
 @app.route("/chatbot")
 def chatbot():
@@ -306,6 +324,275 @@ def chat_health():
     """Debug endpoint to verify chatbot route is available"""
     return jsonify({"status": "ok", "message": "Chat endpoint is available"}), 200
 
+@app.route("/download_pcod_pdf")
+def download_pcod_pdf():
+    from flask import session
+    import io
+    from datetime import datetime
+    import uuid
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+    
+    # Get session data
+    risk = session.get("pcod_risk", "Not Available")
+    age = session.get("pcod_age", "N/A")
+    gender = session.get("pcod_gender", "N/A")
+    bmi = session.get("pcod_bmi", "N/A")
+    fatigue = session.get("pcod_fatigue", "N/A")
+    sleep = session.get("pcod_sleep", "N/A")
+    stress = session.get("pcod_stress", "N/A")
+    activity = session.get("pcod_activity", "N/A")
+    diet = session.get("pcod_diet", "N/A")
+    family = session.get("pcod_family", "N/A")
+    advice = session.get("pcod_advice", [])
+    
+    # Generate report metadata
+    report_date = datetime.now().strftime("%d-%m-%Y")
+    report_time = datetime.now().strftime("%H:%M:%S")
+    report_id = str(uuid.uuid4())[:12].upper()
+    
+    # Create PDF buffer
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=0.5*inch,
+        bottomMargin=0.5*inch
+    )
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=HexColor('#003D7A'),
+        spaceAfter=3,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=HexColor('#003D7A'),
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    section_header_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=white,
+        backColor=HexColor('#003D7A'),
+        spaceAfter=12,
+        spaceBefore=6,
+        leftIndent=6,
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=HexColor('#333333'),
+        spaceAfter=6,
+        leading=12
+    )
+    
+    # Determine risk colors and concerns
+    if "HIGH" in risk:
+        risk_color = HexColor('#DC2626')
+        concerns = [
+            "Hormonal Imbalance",
+            "Irregular Menstrual Cycle",
+            "Insulin Resistance",
+            "Weight Gain",
+            "Fertility Issues"
+        ]
+    elif "MODERATE" in risk:
+        risk_color = HexColor('#F59E0B')
+        concerns = [
+            "Hormonal Imbalance",
+            "Lifestyle-related Metabolic Changes",
+            "Irregular Periods"
+        ]
+    else:
+        risk_color = HexColor('#10B981')
+        concerns = [
+            "No significant concerns detected",
+            "Continue maintaining a healthy lifestyle"
+        ]
+    
+    # Build story
+    story = []
+    
+    # Header
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("CareSense AI", title_style))
+    story.append(Paragraph("PCOD Risk Assessment Report", subtitle_style))
+    story.append(Spacer(1, 6))
+    
+    # Separator
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Report Info
+    report_info_data = [
+        ["Report Date", report_date],
+        ["Report Time", report_time],
+        ["Report ID", report_id]
+    ]
+    report_info_table = Table(report_info_data, colWidths=[2*inch, 2*inch])
+    report_info_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
+        ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
+        ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(report_info_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Patient Details Section
+    story.append(Paragraph("PATIENT DETAILS", section_header_style))
+    
+    patient_data = [
+        ["Age", str(age)],
+        ["Gender", str(gender)],
+        ["BMI", str(bmi)],
+        ["Fatigue Level (1-10)", str(fatigue)],
+        ["Sleep Quality (1-10)", str(sleep)],
+        ["Stress Level (1-10)", str(stress)],
+        ["Activity Level", str(activity).title()],
+        ["Diet Type", str(diet).title()],
+        ["Family History", "Yes" if family == "yes" else "No"]
+    ]
+    
+    patient_table = Table(patient_data, colWidths=[2.5*inch, 2*inch])
+    patient_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
+        ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
+        ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
+        ('PADDING', (0, 0), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [white, HexColor('#F9FAFB')]),
+    ]))
+    story.append(patient_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Assessment Result Section
+    story.append(Paragraph("ASSESSMENT RESULT", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    risk_style = ParagraphStyle(
+        'RiskLevel',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=white,
+        backColor=risk_color,
+        spaceAfter=12,
+        spaceBefore=6,
+        leftIndent=8,
+        rightIndent=8,
+        fontName='Helvetica-Bold',
+        alignment=TA_LEFT
+    )
+    story.append(Paragraph(f"Risk Level: {risk}", risk_style))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph("Assessment based on BMI, fatigue, sleep quality, stress level, activity level, diet type, and family history.", normal_style))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Possible Health Concerns Section
+    story.append(Paragraph("POSSIBLE HEALTH CONCERNS", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    for concern in concerns:
+        concern_para = Paragraph(f"• {concern}", normal_style)
+        story.append(concern_para)
+    
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Personalized Recommendations Section
+    story.append(Paragraph("PERSONALIZED RECOMMENDATIONS", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    for rec in advice:
+        rec_para = Paragraph(f"• {rec}", normal_style)
+        story.append(rec_para)
+    
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Medical Disclaimer Section
+    story.append(Paragraph("MEDICAL DISCLAIMER", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    disclaimer_text = """This report is AI-generated by CareSense AI and is intended only for preliminary health awareness. It should not replace professional medical diagnosis or treatment. Please consult a qualified gynecologist or endocrinologist for medical advice, diagnosis, or treatment recommendations."""
+    
+    disclaimer_style = ParagraphStyle(
+        'Disclaimer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=HexColor('#666666'),
+        spaceAfter=6,
+        leading=11,
+        alignment=TA_JUSTIFY,
+        backColor=HexColor('#FEF3C7'),
+        leftIndent=8,
+        rightIndent=8,
+        topPadding=8,
+        bottomPadding=8
+    )
+    story.append(Paragraph(disclaimer_text, disclaimer_style))
+    story.append(Spacer(1, 20))
+    
+    # Footer
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=HexColor('#999999'),
+        spaceAfter=3,
+        alignment=TA_CENTER
+    )
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph("Generated by CareSense AI", footer_style))
+    story.append(Paragraph("Professional Medical Assessment Report", footer_style))
+    story.append(Paragraph("Version 1.0", footer_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="PCOD_Report.pdf",
+        mimetype="application/pdf"
+    )
+
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -313,29 +600,26 @@ def chat():
         data = request.get_json(force=True, silent=True)
         
         if data is None:
-            print("[CHAT ERROR] No JSON data received")
             return jsonify({"reply": "Invalid request format"}), 400
         
         user_msg = data.get("message", "").strip()
         
         if not user_msg:
-            print("[CHAT ERROR] Empty message received")
             return jsonify({"reply": "Please ask a question"}), 400
-        
-        print(f"[CHAT] User message: {user_msg}")
         
         # Call chatbot
         try:
             reply = chatbot_response(user_msg)
-            print(f"[CHAT] Bot reply: {reply}")
             return jsonify({"reply": reply}), 200
         except Exception as bot_error:
-            print(f"[CHAT BOT ERROR] {str(bot_error)}")
-            return jsonify({"reply": "Chatbot service error. Please try again."}), 500
+            import traceback
+            error_msg = f"{type(bot_error).__name__}: {str(bot_error)}\n{traceback.format_exc()}"
+            return jsonify({"reply": f"ERROR: {error_msg}"}), 500
             
     except Exception as e:
-        print(f"[CHAT ROUTE ERROR] {str(e)}")
-        return jsonify({"reply": "Server error. Please try again."}), 500
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}"
+        return jsonify({"reply": f"ERROR: {error_msg}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

@@ -223,6 +223,10 @@ def diabetes():
 @app.route("/diabetes_predict", methods=["POST"])
 def diabetes_predict():
     try:
+        age = int(request.form.get("age", 0))
+        gender = request.form.get("gender", "")
+        height = float(request.form.get("height", 0))
+        weight = float(request.form.get("weight", 0))
         bmi = float(request.form.get("bmi", 0))
         family = request.form.get("family", "no")
         urination = request.form.get("urination", "no")
@@ -253,10 +257,254 @@ def diabetes_predict():
             "Consult physician if symptoms persist"
         ]
 
+        session["diabetes_age"] = age
+        session["diabetes_gender"] = gender
+        session["diabetes_height"] = height
+        session["diabetes_weight"] = weight
+        session["diabetes_bmi"] = bmi
+        session["diabetes_family"] = family
+        session["diabetes_urination"] = urination
+        session["diabetes_thirst"] = thirst
+        session["diabetes_fatigue"] = fatigue
+        session["diabetes_activity"] = activity
+        session["diabetes_diet"] = diet
+        session["diabetes_bp"] = bp
+        session["diabetes_risk"] = risk
+        session["diabetes_advice"] = advice
+
         return render_template("diabetes_result.html", risk=risk, advice=advice)
 
     except Exception as e:
         return f"DIABETES Error: {e}"
+
+@app.route("/download_diabetes_pdf")
+def download_diabetes_pdf():
+    from flask import session
+    import io
+    import uuid
+    from datetime import datetime
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+
+    report_date = datetime.now().strftime("%d-%m-%Y")
+    report_time = datetime.now().strftime("%H:%M:%S")
+    report_id = str(uuid.uuid4())[:12].upper()
+
+    age = session.get("diabetes_age", "N/A")
+    gender = session.get("diabetes_gender", "N/A")
+    height = session.get("diabetes_height", "N/A")
+    weight = session.get("diabetes_weight", "N/A")
+    bmi = session.get("diabetes_bmi", "N/A")
+    family = session.get("diabetes_family", "N/A")
+    risk = session.get("diabetes_risk", "Not Available")
+    advice = session.get("diabetes_advice", [])
+
+    if "HIGH" in risk:
+        concerns = [
+            "High Blood Sugar Risk",
+            "Insulin Resistance",
+            "Cardiovascular Risk",
+            "Kidney Complications",
+            "Vision Problems"
+        ]
+        risk_color = HexColor('#DC2626')
+    elif "MODERATE" in risk:
+        concerns = [
+            "Prediabetes Risk",
+            "Weight Management Required",
+            "Lifestyle Improvement Needed"
+        ]
+        risk_color = HexColor('#F59E0B')
+    else:
+        concerns = [
+            "No significant diabetes risk detected",
+            "Continue healthy lifestyle"
+        ]
+        risk_color = HexColor('#10B981')
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.65 * inch,
+        leftMargin=0.65 * inch,
+        topMargin=0.65 * inch,
+        bottomMargin=0.65 * inch
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'ReportTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=24,
+        textColor=HexColor('#2F3B8A'),
+        alignment=TA_CENTER,
+        spaceAfter=4
+    )
+    subtitle_style = ParagraphStyle(
+        'ReportSubtitle',
+        parent=styles['Heading2'],
+        fontName='Helvetica',
+        fontSize=13,
+        textColor=HexColor('#4A4A4A'),
+        alignment=TA_CENTER,
+        spaceAfter=14
+    )
+    section_header_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        textColor=white,
+        backColor=HexColor('#3C4DA0'),
+        leftIndent=6,
+        rightIndent=6,
+        spaceBefore=12,
+        spaceAfter=8,
+        leading=14
+    )
+    normal_style = ParagraphStyle(
+        'Normal',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=13,
+        textColor=HexColor('#333333')
+    )
+    disclaimer_style = ParagraphStyle(
+        'Disclaimer',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=12,
+        textColor=HexColor('#555555'),
+        backColor=HexColor('#F3F4FB'),
+        leftIndent=6,
+        rightIndent=6,
+        spaceAfter=6
+    )
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        textColor=HexColor('#777777'),
+        alignment=TA_CENTER
+    )
+
+    story = []
+    story.append(Spacer(1, 10))
+    story.append(Paragraph('CareSense AI', title_style))
+    story.append(Paragraph('Diabetes Risk Assessment Report', subtitle_style))
+    story.append(Spacer(1, 8))
+
+    meta_table = Table(
+        [
+            ['Report Date:', report_date, 'Report Time:', report_time],
+            ['Unique Report ID:', report_id, '', '']
+        ],
+        colWidths=[1.35 * inch, 2.15 * inch, 1.2 * inch, 1.2 * inch]
+    )
+    meta_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#444444')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 2)
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('PATIENT DETAILS', section_header_style))
+
+    patient_table = Table(
+        [
+            ['Age', str(age), 'Gender', str(gender)],
+            ['Height (cm)', str(height), 'Weight (kg)', str(weight)],
+            ['BMI', str(bmi), 'Family History', str(family)]
+        ],
+        colWidths=[1.25 * inch, 2.25 * inch, 1.25 * inch, 1.25 * inch]
+    )
+    patient_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#2E3B60')),
+        ('BACKGROUND', (0, 0), (-1, 0), HexColor('#F1F5FF')),
+        ('BACKGROUND', (0, 1), (-1, -1), HexColor('#FFFFFF')),
+        ('BOX', (0, 0), (-1, -1), 0.5, HexColor('#D9DBE3')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, HexColor('#D9DBE3')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6)
+    ]))
+    story.append(patient_table)
+    story.append(Spacer(1, 14))
+    story.append(Paragraph('ASSESSMENT RESULT', section_header_style))
+    story.append(Spacer(1, 6))
+
+    risk_table = Table(
+        [[Paragraph('Risk Level', ParagraphStyle('Label', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=HexColor('#ffffff'))),
+          Paragraph(risk, ParagraphStyle('RiskText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=white, alignment=TA_CENTER))]],
+        colWidths=[1.4 * inch, 4.35 * inch]
+    )
+    risk_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), HexColor('#3C4DA0')),
+        ('BACKGROUND', (1, 0), (1, 0), risk_color),
+        ('TEXTCOLOR', (0, 0), (-1, -1), white),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, white),
+        ('BOX', (0, 0), (-1, -1), 0.5, HexColor('#D9DBE3'))
+    ]))
+    story.append(risk_table)
+    story.append(Spacer(1, 8))
+    story.append(Paragraph('Assessment based on BMI, fatigue symptoms, activity levels, diet, family history, and blood pressure indicators.', normal_style))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('POSSIBLE HEALTH CONCERNS', section_header_style))
+    story.append(Spacer(1, 4))
+
+    for concern in concerns:
+        story.append(Paragraph(f'• {concern}', normal_style))
+
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('PERSONALIZED RECOMMENDATIONS', section_header_style))
+    story.append(Spacer(1, 4))
+
+    if advice:
+        for item in advice:
+            story.append(Paragraph(f'• {item}', normal_style))
+    else:
+        story.append(Paragraph('• No recommendations available at this time.', normal_style))
+
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('MEDICAL DISCLAIMER', section_header_style))
+    story.append(Spacer(1, 4))
+    disclaimer_text = ("This AI-generated report is intended only for preliminary health awareness and should not replace professional medical diagnosis "
+                       "or treatment. Please consult a qualified physician or diabetologist for proper evaluation.")
+    story.append(Paragraph(disclaimer_text, disclaimer_style))
+    story.append(Spacer(1, 16))
+    story.append(Paragraph('Generated by CareSense AI', footer_style))
+    story.append(Paragraph('Professional Diabetes Assessment Report', footer_style))
+    story.append(Paragraph('Version 1.0', footer_style))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="Diabetes_Report.pdf",
+        mimetype="application/pdf"
+    )
 
 @app.route("/migraine")
 def migraine():

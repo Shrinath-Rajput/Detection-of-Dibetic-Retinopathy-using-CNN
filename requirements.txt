@@ -19,3 +19,4 @@ gdown
 wikipedia
 requests
 google-generativeai==0.8.5
+reportlab==4.2.2

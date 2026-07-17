@@ -268,6 +268,28 @@ def migraine_predict():
         score = 0
         risks = []
 
+        # Collect form data
+        age = request.form.get("age", "N/A")
+        gender = request.form.get("gender", "N/A")
+        family = request.form.get("family", "no")
+        frequency = request.form.get("frequency", "0")
+        duration = request.form.get("duration", "0")
+        intensity = request.form.get("intensity", "0")
+        unilateral = request.form.get("unilateral", "no")
+        throbbing = request.form.get("throbbing", "no")
+        nausea = request.form.get("nausea", "no")
+        light = request.form.get("light", "no")
+        sound = request.form.get("sound", "no")
+        aura = request.form.get("aura", "no")
+        dizziness = request.form.get("dizziness", "no")
+        activity_worse = request.form.get("activity_worse", "no")
+        sleep = request.form.get("sleep", "0")
+        insomnia = request.form.get("insomnia", "no")
+        stress = request.form.get("stress", "0")
+        meals = request.form.get("meals", "no")
+        caffeine = request.form.get("caffeine", "low")
+        hormonal = request.form.get("hormonal", "no")
+
         yes_fields = [
             "family","unilateral","throbbing","nausea","light",
             "sound","aura","dizziness","activity_worse",
@@ -283,13 +305,13 @@ def migraine_predict():
             try: return int(val)
             except: return 0
 
-        intensity = safe_int(request.form.get("intensity"))
-        stress = safe_int(request.form.get("stress"))
-        sleep = safe_int(request.form.get("sleep"))
+        intensity_int = safe_int(intensity)
+        stress_int = safe_int(stress)
+        sleep_int = safe_int(sleep)
 
-        score += intensity // 3 + stress // 3
+        score += intensity_int // 3 + stress_int // 3
 
-        if sleep and sleep < 6:
+        if sleep_int and sleep_int < 6:
             score += 1
             risks.append("Low Sleep Duration")
 
@@ -303,6 +325,31 @@ def migraine_predict():
             "Limit caffeine",
             "Consult neurologist if frequent headaches"
         ]
+
+        # Store data in session
+        session["migraine_age"] = age
+        session["migraine_gender"] = gender
+        session["migraine_family"] = family
+        session["migraine_frequency"] = frequency
+        session["migraine_duration"] = duration
+        session["migraine_intensity"] = intensity
+        session["migraine_unilateral"] = unilateral
+        session["migraine_throbbing"] = throbbing
+        session["migraine_nausea"] = nausea
+        session["migraine_light"] = light
+        session["migraine_sound"] = sound
+        session["migraine_aura"] = aura
+        session["migraine_dizziness"] = dizziness
+        session["migraine_activity_worse"] = activity_worse
+        session["migraine_sleep"] = sleep
+        session["migraine_insomnia"] = insomnia
+        session["migraine_stress"] = stress
+        session["migraine_meals"] = meals
+        session["migraine_caffeine"] = caffeine
+        session["migraine_hormonal"] = hormonal
+        session["migraine_risk"] = risk
+        session["migraine_risks"] = risks
+        session["migraine_advice"] = advice
 
         return render_template("migraine_result.html", risk=risk, risks=risks, advice=advice)
 
@@ -590,6 +637,288 @@ def download_pcod_pdf():
         buffer,
         as_attachment=True,
         download_name="PCOD_Report.pdf",
+        mimetype="application/pdf"
+    )
+
+@app.route("/download_migraine_pdf")
+def download_migraine_pdf():
+    from flask import session
+    import io
+    from datetime import datetime
+    import uuid
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+    
+    # Get session data
+    risk = session.get("migraine_risk", "Not Available")
+    age = session.get("migraine_age", "N/A")
+    gender = session.get("migraine_gender", "N/A")
+    family = session.get("migraine_family", "N/A")
+    frequency = session.get("migraine_frequency", "N/A")
+    duration = session.get("migraine_duration", "N/A")
+    intensity = session.get("migraine_intensity", "N/A")
+    unilateral = session.get("migraine_unilateral", "N/A")
+    throbbing = session.get("migraine_throbbing", "N/A")
+    nausea = session.get("migraine_nausea", "N/A")
+    light = session.get("migraine_light", "N/A")
+    sound = session.get("migraine_sound", "N/A")
+    aura = session.get("migraine_aura", "N/A")
+    dizziness = session.get("migraine_dizziness", "N/A")
+    activity_worse = session.get("migraine_activity_worse", "N/A")
+    sleep = session.get("migraine_sleep", "N/A")
+    insomnia = session.get("migraine_insomnia", "N/A")
+    stress = session.get("migraine_stress", "N/A")
+    meals = session.get("migraine_meals", "N/A")
+    caffeine = session.get("migraine_caffeine", "N/A")
+    hormonal = session.get("migraine_hormonal", "N/A")
+    triggers = session.get("migraine_risks", [])
+    advice = session.get("migraine_advice", [])
+    
+    # Generate report metadata
+    report_date = datetime.now().strftime("%d-%m-%Y")
+    report_time = datetime.now().strftime("%H:%M:%S")
+    report_id = str(uuid.uuid4())[:12].upper()
+    
+    # Create PDF buffer
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=0.5*inch,
+        bottomMargin=0.5*inch
+    )
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=HexColor('#6B3FA0'),
+        spaceAfter=3,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=HexColor('#6B3FA0'),
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    section_header_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=white,
+        backColor=HexColor('#6B3FA0'),
+        spaceAfter=12,
+        spaceBefore=6,
+        leftIndent=6,
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=HexColor('#333333'),
+        spaceAfter=6,
+        leading=12
+    )
+    
+    # Determine risk colors and recommendations
+    if "HIGH" in risk:
+        risk_color = HexColor('#DC2626')
+        risk_display = "HIGH MIGRAINE RISK"
+    elif "MODERATE" in risk:
+        risk_color = HexColor('#F59E0B')
+        risk_display = "MODERATE MIGRAINE RISK"
+    else:
+        risk_color = HexColor('#10B981')
+        risk_display = "LOW MIGRAINE RISK"
+    
+    # Build story
+    story = []
+    
+    # Header
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("CareSense AI", title_style))
+    story.append(Paragraph("Migraine Risk Assessment Report", subtitle_style))
+    story.append(Spacer(1, 6))
+    
+    # Separator
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Report Info
+    report_info_data = [
+        ["Report Date", report_date],
+        ["Report Time", report_time],
+        ["Report ID", report_id]
+    ]
+    report_info_table = Table(report_info_data, colWidths=[2*inch, 2*inch])
+    report_info_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
+        ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
+        ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(report_info_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Patient Details Section
+    story.append(Paragraph("PATIENT DETAILS", section_header_style))
+    
+    patient_data = [
+        ["Age", str(age)],
+        ["Gender", str(gender).title()],
+        ["Family History", "Yes" if family == "yes" else "No"],
+        ["Frequency (per month)", str(frequency)],
+        ["Duration (hours)", str(duration)],
+        ["Intensity (1-10)", str(intensity)],
+        ["One-sided Pain", "Yes" if unilateral == "yes" else "No"],
+        ["Throbbing Pain", "Yes" if throbbing == "yes" else "No"],
+        ["Nausea", "Yes" if nausea == "yes" else "No"],
+        ["Light Sensitivity", "Yes" if light == "yes" else "No"],
+        ["Sound Sensitivity", "Yes" if sound == "yes" else "No"],
+        ["Aura Symptoms", "Yes" if aura == "yes" else "No"],
+        ["Dizziness", "Yes" if dizziness == "yes" else "No"],
+        ["Activity Worsens Pain", "Yes" if activity_worse == "yes" else "No"],
+        ["Sleep Hours (per night)", str(sleep)],
+        ["Insomnia", "Yes" if insomnia == "yes" else "No"],
+        ["Stress Level (1-10)", str(stress)],
+        ["Skipped Meals", "Yes" if meals == "yes" else "No"],
+        ["Caffeine Intake", str(caffeine).title()],
+        ["Hormonal Trigger", "Yes" if hormonal == "yes" else "No"],
+    ]
+    
+    patient_table = Table(patient_data, colWidths=[2.5*inch, 2*inch])
+    patient_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
+        ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
+        ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
+        ('PADDING', (0, 0), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [white, HexColor('#F9FAFB')]),
+    ]))
+    story.append(patient_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Assessment Result Section
+    story.append(Paragraph("ASSESSMENT RESULT", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    risk_style = ParagraphStyle(
+        'RiskLevel',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=white,
+        backColor=risk_color,
+        spaceAfter=12,
+        spaceBefore=6,
+        leftIndent=8,
+        rightIndent=8,
+        fontName='Helvetica-Bold',
+        alignment=TA_LEFT
+    )
+    story.append(Paragraph(f"Risk Level: {risk_display}", risk_style))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph("Assessment based on migraine symptoms, triggers, family history, lifestyle factors, and environmental sensitivities.", normal_style))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Identified Triggers Section
+    story.append(Paragraph("IDENTIFIED TRIGGERS / SYMPTOMS", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    if triggers:
+        for trigger in triggers:
+            trigger_para = Paragraph(f"• {trigger}", normal_style)
+            story.append(trigger_para)
+    else:
+        story.append(Paragraph("• No significant triggers identified", normal_style))
+    
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Personalized Recommendations Section
+    story.append(Paragraph("PERSONALIZED RECOMMENDATIONS", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    for rec in advice:
+        rec_para = Paragraph(f"• {rec}", normal_style)
+        story.append(rec_para)
+    
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 12))
+    
+    # Medical Disclaimer Section
+    story.append(Paragraph("MEDICAL DISCLAIMER", section_header_style))
+    story.append(Spacer(1, 6))
+    
+    disclaimer_text = """This AI-generated report is intended only for preliminary health awareness and should not replace professional medical diagnosis or treatment. Please consult a qualified neurologist for proper evaluation."""
+    
+    disclaimer_style = ParagraphStyle(
+        'Disclaimer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=HexColor('#666666'),
+        spaceAfter=6,
+        leading=11,
+        alignment=TA_JUSTIFY,
+        backColor=HexColor('#F3F0FF'),
+        leftIndent=8,
+        rightIndent=8,
+        topPadding=8,
+        bottomPadding=8
+    )
+    story.append(Paragraph(disclaimer_text, disclaimer_style))
+    story.append(Spacer(1, 20))
+    
+    # Footer
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=HexColor('#999999'),
+        spaceAfter=3,
+        alignment=TA_CENTER
+    )
+    story.append(Paragraph("_" * 80, normal_style))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph("Generated by CareSense AI", footer_style))
+    story.append(Paragraph("Professional Migraine Assessment Report", footer_style))
+    story.append(Paragraph("Version 1.0", footer_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="Migraine_Report.pdf",
         mimetype="application/pdf"
     )
 

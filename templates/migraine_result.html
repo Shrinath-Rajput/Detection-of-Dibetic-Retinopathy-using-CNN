@@ -109,6 +109,29 @@
         width: 100%;
     }
 
+    .pdf-download {
+        margin-top: 20px;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+        padding: 14px 28px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+        width: 100%;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .pdf-download:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(124, 58, 237, 0.3);
+    }
+
     .back:hover {
         transform: translateY(-3px);
         box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
@@ -139,7 +162,8 @@
             font-size: 24px;
         }
 
-        .back {
+        .back,
+        .pdf-download {
             width: 100%;
         }
     }
@@ -166,6 +190,10 @@
             <li class="animate">{{ a }}</li>
         {% endfor %}
     </ul>
+
+    <a class="pdf-download animate" href="/download_migraine_pdf">
+        📄 Download Professional PDF Report
+    </a>
 
     <a class="back animate" href="/migraine">
         ⬅️ Perform Another Assessment

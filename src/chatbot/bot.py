@@ -2,7 +2,9 @@ import os
 import requests
 from dotenv import load_dotenv
 import json
+import re
 import time
+import uuid
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -10,30 +12,43 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Try to use google-generativeai SDK if available
+# Try to use the supported Gemini SDK if available
 GENAI_AVAILABLE = False
 try:
-    import google.generativeai as genai
+    from google import genai as google_genai
     GENAI_AVAILABLE = True
     try:
         if GEMINI_API_KEY:
-            genai.configure(api_key=GEMINI_API_KEY)
-    except Exception as config_error:
-        print(f"[GENAI CONFIG ERROR] {config_error}")
+            google_genai_client = google_genai.Client(api_key=GEMINI_API_KEY)
+    except Exception:
         GENAI_AVAILABLE = False
 except ImportError:
     GENAI_AVAILABLE = False
+    google_genai_client = None
 
 # Fallback REST API endpoint
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+DEFAULT_GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-001",
+]
+
+GEMINI_MODELS = [
+    model.strip()
+    for model in os.getenv("GEMINI_MODELS", ",".join(DEFAULT_GEMINI_MODELS)).split(",")
+    if model.strip()
+]
+GEMINI_MODEL = GEMINI_MODELS[0] if GEMINI_MODELS else DEFAULT_GEMINI_MODELS[0]
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 # Rate limiting configuration
-REQUEST_DELAY = 1  # Minimum seconds between requests
+REQUEST_DELAY = 2  # Minimum seconds between requests
 RETRY_ATTEMPTS = 3  # Number of retries for failed requests
-RETRY_DELAY = 2  # Initial delay in seconds for retry backoff
+RETRY_DELAY = 3  # Initial delay in seconds for retry backoff
 
 # Store last request time for rate limiting
 last_request_time = 0
+quota_reset_time = None  # Track when quota resets
 
 SYSTEM_PROMPT = """
 You are a helpful AI assistant for CareSense, a healthcare information platform. 
@@ -42,19 +57,56 @@ Be informative, accurate, and concise. Provide practical advice when appropriate
 Always recommend consulting a healthcare professional for serious medical concerns.
 """
 
+
+def build_gemini_request(user_message, api_key=None, model_name=None):
+    """Build a Gemini request using Google AI Studio API key authentication."""
+    key = api_key or GEMINI_API_KEY
+    payload = {
+        "contents": [{"parts": [{"text": user_message}]}],
+        "generationConfig": {
+            "temperature": 0.9,
+            "topP": 0.95,
+            "topK": 40,
+            "maxOutputTokens": 400,
+        },
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+    model = model_name or GEMINI_MODEL
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+    if key:
+        headers["x-goog-api-key"] = key
+        separator = "&" if "?" in url else "?"
+        url = f"{url}{separator}key={key}"
+
+    return {"url": url, "headers": headers, "payload": payload}
+
+
 def rate_limit_check():
     """Enforce minimum delay between API requests to avoid rate limiting"""
-    global last_request_time
+    global last_request_time, quota_reset_time
     
+    # If quota is exhausted, check if reset time has passed
+    if quota_reset_time is not None:
+        if time.time() < quota_reset_time:
+            return False
+        else:
+            quota_reset_time = None
+    
+    # Standard rate limiting between requests
     current_time = time.time()
     time_since_last = current_time - last_request_time
     
     if time_since_last < REQUEST_DELAY:
         wait_time = REQUEST_DELAY - time_since_last
-        print(f"[RATE LIMIT] Waiting {wait_time:.2f}s before next request...")
         time.sleep(wait_time)
     
     last_request_time = time.time()
+    return True
+
 
 def validate_api_key():
     """Validate API key format and existence"""
@@ -69,6 +121,85 @@ def validate_api_key():
         return False, f"API key has invalid format (should start with 'AI' or 'AQ')"
     
     return True, "API key format valid"
+
+REPORT_SECTION_KEYS = [
+    "Clinical Interpretation",
+    "Disease Summary",
+    "Possible Medical Concerns",
+    "Treatment Guidance",
+    "Lifestyle Recommendations",
+    "Follow-up Advice",
+    "Medical Disclaimer",
+]
+
+
+def build_report_prompt(prediction, request_id=None):
+    """Create a fresh, highly specific Gemini prompt for a retina medical report."""
+    diagnosis = (prediction or "unknown diagnosis").strip()
+    nonce = request_id or str(uuid.uuid4())[:8]
+    return f"""You are generating a brand-new retina medical report for request ID {nonce}. 
+The imaging assessment indicates: {diagnosis}. 
+Write as an experienced ophthalmologist and produce a clinically sound, natural-sounding report that is different from any previous report. 
+Important instructions: create a genuinely fresh report every time, never reuse earlier wording, and vary sentence structure and explanation style even when the diagnosis is the same. 
+Do not use templates, sentence pools, or canned wording. Do not include placeholder text. 
+Return valid JSON with exactly these keys and no extra text: Clinical Interpretation, Disease Summary, Possible Medical Concerns, Treatment Guidance, Lifestyle Recommendations, Follow-up Advice, Medical Disclaimer. 
+Each value must be a concise paragraph or one short list. Keep the total response under 220 words and ensure every section is professionally written and unique."""
+
+
+def extract_report_sections(text):
+    """Parse Gemini JSON or headings into structured report sections."""
+    if not text:
+        return None
+
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.I).strip()
+
+    try:
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            sections = {}
+            for key in REPORT_SECTION_KEYS:
+                value = parsed.get(key)
+                if isinstance(value, str) and value.strip():
+                    sections[key] = value.strip()
+            if sections:
+                return sections
+    except Exception:
+        pass
+
+    sections = {}
+    for key in REPORT_SECTION_KEYS:
+        pattern = re.compile(rf"{re.escape(key)}\s*[:\-]\s*(.+)", re.I | re.S)
+        match = pattern.search(cleaned)
+        if match:
+            sections[key] = match.group(1).strip()
+    return sections or None
+
+
+def generate_dynamic_medical_report(prediction, request_id=None, strict=True, api_key=None):
+    """Generate a fresh, Gemini-produced medical report for the retina prediction."""
+    prompt = build_report_prompt(prediction=prediction, request_id=request_id)
+    try:
+        reply = chatbot_response(prompt, strict=strict, api_key=api_key)
+    except Exception as exc:
+        if strict:
+            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.") from exc
+        return None
+
+    if not reply:
+        if strict:
+            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+        return None
+
+    sections = extract_report_sections(reply)
+    if sections and len(sections) >= 5:
+        return sections
+
+    if strict:
+        raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+    return None
+
 
 def get_fallback_response(user_message):
     """Generate intelligent responses for common health questions"""
@@ -121,69 +252,80 @@ def get_fallback_response(user_message):
     return responses["default"]
 
 
-def chatbot_response(user_message):
+def chatbot_response(user_message, strict=False, api_key=None):
     """
-    Send user message to Gemini API or use fallback for responses.
+    Send user message to Gemini API or use intelligent offline fallback.
+    Silently handles all API failures without exposing errors to user.
     """
+    global quota_reset_time
 
     if not user_message or len(user_message.strip()) < 2:
         return "Please enter a valid question."
 
-    print(f"\n[CHATBOT] Processing message: '{user_message[:50]}...'")
-
-    # Try using the genai SDK first
-    if GENAI_AVAILABLE:
-        try:
-            print("[CHATBOT] Using google-generativeai SDK")
-            model = genai.GenerativeModel("gemini-2.0-flash")
-            response = model.generate_content(user_message, stream=False, safety_settings={})
-            reply = response.text if hasattr(response, 'text') else str(response)
-            print(f"[CHATBOT] Response received: {len(reply)} characters")
-            return reply
-        except Exception as e:
-            print(f"[CHATBOT SDK ERROR] {type(e).__name__}: {e}")
-            print("[CHATBOT] Falling back to REST API...")
-
-    # Fallback to REST API
-    try:
-        print("[CHATBOT] Using REST API")
-        
-        if not GEMINI_API_KEY:
-            print("[CHATBOT ERROR] API key not configured")
-            return get_fallback_response(user_message)
-
-        payload = {
-            "contents": [{
-                "parts": [{"text": user_message}]
-            }]
-        }
-
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json=payload,
-            timeout=10
-        )
-
-        print(f"[CHATBOT API] Status: {response.status_code}")
-
-        if response.status_code == 200:
-            data = response.json()
-            if ("candidates" in data and len(data["candidates"]) > 0 and
-                "content" in data["candidates"][0] and
-                "parts" in data["candidates"][0]["content"] and
-                len(data["candidates"][0]["content"]["parts"]) > 0):
-                reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                print(f"[CHATBOT] Success: {len(reply)} characters")
-                return reply
-            else:
-                return get_fallback_response(user_message)
-
-        else:
-            # API failed, use fallback
-            print(f"[CHATBOT] API error {response.status_code}, using fallback")
-            return get_fallback_response(user_message)
-
-    except Exception as e:
-        print(f"[CHATBOT ERROR] {type(e).__name__}: {e}")
+    if not rate_limit_check():
+        if strict:
+            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
         return get_fallback_response(user_message)
+
+    if not (api_key or GEMINI_API_KEY):
+        if strict:
+            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+        return get_fallback_response(user_message)
+
+    for model_name in GEMINI_MODELS:
+        if GENAI_AVAILABLE and google_genai_client is not None:
+            try:
+                response = google_genai_client.models.generate_content(
+                    model=model_name,
+                    contents=user_message,
+                )
+                reply = response.text if hasattr(response, 'text') else str(response)
+                print(f"[CHATBOT] Gemini Response Generated via {model_name}")
+                return reply
+            except Exception as exc:
+                print(f"[CHATBOT] Gemini SDK model failed: {model_name}: {exc}")
+                continue
+
+        for attempt in range(RETRY_ATTEMPTS):
+            try:
+                request = build_gemini_request(user_message, api_key=api_key, model_name=model_name)
+                response = requests.post(
+                    request["url"],
+                    headers=request["headers"],
+                    json=request["payload"],
+                    timeout=20,
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    if ("candidates" in data and len(data["candidates"]) > 0 and
+                        "content" in data["candidates"][0] and
+                        "parts" in data["candidates"][0]["content"] and
+                        len(data["candidates"][0]["content"]["parts"]) > 0):
+                        reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                        print(f"[CHATBOT] Gemini Response Generated via {model_name}")
+                        return reply
+
+                if response.status_code in {404, 429, 500, 502, 503, 504}:
+                    print(f"[CHATBOT] Gemini REST model failed: {model_name} ({response.status_code})")
+                    if attempt < RETRY_ATTEMPTS - 1:
+                        time.sleep(RETRY_DELAY * (attempt + 1))
+                        continue
+                    break
+                break
+            except requests.RequestException as exc:
+                print(f"[CHATBOT] Gemini REST request failed for {model_name}: {exc}")
+                if attempt < RETRY_ATTEMPTS - 1:
+                    time.sleep(RETRY_DELAY * (attempt + 1))
+                    continue
+                break
+            except Exception as exc:
+                print(f"[CHATBOT] Gemini request error for {model_name}: {exc}")
+                break
+
+    quota_reset_time = time.time() + 60
+    if strict:
+        raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+
+    print("[CHATBOT] Using Offline Medical Knowledge")
+    return get_fallback_response(user_message)

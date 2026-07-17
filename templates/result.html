@@ -206,19 +206,19 @@
     <div class="result-card animate">
         <h2>👁️ Diabetic Retinopathy Analysis</h2>
 
-        <div class="image-box">
-            <img src="{{ image_path }}" alt="Retinal Image Analysis">
-        </div>
+            <div class="image-box">
+                <img src="{{ image_path }}" alt="Retinal Image Analysis">
+            </div>
 
-        <div class="prediction-result">
-            <div class="prediction-label">AI Prediction:</div>
-            <div class="prediction-value">{{ prediction }}</div>
-        </div>
+            <div class="prediction-result" style="text-align:center;">
+                <div class="prediction-label">Diagnosis:</div>
+                <div class="prediction-value">{{ prediction }}</div>
+            </div>
 
-        <div class="health-metric">
-            <span class="metric-label">Confidence Score:</span>
-            <span class="metric-value">{{ confidence }}%</span>
-        </div>
+            <div style="text-align:center; margin-top:20px;">
+                <a href="{{ url_for('download_dr_pdf') }}" class="btn-back" style="margin-right:12px;">📄 Download Professional PDF Report</a>
+                <a href="{{ url_for('dr_page') }}" class="btn-back">🔁 Analyze Another Image</a>
+            </div>
     </div>
 
     <!-- HEALTH -->

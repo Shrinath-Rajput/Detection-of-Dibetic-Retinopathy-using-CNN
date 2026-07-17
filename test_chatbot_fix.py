@@ -7,7 +7,7 @@ Demonstrates the new chatbot fixes and diagnostic output
 import sys
 sys.path.insert(0, 'd:\\e drive\\Only_Project\\dr_cnn')
 
-from src.chatbot.bot import chatbot_response, validate_api_key
+from src.chatbot.bot import chatbot_response, validate_api_key, build_gemini_request
 from dotenv import load_dotenv
 import os
 
@@ -37,8 +37,17 @@ if not is_valid:
     print("7. Current key starts with:", os.getenv("GEMINI_API_KEY", "NOT_SET")[:10] if os.getenv("GEMINI_API_KEY") else "NOT_SET")
     sys.exit(1)
 
-# Test 2: Test Message
-print("\n[TEST 2] Testing Chatbot Response")
+# Test 2: Request auth format
+print("\n[TEST 2] Checking Gemini Request Format")
+print("-" * 80)
+request = build_gemini_request("What is diabetes?")
+assert "Authorization" not in request["headers"], "Authorization header should not be used"
+assert "x-goog-api-key" in request["headers"], "x-goog-api-key header missing"
+assert "key=" in request["url"], "API key should be included in the request URL"
+print("Gemini request format check passed")
+
+# Test 3: Test Message
+print("\n[TEST 3] Testing Chatbot Response")
 print("-" * 80)
 print("Sending test message: 'What is diabetes?'")
 print("-" * 80)

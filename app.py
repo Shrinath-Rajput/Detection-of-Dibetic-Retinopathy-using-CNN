@@ -9,11 +9,11 @@ import numpy as np
 import tensorflow as tf
 import time
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
 from werkzeug.utils import secure_filename
 
 from src.services.sensor_service import sensor_data, start_sensor_thread
-from src.chatbot.bot import chatbot_response
+from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report
 
 app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
@@ -132,14 +132,183 @@ def predict():
 
     preds = model.predict(preprocess_image(path))
     class_id = int(np.argmax(preds))
-    confidence = float(np.max(preds)) * 100
+
+    # store prediction and image path in session for PDF generation
+    session["dr_prediction"] = INDEX_TO_CLASS[class_id]
+    session["dr_image_path"] = path
 
     return render_template(
         "result.html",
         prediction=INDEX_TO_CLASS[class_id],
-        confidence=f"{confidence:.2f}%",
         image_path=path
     )
+
+
+@app.route("/download_dr_pdf")
+def download_dr_pdf():
+    import io
+    import uuid
+    from datetime import datetime
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+    # Get stored prediction and image
+    prediction = session.get("dr_prediction", "Not Available")
+    image_path = session.get("dr_image_path")
+
+    try:
+        report_content = generate_dynamic_medical_report(
+            prediction=prediction,
+            request_id=str(uuid.uuid4())[:8],
+            strict=True,
+        )
+    except Exception as exc:
+        app.logger.exception("Retina AI report generation failed")
+        report_content = {
+            "Clinical Interpretation": "The AI medical report could not be completed at this moment. Your retinal analysis was received successfully and the report will be generated as soon as the service becomes available again.",
+            "Disease Summary": "A temporary service issue prevented the automatic report from being completed. This is an operational notice rather than a medical conclusion.",
+            "Possible Medical Concerns": "Please retry the report generation shortly. If you are experiencing symptoms or urgent vision changes, seek prompt ophthalmic care.",
+            "Treatment Guidance": "No treatment guidance was generated because the AI report service is temporarily unavailable.",
+            "Lifestyle Recommendations": "No lifestyle recommendations were generated because the AI report service is temporarily unavailable.",
+            "Follow-up Advice": "Please try again later for a full AI-generated follow-up plan.",
+            "Medical Disclaimer": "This notice is intended to keep you informed about a temporary service interruption. It is not a medical diagnosis. Please consult a qualified ophthalmologist for clinical guidance."
+        }
+
+    if not report_content:
+        report_content = {
+            "Clinical Interpretation": "The AI medical report could not be completed at this moment. Please try again shortly.",
+            "Disease Summary": "The system is currently unavailable for report generation.",
+            "Possible Medical Concerns": "Please retry the report generation later.",
+            "Treatment Guidance": "No treatment guidance was generated because the service is temporarily unavailable.",
+            "Lifestyle Recommendations": "No lifestyle guidance was generated because the service is temporarily unavailable.",
+            "Follow-up Advice": "Please try again later for a full AI-generated follow-up plan.",
+            "Medical Disclaimer": "This notice is operational and not a medical diagnosis. Please consult a qualified ophthalmologist for clinical advice."
+        }
+
+
+    # PDF metadata
+    report_date = datetime.now().strftime("%d-%m-%Y")
+    report_time = datetime.now().strftime("%H:%M:%S")
+    report_id = str(uuid.uuid4())[:12].upper()
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.6 * inch,
+        leftMargin=0.6 * inch,
+        topMargin=0.6 * inch,
+        bottomMargin=0.6 * inch
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('ReportTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=22, textColor=HexColor('#0B3D91'), alignment=TA_CENTER)
+    subtitle_style = ParagraphStyle('ReportSubtitle', parent=styles['Heading2'], fontName='Helvetica', fontSize=12, textColor=HexColor('#333333'), alignment=TA_CENTER)
+    section_header_style = ParagraphStyle('SectionHeader', parent=styles['Heading2'], fontName='Helvetica-Bold', fontSize=11, textColor=white, backColor=HexColor('#0B61B1'), leftIndent=6, rightIndent=6, spaceBefore=10, spaceAfter=6)
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=13, textColor=HexColor('#333333'))
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontName='Helvetica', fontSize=9, textColor=HexColor('#777777'), alignment=TA_CENTER)
+
+    story = []
+    story.append(Spacer(1, 8))
+    story.append(Paragraph('CareSense AI', title_style))
+    story.append(Paragraph('Diabetic Retinopathy Analysis Report', subtitle_style))
+    story.append(Spacer(1, 8))
+
+    meta_table = Table([
+        ['Report Date:', report_date, 'Report Time:', report_time],
+        ['Unique Report ID:', report_id, '', '']
+    ], colWidths=[1.2 * inch, 2.0 * inch, 1.2 * inch, 1.2 * inch])
+    meta_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#444444')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 2)
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph('PATIENT EYE EXAMINATION', section_header_style))
+    story.append(Spacer(1, 8))
+
+    # Add image if available
+    if image_path and os.path.exists(image_path):
+        try:
+            img = Image(image_path)
+            img._restrictSize(5.5 * inch, 4.0 * inch)
+            story.append(img)
+            story.append(Spacer(1, 8))
+        except Exception:
+            story.append(Paragraph('Retinal image could not be embedded.', normal_style))
+            story.append(Spacer(1, 8))
+    else:
+        story.append(Paragraph('No retinal image available.', normal_style))
+        story.append(Spacer(1, 8))
+
+    story.append(Paragraph('AI DIAGNOSIS', section_header_style))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(prediction, normal_style))
+    story.append(Spacer(1, 8))
+
+    def _split_items(s):
+        if not s:
+            return []
+        if '\n' in s:
+            parts = [p.strip() for p in s.splitlines() if p.strip()]
+            return parts
+        if '•' in s:
+            parts = [p.strip() for p in s.split('•') if p.strip()]
+            return parts
+        if ';' in s:
+            parts = [p.strip() for p in s.split(';') if p.strip()]
+            return parts
+        if s.count(',') >= 2:
+            parts = [p.strip() for p in s.split(',') if p.strip()]
+            return parts
+        return [s.strip()]
+
+    sections = [
+        ("Clinical Interpretation", "CLINICAL INTERPRETATION"),
+        ("Disease Summary", "DISEASE SUMMARY"),
+        ("Possible Medical Concerns", "POSSIBLE MEDICAL CONCERNS"),
+        ("Treatment Guidance", "TREATMENT GUIDANCE"),
+        ("Lifestyle Recommendations", "LIFESTYLE RECOMMENDATIONS"),
+        ("Follow-up Advice", "FOLLOW-UP ADVICE"),
+        ("Medical Disclaimer", "MEDICAL DISCLAIMER"),
+    ]
+
+    for key, title in sections:
+        value = report_content.get(key, '')
+        story.append(Paragraph(title, section_header_style))
+        story.append(Spacer(1, 6))
+        items = _split_items(value)
+        if items:
+            for item in items:
+                story.append(Paragraph(f'• {item}', normal_style))
+        else:
+            story.append(Paragraph('• No additional information was generated for this section.', normal_style))
+        story.append(Spacer(1, 8))
+
+    story.append(Paragraph('Generated by CareSense AI', footer_style))
+    story.append(Paragraph('Professional Eye Disease Analysis Report', footer_style))
+    story.append(Paragraph('Version 1.0', footer_style))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    # Ensure we return exact bytes with Content-Length to avoid browser partial-download issues
+    pdf_bytes = buffer.getvalue()
+    from flask import Response
+    headers = {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="Retina_Report.pdf"',
+        'Content-Length': str(len(pdf_bytes)),
+    }
+    return Response(pdf_bytes, headers=headers)
 
 @app.route("/live_health")
 def live_health():

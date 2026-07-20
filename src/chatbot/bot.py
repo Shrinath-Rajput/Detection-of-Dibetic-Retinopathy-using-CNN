@@ -67,7 +67,7 @@ def build_gemini_request(user_message, api_key=None, model_name=None):
             "temperature": 0.9,
             "topP": 0.95,
             "topK": 40,
-            "maxOutputTokens": 400,
+            "maxOutputTokens": 2000,  # Increased from 400 to allow full medical reports
         },
     }
 
@@ -137,67 +137,228 @@ def build_report_prompt(prediction, request_id=None):
     """Create a fresh, highly specific Gemini prompt for a retina medical report."""
     diagnosis = (prediction or "unknown diagnosis").strip()
     nonce = request_id or str(uuid.uuid4())[:8]
-    return f"""You are generating a brand-new retina medical report for request ID {nonce}. 
-The imaging assessment indicates: {diagnosis}. 
-Write as an experienced ophthalmologist and produce a clinically sound, natural-sounding report that is different from any previous report. 
-Important instructions: create a genuinely fresh report every time, never reuse earlier wording, and vary sentence structure and explanation style even when the diagnosis is the same. 
-Do not use templates, sentence pools, or canned wording. Do not include placeholder text. 
-Return valid JSON with exactly these keys and no extra text: Clinical Interpretation, Disease Summary, Possible Medical Concerns, Treatment Guidance, Lifestyle Recommendations, Follow-up Advice, Medical Disclaimer. 
-Each value must be a concise paragraph or one short list. Keep the total response under 220 words and ensure every section is professionally written and unique."""
+    return f"""You are an expert ophthalmologist writing a detailed medical assessment report for retinal imaging. Request ID: {nonce}.
+
+Based on the imaging assessment showing "{diagnosis}", create a comprehensive and professionally written report.
+
+CRITICAL: You MUST return valid JSON with EXACTLY these 7 keys (and no other keys):
+1. Clinical Interpretation
+2. Disease Summary
+3. Possible Medical Concerns
+4. Treatment Guidance
+5. Lifestyle Recommendations
+6. Follow-up Advice
+7. Medical Disclaimer
+
+Rules:
+- Write each section as a clear, professional paragraph (2-3 sentences)
+- Never use placeholder text or generic messages
+- Each response must be UNIQUE and different from previous reports for the same diagnosis
+- Never repeat the same wording or phrasing
+- Include specific clinical details relevant to "{diagnosis}"
+- Make the report clinically accurate and actionable
+
+Return ONLY valid JSON, no markdown, no code blocks, no explanations. Start with {{ and end with }}.
+
+Example format:
+{{
+  "Clinical Interpretation": "Your detailed clinical text here...",
+  "Disease Summary": "Your summary text here...",
+  "Possible Medical Concerns": "Your concerns text here...",
+  "Treatment Guidance": "Your guidance text here...",
+  "Lifestyle Recommendations": "Your recommendations here...",
+  "Follow-up Advice": "Your follow-up text here...",
+  "Medical Disclaimer": "Standard medical disclaimer..."
+}}"""
 
 
 def extract_report_sections(text):
-    """Parse Gemini JSON or headings into structured report sections."""
+    """
+    Parse Gemini response (JSON, Markdown, or plain text) into structured report sections.
+    CRITICAL: Extract actual values, never return raw JSON strings into PDF.
+    Handles: valid JSON, JSON in code blocks, Markdown headings, bullet lists.
+    """
     if not text:
         return None
 
     cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.I).strip()
-
+    if not cleaned:
+        return None
+    
+    # Try 1: Direct JSON parsing - MUST WORK for well-formed JSON
     try:
         parsed = json.loads(cleaned)
         if isinstance(parsed, dict):
             sections = {}
             for key in REPORT_SECTION_KEYS:
                 value = parsed.get(key)
-                if isinstance(value, str) and value.strip():
+                # Ensure we extract the actual string value, not a nested object
+                if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
                     sections[key] = value.strip()
-            if sections:
+            if len(sections) >= 6:
+                for key in REPORT_SECTION_KEYS:
+                    if key not in sections:
+                        sections[key] = "Based on the analysis, please consult with your healthcare provider."
                 return sections
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         pass
-
+    except Exception as e:
+        pass
+    
+    # Try 2: JSON wrapped in code blocks (markdown)
+    if "```" in cleaned:
+        # Extract content between backticks
+        code_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", cleaned, re.I | re.S)
+        if code_match:
+            json_content = code_match.group(1).strip()
+            try:
+                parsed = json.loads(json_content)
+                if isinstance(parsed, dict):
+                    sections = {}
+                    for key in REPORT_SECTION_KEYS:
+                        value = parsed.get(key)
+                        if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
+                            sections[key] = value.strip()
+                    if len(sections) >= 6:
+                        for key in REPORT_SECTION_KEYS:
+                            if key not in sections:
+                                sections[key] = "Based on the analysis, please consult with your healthcare provider."
+                        return sections
+            except (json.JSONDecodeError, ValueError):
+                pass
+    
+    # Try 3: Find JSON object anywhere in the text (handles extra text before/after)
+    json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned, re.S)
+    if json_match:
+        json_str = json_match.group(0)
+        try:
+            parsed = json.loads(json_str)
+            if isinstance(parsed, dict):
+                sections = {}
+                for key in REPORT_SECTION_KEYS:
+                    value = parsed.get(key)
+                    if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
+                        sections[key] = value.strip()
+                if len(sections) >= 6:
+                    for key in REPORT_SECTION_KEYS:
+                        if key not in sections:
+                            sections[key] = "Based on the analysis, please consult with your healthcare provider."
+                    return sections
+        except (json.JSONDecodeError, ValueError):
+            pass
+    
+    # Try 4: Markdown/heading-based extraction
     sections = {}
-    for key in REPORT_SECTION_KEYS:
-        pattern = re.compile(rf"{re.escape(key)}\s*[:\-]\s*(.+)", re.I | re.S)
-        match = pattern.search(cleaned)
-        if match:
-            sections[key] = match.group(1).strip()
-    return sections or None
+    text_lines = cleaned.split('\n')
+    current_section = None
+    current_content = []
+    
+    for line in text_lines:
+        line = line.strip()
+        if not line or line.startswith('{') or line.startswith('['):
+            continue
+        
+        matched_header = False
+        for key in REPORT_SECTION_KEYS:
+            # Match section headers
+            if (re.match(rf"^#+\s*{re.escape(key)}", line, re.I) or 
+                re.match(rf"^{re.escape(key)}\s*[:\-]", line, re.I) or
+                re.match(rf"^\*\*{re.escape(key)}\*\*", line, re.I) or
+                re.match(rf"^{re.escape(key)}$", line, re.I)):
+                
+                if current_section and current_content:
+                    content = ' '.join(current_content).strip()
+                    content = re.sub(r'\s+', ' ', content)  # Clean up whitespace
+                    if content and len(content) > 5:
+                        sections[current_section] = content
+                
+                current_section = key
+                current_content = []
+                
+                # Extract inline content
+                remaining = re.sub(rf"^#+\s*{re.escape(key)}|^{re.escape(key)}\s*[:|\-]|^\*\*{re.escape(key)}\*\*|^{re.escape(key)}$", "", line, flags=re.I).strip()
+                if remaining and not remaining.startswith('{'):
+                    current_content.append(remaining)
+                
+                matched_header = True
+                break
+        
+        if not matched_header and current_section and line and not line.startswith('{'):
+            # Clean the line
+            clean_line = re.sub(r"^[\-\*\•]\s*|\d+\.\s*|\`+", "", line)
+            if clean_line and not clean_line.startswith('{') and len(clean_line) > 3:
+                current_content.append(clean_line)
+    
+    # Save last section
+    if current_section and current_content:
+        content = ' '.join(current_content).strip()
+        content = re.sub(r'\s+', ' ', content)
+        if content and len(content) > 5:
+            sections[current_section] = content
+    
+    # If we got good sections, return
+    if len(sections) >= 6:
+        for key in REPORT_SECTION_KEYS:
+            if key not in sections:
+                sections[key] = "Based on the analysis, please consult with your healthcare provider."
+        return sections
+    
+    # Try 5: As last resort, distribute paragraphs if we have any content
+    if len(sections) >= 3 and len(cleaned) > 100:
+        # Fill missing sections with combined content
+        combined = ' '.join(sections.values())
+        for key in REPORT_SECTION_KEYS:
+            if key not in sections:
+                sections[key] = combined[:180]
+        return sections
+    
+    return None
 
 
 def generate_dynamic_medical_report(prediction, request_id=None, strict=True, api_key=None):
-    """Generate a fresh, Gemini-produced medical report for the retina prediction."""
+    """
+    Generate a fresh, Gemini-produced medical report for the retina prediction.
+    CRITICAL: Only return properly parsed sections, never raw response text.
+    """
     prompt = build_report_prompt(prediction=prediction, request_id=request_id)
+    
     try:
-        reply = chatbot_response(prompt, strict=strict, api_key=api_key)
+        reply = chatbot_response(prompt, strict=False, api_key=api_key)
     except Exception as exc:
+        print(f"[REPORT] Gemini API Error: {exc}")
         if strict:
-            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.") from exc
+            raise RuntimeError("Gemini API is currently unavailable. Please check your internet connection and API key.") from exc
         return None
 
-    if not reply:
+    if not reply or not reply.strip():
+        print(f"[REPORT] Gemini returned empty response")
         if strict:
-            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+            raise RuntimeError("Gemini API returned an empty response. Please try again.")
         return None
 
+    print(f"[REPORT] Received response from Gemini (length: {len(reply)})")
+    
+    # Parse the response - handles JSON, markdown, plain text
     sections = extract_report_sections(reply)
-    if sections and len(sections) >= 5:
+    
+    if sections and len(sections) == len(REPORT_SECTION_KEYS):
+        print(f"[REPORT] Successfully extracted {len(sections)} sections from Gemini response")
         return sections
-
+    
+    # If we got partial sections, complete them
+    if sections and len(sections) > 3:
+        print(f"[REPORT] Got {len(sections)} sections, completing missing sections...")
+        for key in REPORT_SECTION_KEYS:
+            if key not in sections:
+                sections[key] = "Based on the analysis, please consult with your healthcare provider for personalized medical guidance."
+        return sections
+    
+    # Parsing failed - don't use raw response
+    print(f"[REPORT] Failed to parse response into structured sections")
     if strict:
-        raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
+        raise RuntimeError("Failed to parse Gemini response into proper format. Please try again.")
+    
+    # Non-strict mode: return None instead of garbage data
     return None
 
 

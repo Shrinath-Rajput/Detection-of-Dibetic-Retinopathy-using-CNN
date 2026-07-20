@@ -160,35 +160,34 @@ def download_dr_pdf():
     prediction = session.get("dr_prediction", "Not Available")
     image_path = session.get("dr_image_path")
 
-    try:
-        report_content = generate_dynamic_medical_report(
-            prediction=prediction,
-            request_id=str(uuid.uuid4())[:8],
-            strict=True,
-        )
-    except Exception as exc:
-        app.logger.exception("Retina AI report generation failed")
-        report_content = {
-            "Clinical Interpretation": "The AI medical report could not be completed at this moment. Your retinal analysis was received successfully and the report will be generated as soon as the service becomes available again.",
-            "Disease Summary": "A temporary service issue prevented the automatic report from being completed. This is an operational notice rather than a medical conclusion.",
-            "Possible Medical Concerns": "Please retry the report generation shortly. If you are experiencing symptoms or urgent vision changes, seek prompt ophthalmic care.",
-            "Treatment Guidance": "No treatment guidance was generated because the AI report service is temporarily unavailable.",
-            "Lifestyle Recommendations": "No lifestyle recommendations were generated because the AI report service is temporarily unavailable.",
-            "Follow-up Advice": "Please try again later for a full AI-generated follow-up plan.",
-            "Medical Disclaimer": "This notice is intended to keep you informed about a temporary service interruption. It is not a medical diagnosis. Please consult a qualified ophthalmologist for clinical guidance."
-        }
-
+    # Generate fresh AI-powered medical report from Gemini
+    report_content = generate_dynamic_medical_report(
+        prediction=prediction,
+        request_id=str(uuid.uuid4())[:8],
+        strict=False,  # Use non-strict to get best effort
+    )
+    
+    # If no report could be generated, raise error (this shouldn't happen with proper Gemini)
     if not report_content:
-        report_content = {
-            "Clinical Interpretation": "The AI medical report could not be completed at this moment. Please try again shortly.",
-            "Disease Summary": "The system is currently unavailable for report generation.",
-            "Possible Medical Concerns": "Please retry the report generation later.",
-            "Treatment Guidance": "No treatment guidance was generated because the service is temporarily unavailable.",
-            "Lifestyle Recommendations": "No lifestyle guidance was generated because the service is temporarily unavailable.",
-            "Follow-up Advice": "Please try again later for a full AI-generated follow-up plan.",
-            "Medical Disclaimer": "This notice is operational and not a medical diagnosis. Please consult a qualified ophthalmologist for clinical advice."
-        }
+        raise RuntimeError("Unable to generate medical report. Please check your Gemini API configuration.")
 
+    # Clean up any remaining JSON artifacts from values (defensive measure)
+    def clean_value(val):
+        """Remove JSON characters and formatting from values"""
+        if not val or not isinstance(val, str):
+            return val
+        # Remove leading/trailing JSON characters and whitespace
+        val = val.strip()
+        if val.startswith('{') or val.startswith('['):
+            return "Based on the analysis, please consult with your healthcare provider."
+        if val.startswith('"'):
+            val = val.strip('"')
+        # Remove escaped quotes
+        val = val.replace('\\"', '"').replace('\\n', ' ').replace('\\r', ' ')
+        return val.strip()
+    
+    # Apply cleanup to all report sections
+    report_content = {k: clean_value(v) for k, v in report_content.items()}
 
     # PDF metadata
     report_date = datetime.now().strftime("%d-%m-%Y")
@@ -201,39 +200,88 @@ def download_dr_pdf():
         pagesize=letter,
         rightMargin=0.6 * inch,
         leftMargin=0.6 * inch,
-        topMargin=0.6 * inch,
-        bottomMargin=0.6 * inch
+        topMargin=0.75 * inch,
+        bottomMargin=0.75 * inch,
     )
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('ReportTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=22, textColor=HexColor('#0B3D91'), alignment=TA_CENTER)
-    subtitle_style = ParagraphStyle('ReportSubtitle', parent=styles['Heading2'], fontName='Helvetica', fontSize=12, textColor=HexColor('#333333'), alignment=TA_CENTER)
-    section_header_style = ParagraphStyle('SectionHeader', parent=styles['Heading2'], fontName='Helvetica-Bold', fontSize=11, textColor=white, backColor=HexColor('#0B61B1'), leftIndent=6, rightIndent=6, spaceBefore=10, spaceAfter=6)
-    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leading=13, textColor=HexColor('#333333'))
-    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontName='Helvetica', fontSize=9, textColor=HexColor('#777777'), alignment=TA_CENTER)
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=HexColor('#1a3d5c'),
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=HexColor('#2c5aa0'),
+        spaceAfter=8,
+        spaceBefore=8,
+        fontName='Helvetica-Bold'
+    )
+
+    section_header_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading3'],
+        fontSize=12,
+        textColor=HexColor('#1e40af'),
+        spaceAfter=6,
+        spaceBefore=6,
+        fontName='Helvetica-Bold',
+    )
+
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=HexColor('#333333'),
+        spaceAfter=8,
+        leading=14,
+        alignment=TA_LEFT,
+    )
+
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=HexColor('#666666'),
+        spaceAfter=4,
+        alignment=TA_CENTER,
+    )
 
     story = []
-    story.append(Spacer(1, 8))
-    story.append(Paragraph('CareSense AI', title_style))
-    story.append(Paragraph('Diabetic Retinopathy Analysis Report', subtitle_style))
-    story.append(Spacer(1, 8))
 
-    meta_table = Table([
-        ['Report Date:', report_date, 'Report Time:', report_time],
-        ['Unique Report ID:', report_id, '', '']
-    ], colWidths=[1.2 * inch, 2.0 * inch, 1.2 * inch, 1.2 * inch])
+    # Header
+    story.append(Paragraph('DIABETIC RETINOPATHY ANALYSIS', title_style))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph('AI-Powered Retinal Assessment Report', heading_style))
+    story.append(Spacer(1, 12))
+
+    # Report Info
+    meta_data = [
+        ['Report Date:', report_date, 'Report ID:', report_id],
+        ['Prediction:', prediction, 'Analysis Time:', report_time],
+    ]
+    meta_table = Table(meta_data, colWidths=[1.5*inch, 1.8*inch, 1.5*inch, 1.5*inch])
     meta_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('BACKGROUND', (0, 0), (-1, -1), HexColor('#f0f4f8')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#1a3d5c')),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#444444')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 2)
+        ('GRID', (0, 0), (-1, -1), 1, HexColor('#cccccc')),
     ]))
     story.append(meta_table)
     story.append(Spacer(1, 12))
-
-    story.append(Paragraph('PATIENT EYE EXAMINATION', section_header_style))
-    story.append(Spacer(1, 8))
+    story.append(Paragraph('_' * 80, normal_style))
+    story.append(Spacer(1, 12))
 
     # Add image if available
     if image_path and os.path.exists(image_path):
@@ -241,35 +289,40 @@ def download_dr_pdf():
             img = Image(image_path)
             img._restrictSize(5.5 * inch, 4.0 * inch)
             story.append(img)
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 12))
         except Exception:
             story.append(Paragraph('Retinal image could not be embedded.', normal_style))
             story.append(Spacer(1, 8))
-    else:
-        story.append(Paragraph('No retinal image available.', normal_style))
-        story.append(Spacer(1, 8))
-
-    story.append(Paragraph('AI DIAGNOSIS', section_header_style))
-    story.append(Spacer(1, 6))
-    story.append(Paragraph(prediction, normal_style))
+    
     story.append(Spacer(1, 8))
 
     def _split_items(s):
-        if not s:
+        """Split text into bullet points, but only for actual content"""
+        if not s or not isinstance(s, str):
             return []
+        
+        s = s.strip()
+        
+        # Reject JSON or code-like content
+        if s.startswith('{') or s.startswith('[') or '\\' in s:
+            return [s] if len(s) > 5 else []
+        
+        # Try various delimiters
         if '\n' in s:
-            parts = [p.strip() for p in s.splitlines() if p.strip()]
-            return parts
+            parts = [p.strip() for p in s.splitlines() if p.strip() and len(p.strip()) > 3]
+            return parts if parts else [s]
         if '•' in s:
-            parts = [p.strip() for p in s.split('•') if p.strip()]
-            return parts
-        if ';' in s:
-            parts = [p.strip() for p in s.split(';') if p.strip()]
-            return parts
-        if s.count(',') >= 2:
-            parts = [p.strip() for p in s.split(',') if p.strip()]
-            return parts
-        return [s.strip()]
+            parts = [p.strip() for p in s.split('•') if p.strip() and len(p.strip()) > 3]
+            return parts if parts else [s]
+        if ';' in s and s.count(';') >= 2:
+            parts = [p.strip() for p in s.split(';') if p.strip() and len(p.strip()) > 3]
+            return parts if parts else [s]
+        if ',' in s and s.count(',') >= 2:
+            parts = [p.strip() for p in s.split(',') if p.strip() and len(p.strip()) > 3]
+            return parts if parts else [s]
+        
+        # Return as single item
+        return [s] if len(s) > 3 else []
 
     sections = [
         ("Clinical Interpretation", "CLINICAL INTERPRETATION"),
@@ -290,7 +343,7 @@ def download_dr_pdf():
             for item in items:
                 story.append(Paragraph(f'• {item}', normal_style))
         else:
-            story.append(Paragraph('• No additional information was generated for this section.', normal_style))
+            story.append(Paragraph(value if value else 'Information not available', normal_style))
         story.append(Spacer(1, 8))
 
     story.append(Paragraph('Generated by CareSense AI', footer_style))
@@ -305,7 +358,7 @@ def download_dr_pdf():
     from flask import Response
     headers = {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="Retina_Report.pdf"',
+        'Content-Disposition': 'attachment; filename="DR_Analysis_Report.pdf"',
         'Content-Length': str(len(pdf_bytes)),
     }
     return Response(pdf_bytes, headers=headers)
@@ -315,11 +368,13 @@ def live_health():
     return render_template("live_health.html")
 
 @app.route("/get_sensor_data")
+@app.route("/live_sensor")
 def get_sensor_data():
     data = {
         "heart_rate": sensor_data.get("heart_rate", "--"),
         "spo2": sensor_data.get("spo2", "--"),
-        "status": sensor_data.get("status", "DISCONNECTED")
+        "status": sensor_data.get("status", "DISCONNECTED"),
+        "port": sensor_data.get("port")
     }
     response = jsonify(data)
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'

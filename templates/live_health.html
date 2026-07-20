@@ -227,7 +227,11 @@ async function fetchData() {
 
         if (hrElement) hrElement.innerText = sensor.heart_rate !== undefined ? sensor.heart_rate : "--";
         if (spo2Element) spo2Element.innerText = sensor.spo2 !== undefined ? sensor.spo2 : "--";
-        if (statusElement) statusElement.innerText = sensor.status || "DISCONNECTED";
+        if (statusElement) {
+            const statusValue = sensor.status || "DISCONNECTED";
+            statusElement.innerText = statusValue;
+            statusElement.className = "status-badge " + (statusValue === "CONNECTED" ? "status-ok" : "status-danger");
+        }
 
         const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
             cache: 'no-store',

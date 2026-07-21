@@ -10,6 +10,7 @@ import tensorflow as tf
 import time
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 from src.services.sensor_service import sensor_data, start_sensor_thread
@@ -17,6 +18,23 @@ from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report
 
 app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
+
+@app.errorhandler(404)
+def handle_not_found(error):
+    return "Not Found", 404
+
+@app.errorhandler(Exception)
+def handle_uncaught_exception(error):
+    if isinstance(error, HTTPException):
+        return error
+
+    import traceback
+    print("=" * 80)
+    print("UNHANDLED EXCEPTION")
+    print(error)
+    traceback.print_exc()
+    print("=" * 80)
+    return "Internal Server Error", 500
 
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -30,6 +48,29 @@ MODEL_PATH = "dr_cnn_model.h5"
 if not os.path.exists(MODEL_PATH):
     url = "https://drive.google.com/uc?id=1r-jqC-X67DQo2yf_ozOr2LiGLVMbNL_J"
     gdown.download(url, MODEL_PATH, quiet=False)
+
+# Compatibility shim for older saved models using groups in DepthwiseConv2D config
+try:
+    from tensorflow.keras.layers import DepthwiseConv2D
+    _original_depthwise_from_config = DepthwiseConv2D.from_config
+    _original_depthwise_init = DepthwiseConv2D.__init__
+
+    @classmethod
+    def _depthwise_from_config_class(cls, config, **kwargs):
+        if isinstance(config, dict):
+            config = dict(config)
+            config.pop('groups', None)
+        # Only pass kwargs that the original method accepts
+        return _original_depthwise_from_config.__func__(cls, config)
+
+    def _depthwise_init(self, *args, **kwargs):
+        kwargs.pop('groups', None)
+        return _original_depthwise_init(self, *args, **kwargs)
+
+    DepthwiseConv2D.from_config = _depthwise_from_config_class
+    DepthwiseConv2D.__init__ = _depthwise_init
+except Exception:
+    pass
 
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
@@ -58,7 +99,13 @@ def analyze_health(hr, spo2):
             hr = int(hr)
         else:
             hr = None
-    except:
+    except Exception as e:
+        print("=" * 80)
+        print("HEALTH ANALYSIS PARSE ERROR")
+        print(e)
+        import traceback
+        traceback.print_exc()
+        print("=" * 80)
         hr = None
 
     try:
@@ -66,7 +113,13 @@ def analyze_health(hr, spo2):
             spo2 = int(spo2)
         else:
             spo2 = None
-    except:
+    except Exception as e:
+        print("=" * 80)
+        print("HEALTH ANALYSIS PARSE ERROR")
+        print(e)
+        import traceback
+        traceback.print_exc()
+        print("=" * 80)
         spo2 = None
 
     if hr is not None:
@@ -123,97 +176,297 @@ def dr_page():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    file = request.files.get("image")
-    if not file or file.filename == "":
+    try:
+        file = request.files.get("image")
+        if not file or file.filename == "":
+            return redirect(url_for("dr_page"))
+
+        filename = secure_filename(file.filename)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(path)
+
+        preds = model.predict(preprocess_image(path))
+        class_id = int(np.argmax(preds))
+
+        session["dr_prediction"] = INDEX_TO_CLASS[class_id]
+        session["dr_image_name"] = filename
+
+        return redirect(url_for("dr_result"))
+
+    except Exception as e:
+        import traceback
+        print("=" * 80)
+        print("PREDICT ERROR")
+        print(e)
+        traceback.print_exc()
+        print("=" * 80)
         return redirect(url_for("dr_page"))
 
-    path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
-    file.save(path)
 
-    preds = model.predict(preprocess_image(path))
-    class_id = int(np.argmax(preds))
-
-    # store prediction and image path in session for PDF generation
-    session["dr_prediction"] = INDEX_TO_CLASS[class_id]
-    session["dr_image_path"] = path
-
+@app.route("/dr_result")
+def dr_result():
+    prediction = session.get("dr_prediction", "Not Available")
+    image_name = session.get("dr_image_name")
+    image_path = None
+    if image_name:
+        image_path = url_for("static", filename=f"uploads/{image_name}")
     return render_template(
         "result.html",
-        prediction=INDEX_TO_CLASS[class_id],
-        image_path=path
+        prediction=prediction,
+        image_path=image_path,
+        health=None
     )
+
+@app.route('/favicon.ico')
+def favicon():
+    favicon_path = os.path.join(app.static_folder, 'favicon.ico')
+    if os.path.exists(favicon_path):
+        return send_file(favicon_path, mimetype='image/vnd.microsoft.icon')
+    return '', 204
 
 
 @app.route("/download_dr_pdf")
 def download_dr_pdf():
-    import io
-    import uuid
-    from datetime import datetime
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib.colors import HexColor, white, black
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    import traceback
+    try:
+        import io
+        import uuid
+        from datetime import datetime
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import HexColor, white, black
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-    # Get stored prediction and image
-    prediction = session.get("dr_prediction", "Not Available")
-    image_path = session.get("dr_image_path")
+        prediction = session.get("dr_prediction", "Not Available")
+        image_name = session.get("dr_image_name")
+        image_path = None
+        if image_name:
+            image_path = os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], image_name)
 
-    # Generate fresh AI-powered medical report from Gemini
-    report_content = generate_dynamic_medical_report(
-        prediction=prediction,
-        request_id=str(uuid.uuid4())[:8],
-        strict=False,  # Use non-strict to get best effort
-    )
-    
-    # If no report could be generated, raise error (this shouldn't happen with proper Gemini)
-    if not report_content:
-        raise RuntimeError("Unable to generate medical report. Please check your Gemini API configuration.")
+        report_content = generate_dynamic_medical_report(
+            prediction=prediction,
+            request_id=str(uuid.uuid4())[:8],
+            strict=False,
+        )
 
-    # Clean up any remaining JSON artifacts from values (defensive measure)
-    def clean_value(val):
-        """Remove JSON characters and formatting from values"""
-        if not val or not isinstance(val, str):
-            return val
-        # Remove leading/trailing JSON characters and whitespace
-        val = val.strip()
-        if val.startswith('{') or val.startswith('['):
-            return "Based on the analysis, please consult with your healthcare provider."
-        if val.startswith('"'):
-            val = val.strip('"')
-        # Remove escaped quotes
-        val = val.replace('\\"', '"').replace('\\n', ' ').replace('\\r', ' ')
-        return val.strip()
-    
-    # Apply cleanup to all report sections
-    report_content = {k: clean_value(v) for k, v in report_content.items()}
+        if not report_content:
+            default_diagnosis = prediction if prediction != "Not Available" else "retinal changes"
+            report_content = {
+                "Clinical Interpretation": (
+                    f"The retinal image suggests a clinical picture consistent with {default_diagnosis}. "
+                    "Further ophthalmic evaluation is recommended for confirmation."
+                ),
+                "Disease Summary": (
+                    f"The analysis indicates features associated with {default_diagnosis}. "
+                    "A specialist should review the image and patient history to establish a precise diagnosis."
+                ),
+                "Possible Medical Concerns": (
+                    "Potential concerns include vision impairment, progressive retinal damage, and related vascular changes. "
+                    "Timely follow-up can help reduce the risk of complications."
+                ),
+                "Treatment Guidance": (
+                    "Initial management should focus on regular monitoring, lifestyle support, and referral to an eye care specialist. "
+                    "Medical treatment should be determined by a qualified clinician."
+                ),
+                "Lifestyle Recommendations": (
+                    "Maintain a healthy diet, control blood sugar levels, avoid smoking, and follow up with regular eye exams. "
+                    "These measures help support overall retinal health."
+                ),
+                "Follow-up Advice": (
+                    "Schedule an appointment with an ophthalmologist for a comprehensive retinal examination. "
+                    "Early intervention is important for optimal outcomes."
+                ),
+                "Medical Disclaimer": (
+                    "This report is generated for informational purposes only and is not a substitute for professional medical advice. "
+                    "Please consult a licensed healthcare provider for diagnosis and treatment."
+                ),
+            }
 
-    # PDF metadata
-    report_date = datetime.now().strftime("%d-%m-%Y")
-    report_time = datetime.now().strftime("%H:%M:%S")
-    report_id = str(uuid.uuid4())[:12].upper()
+        def clean_value(val):
+            if not val or not isinstance(val, str):
+                return val
+            val = val.strip()
+            if val.startswith('{') or val.startswith('['):
+                return "Based on the analysis, please consult with your healthcare provider."
+            if val.startswith('"'):
+                val = val.strip('"')
+            val = val.replace('\"', '"').replace('\\n', ' ').replace('\\r', ' ')
+            return val.strip()
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        rightMargin=0.6 * inch,
-        leftMargin=0.6 * inch,
-        topMargin=0.75 * inch,
-        bottomMargin=0.75 * inch,
-    )
+        report_content = {k: clean_value(v) for k, v in report_content.items()}
 
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=24,
-        textColor=HexColor('#1a3d5c'),
-        spaceAfter=12,
-        alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
-    )
+        report_date = datetime.now().strftime("%d-%m-%Y")
+        report_time = datetime.now().strftime("%H:%M:%S")
+        report_id = str(uuid.uuid4())[:12].upper()
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=0.6 * inch,
+            leftMargin=0.6 * inch,
+            topMargin=0.75 * inch,
+            bottomMargin=0.75 * inch,
+        )
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=HexColor('#1a3d5c'),
+            spaceAfter=12,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=HexColor('#2c5aa0'),
+            spaceAfter=8,
+            spaceBefore=8,
+            fontName='Helvetica-Bold'
+        )
+
+        section_header_style = ParagraphStyle(
+            'SectionHeader',
+            parent=styles['Heading3'],
+            fontSize=12,
+            textColor=HexColor('#1e40af'),
+            spaceAfter=6,
+            spaceBefore=6,
+            fontName='Helvetica-Bold',
+        )
+
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=HexColor('#333333'),
+            spaceAfter=8,
+            leading=14,
+            alignment=TA_LEFT,
+        )
+
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=HexColor('#666666'),
+            spaceAfter=4,
+            alignment=TA_CENTER,
+        )
+
+        story = []
+        story.append(Paragraph('DIABETIC RETINOPATHY ANALYSIS', title_style))
+        story.append(Spacer(1, 8))
+        story.append(Paragraph('AI-Powered Retinal Assessment Report', heading_style))
+        story.append(Spacer(1, 12))
+
+        meta_data = [
+            ['Report Date:', report_date, 'Report ID:', report_id],
+            ['Prediction:', prediction, 'Analysis Time:', report_time],
+        ]
+        meta_table = Table(meta_data, colWidths=[1.5*inch, 1.8*inch, 1.5*inch, 1.5*inch])
+        meta_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), HexColor('#f0f4f8')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#1a3d5c')),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 1, HexColor('#cccccc')),
+        ]))
+        story.append(meta_table)
+        story.append(Spacer(1, 12))
+        story.append(Paragraph('_' * 80, normal_style))
+        story.append(Spacer(1, 12))
+
+        if image_path and os.path.exists(image_path):
+            try:
+                img = Image(image_path)
+                img._restrictSize(5.5 * inch, 4.0 * inch)
+                story.append(img)
+                story.append(Spacer(1, 12))
+            except Exception as img_e:
+                print("=" * 80)
+                print("DOWNLOAD PDF IMAGE EMBED ERROR")
+                print(img_e)
+                traceback.print_exc()
+                print("=" * 80)
+                story.append(Paragraph('Retinal image could not be embedded.', normal_style))
+                story.append(Spacer(1, 8))
+
+        story.append(Spacer(1, 8))
+
+        def _split_items(s):
+            if not s or not isinstance(s, str):
+                return []
+            s = s.strip()
+            if s.startswith('{') or s.startswith('[') or '\\' in s:
+                return [s] if len(s) > 5 else []
+            if '\n' in s:
+                parts = [p.strip() for p in s.splitlines() if p.strip() and len(p.strip()) > 3]
+                return parts if parts else [s]
+            if '•' in s:
+                parts = [p.strip() for p in s.split('•') if p.strip() and len(p.strip()) > 3]
+                return parts if parts else [s]
+            if ';' in s and s.count(';') >= 2:
+                parts = [p.strip() for p in s.split(';') if p.strip() and len(p.strip()) > 3]
+                return parts if parts else [s]
+            if ',' in s and s.count(',') >= 2:
+                parts = [p.strip() for p in s.split(',') if p.strip() and len(p.strip()) > 3]
+                return parts if parts else [s]
+            return [s] if len(s) > 3 else []
+
+        sections = [
+            ("Clinical Interpretation", "CLINICAL INTERPRETATION"),
+            ("Disease Summary", "DISEASE SUMMARY"),
+            ("Possible Medical Concerns", "POSSIBLE MEDICAL CONCERNS"),
+            ("Treatment Guidance", "TREATMENT GUIDANCE"),
+            ("Lifestyle Recommendations", "LIFESTYLE RECOMMENDATIONS"),
+            ("Follow-up Advice", "FOLLOW-UP ADVICE"),
+            ("Medical Disclaimer", "MEDICAL DISCLAIMER"),
+        ]
+
+        for key, title in sections:
+            value = report_content.get(key, '')
+            story.append(Paragraph(title, section_header_style))
+            story.append(Spacer(1, 6))
+            items = _split_items(value)
+            if items:
+                for item in items:
+                    story.append(Paragraph(f'• {item}', normal_style))
+            else:
+                story.append(Paragraph(value if value else 'Information not available', normal_style))
+            story.append(Spacer(1, 8))
+
+        story.append(Paragraph('Generated by CareSense AI', footer_style))
+        story.append(Paragraph('Professional Eye Disease Analysis Report', footer_style))
+        story.append(Paragraph('Version 1.0', footer_style))
+
+        doc.build(story)
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="DR_Analysis_Report.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        print("=" * 80)
+        print("DOWNLOAD PDF ERROR")
+        print(e)
+        traceback.print_exc()
+        print("=" * 80)
+        raise
 
     heading_style = ParagraphStyle(
         'CustomHeading',

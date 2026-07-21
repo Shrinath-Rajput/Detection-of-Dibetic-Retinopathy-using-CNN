@@ -206,9 +206,15 @@
     <div class="result-card animate">
         <h2>👁️ Diabetic Retinopathy Analysis</h2>
 
+            {% if image_path %}
             <div class="image-box">
                 <img src="{{ image_path }}" alt="Retinal Image Analysis">
             </div>
+            {% else %}
+            <div class="image-box">
+                <p style="color: #4a5568; font-size: 16px;">No retinal image available.</p>
+            </div>
+            {% endif %}
 
             <div class="prediction-result" style="text-align:center;">
                 <div class="prediction-label">Diagnosis:</div>

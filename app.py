@@ -187,9 +187,19 @@ def predict():
 
         preds = model.predict(preprocess_image(path))
         class_id = int(np.argmax(preds))
+        confidence = round(float(preds[0][class_id] * 100), 2)
+
+        if confidence >= 90:
+            risk_level = "🔴 High Risk"
+        elif confidence >= 70:
+            risk_level = "🟡 Moderate Risk"
+        else:
+            risk_level = "🟢 Low Risk"
 
         session["dr_prediction"] = INDEX_TO_CLASS[class_id]
         session["dr_image_name"] = filename
+        session["dr_confidence"] = confidence
+        session["dr_risk_level"] = risk_level
 
         return redirect(url_for("dr_result"))
 
@@ -207,6 +217,8 @@ def predict():
 def dr_result():
     prediction = session.get("dr_prediction", "Not Available")
     image_name = session.get("dr_image_name")
+    confidence = session.get("dr_confidence")
+    risk_level = session.get("dr_risk_level")
     image_path = None
     if image_name:
         image_path = url_for("static", filename=f"uploads/{image_name}")
@@ -214,6 +226,8 @@ def dr_result():
         "result.html",
         prediction=prediction,
         image_path=image_path,
+        confidence=confidence,
+        risk_level=risk_level,
         health=None
     )
 

@@ -219,6 +219,8 @@
             <div class="prediction-result" style="text-align:center;">
                 <div class="prediction-label">Diagnosis:</div>
                 <div class="prediction-value">{{ prediction }}</div>
+                <div class="prediction-label" style="margin-top: 12px;">Risk Level:</div>
+                <div class="prediction-value">{{ risk_level if risk_level else 'Not Available' }}</div>
             </div>
 
             <div style="text-align:center; margin-top:20px;">

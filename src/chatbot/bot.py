@@ -328,11 +328,30 @@ Example format:
 }}"""
 
 
+def _normalize_section_heading(line):
+    """Normalize a potential section heading so numbered headers are parsed correctly."""
+    if not isinstance(line, str):
+        return ""
+
+    cleaned = line.strip()
+    if not cleaned:
+        return ""
+
+    cleaned = re.sub(r"^#{1,6}\s*", "", cleaned)
+    cleaned = re.sub(r"^\s*[-*•]+\s*", "", cleaned)
+    cleaned = re.sub(r"^(?:section\s*\d+|\d+[\.)])\s*[:\-–—]?\s*", "", cleaned, flags=re.I)
+    cleaned = cleaned.strip()
+    cleaned = re.sub(r"\*\*|__", "", cleaned)
+    cleaned = re.sub(r"^\*|\*$|^_|_$", "", cleaned)
+    cleaned = cleaned.rstrip(":").strip()
+    return cleaned
+
+
 def extract_report_sections(text):
     """
     Parse Gemini response (JSON, Markdown, or plain text) into structured report sections.
     CRITICAL: Extract actual values, never return raw JSON strings into PDF.
-    Handles: valid JSON, JSON in code blocks, Markdown headings, bullet lists.
+    Handles: valid JSON, JSON in code blocks, Markdown headings, numbered/bulleted headings, and plain text with section markers.
     """
     if not text:
         return None
@@ -360,31 +379,14 @@ def extract_report_sections(text):
         if not isinstance(value, str):
             return False
         normalized = value.strip().lower()
-        if len(normalized) < 20:
+        if len(normalized) < 10:
+            return False
+        if len(normalized.split()) < 2:
             return False
         for marker in forbidden_markers:
             if marker in normalized:
                 return False
         return True
-
-    # Try 1: Direct JSON parsing - MUST WORK for well-formed JSON
-    try:
-        parsed = json.loads(cleaned)
-        if isinstance(parsed, dict):
-            sections = {}
-            for key in REPORT_SECTION_KEYS:
-                value = parsed.get(key)
-                if is_valid_section(value):
-                    sections[key] = value.strip()
-            if len(sections) >= len(REPORT_SECTION_KEYS) - 1:
-                for key in REPORT_SECTION_KEYS:
-                    if key not in sections:
-                        sections[key] = ""
-                return sections
-    except (json.JSONDecodeError, ValueError):
-        pass
-    except Exception:
-        pass
 
     def parse_json_sections(parsed):
         if not isinstance(parsed, dict):
@@ -400,6 +402,18 @@ def extract_report_sections(text):
             sections["Medical Disclaimer"] = "This report is for informational purposes only and cannot substitute professional medical evaluation. Please consult a licensed healthcare provider."
             return sections
         return None
+
+    # Try 1: Direct JSON parsing - MUST WORK for well-formed JSON
+    try:
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            sections = parse_json_sections(parsed)
+            if sections:
+                return sections
+    except (json.JSONDecodeError, ValueError):
+        pass
+    except Exception:
+        pass
 
     # Try 2: JSON wrapped in code blocks (markdown)
     if "```" in cleaned:
@@ -425,72 +439,99 @@ def extract_report_sections(text):
                 return sections
         except (json.JSONDecodeError, ValueError):
             pass
-    
-    # Try 4: Markdown/heading-based extraction
+
+    def _canonical_section_key(raw_key):
+        raw = raw_key.strip().lower()
+        for key in REPORT_SECTION_KEYS:
+            if raw == key.lower():
+                return key
+        return None
+
+    def _split_text_into_sections(text):
+        key_patterns = []
+        for key in REPORT_SECTION_KEYS:
+            escaped = re.escape(key)
+            key_patterns.append(rf'(?:\*\*|__)?{escaped}(?:\*\*|__)?')
+        keys_pattern = '|'.join(key_patterns)
+        pattern = re.compile(
+            rf'(?P<key>{keys_pattern})\s*[:\-–—]?\s*(?P<value>.*?)(?=(?:\n\s*(?:{keys_pattern})\s*[:\-–—]?)|$)',
+            re.I | re.S,
+        )
+        sections = {}
+        for match in pattern.finditer(text):
+            section_key = _canonical_section_key(re.sub(r'\*\*|__', '', match.group('key')).strip())
+            if not section_key:
+                continue
+            section_text = match.group('value').strip()
+            section_text = re.sub(r'\s+', ' ', section_text)
+            if section_text:
+                sections[section_key] = section_text
+        return sections
+
+    def _find_heading(line):
+        normalized = _normalize_section_heading(line)
+        for key in REPORT_SECTION_KEYS:
+            key_lower = key.lower()
+            if normalized.lower().startswith(key_lower):
+                remaining = normalized[len(key):].strip()
+                remaining = re.sub(r'^[:\-–—]\s*', '', remaining)
+                return key, remaining
+        return None, None
+
     sections = {}
-    text_lines = cleaned.split('\n')
+    lines = cleaned.split('\n')
     current_section = None
     current_content = []
-    
-    for line in text_lines:
-        line = line.strip()
-        if not line or line.startswith('{') or line.startswith('['):
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith('{') or stripped.startswith('['):
             continue
-        
-        matched_header = False
-        for key in REPORT_SECTION_KEYS:
-            # Match section headers
-            if (re.match(rf"^#+\s*{re.escape(key)}", line, re.I) or 
-                re.match(rf"^{re.escape(key)}\s*[:\-]", line, re.I) or
-                re.match(rf"^\*\*{re.escape(key)}\*\*", line, re.I) or
-                re.match(rf"^{re.escape(key)}$", line, re.I)):
-                
-                if current_section and current_content:
-                    content = ' '.join(current_content).strip()
-                    content = re.sub(r'\s+', ' ', content)  # Clean up whitespace
-                    if content and len(content) > 5:
-                        sections[current_section] = content
-                
-                current_section = key
-                current_content = []
-                
-                # Extract inline content
-                remaining = re.sub(rf"^#+\s*{re.escape(key)}|^{re.escape(key)}\s*[:|\-]|^\*\*{re.escape(key)}\*\*|^{re.escape(key)}$", "", line, flags=re.I).strip()
-                if remaining and not remaining.startswith('{'):
-                    current_content.append(remaining)
-                
-                matched_header = True
-                break
-        
-        if not matched_header and current_section and line and not line.startswith('{'):
-            # Clean the line
-            clean_line = re.sub(r"^[\-\*\•]\s*|\d+\.\s*|\`+", "", line)
-            if clean_line and not clean_line.startswith('{') and len(clean_line) > 3:
+
+        section_key, inline_value = _find_heading(stripped)
+        if section_key:
+            if current_section and current_content:
+                content = ' '.join(current_content).strip()
+                content = re.sub(r'\s+', ' ', content)
+                if content and len(content) > 5:
+                    sections[current_section] = content
+            current_section = section_key
+            current_content = []
+            if inline_value:
+                current_content.append(inline_value)
+            continue
+
+        if current_section:
+            clean_line = re.sub(r'^[\-\*\u2022\•\d+\.)\s]*', '', stripped)
+            if clean_line:
                 current_content.append(clean_line)
-    
-    # Save last section
+
     if current_section and current_content:
         content = ' '.join(current_content).strip()
         content = re.sub(r'\s+', ' ', content)
         if content and len(content) > 5:
             sections[current_section] = content
-    
-    # If we got good sections, return
+
     if len(sections) >= len(REPORT_SECTION_KEYS) - 1:
         for key in REPORT_SECTION_KEYS:
             if key not in sections:
                 sections[key] = ""
         return sections
-    
-    # Try 5: As last resort, distribute paragraphs if we have any content
+
+    fallback_sections = _split_text_into_sections(cleaned)
+    if len(fallback_sections) >= len(REPORT_SECTION_KEYS) - 1:
+        for key in REPORT_SECTION_KEYS:
+            if key not in fallback_sections:
+                fallback_sections[key] = ""
+        return fallback_sections
+
     if len(sections) >= 3 and len(cleaned) > 100:
-        # Fill missing sections with combined content
         combined = ' '.join(sections.values())
         for key in REPORT_SECTION_KEYS:
             if key not in sections:
                 sections[key] = combined[:180]
         return sections
-    
+
     return None
 
 
@@ -511,15 +552,21 @@ def generate_dynamic_medical_report(prediction, request_id=None, strict=True, ap
         print(f"[REPORT] Gemini returned empty response")
         raise RuntimeError("Gemini API returned an empty response. Please try again.")
 
+    print(f"[REPORT] Starting report generation for: {prediction}")
+    print(f"[REPORT] Prompt built for request ID: {request_id}")
     print(f"[REPORT] Received response from Gemini (length: {len(reply)})")
     print(f"[REPORT] Raw Gemini response: {reply}")
     
     # Parse the response - handles JSON, markdown, plain text
+    print("[REPORT] Attempting to extract structured report sections")
     sections = extract_report_sections(reply)
     
     if sections and len(sections) == len(REPORT_SECTION_KEYS):
         print(f"[REPORT] Successfully extracted {len(sections)} sections from Gemini response")
         return sections
+
+    if sections:
+        print(f"[REPORT] Parsed partial report sections: {list(sections.keys())}")
     
     # If we got partial sections, complete them
     if sections and len(sections) > 3:

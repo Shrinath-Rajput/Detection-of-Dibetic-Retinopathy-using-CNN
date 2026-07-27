@@ -259,10 +259,17 @@ def predict():
         filename = secure_filename(file.filename)
         path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(path)
+        print(f"[DR_PREDICT] Uploaded file: {filename}")
+        print(f"[DR_PREDICT] Saved image path: {path}")
+        print(f"[DR_PREDICT] Image exists on disk: {os.path.exists(path)}")
+        print(f"[DR_PREDICT] Image size bytes: {os.path.getsize(path) if os.path.exists(path) else 'N/A'}")
 
         preds = model.predict(preprocess_image(path))
         class_id = int(np.argmax(preds))
         confidence = round(float(preds[0][class_id] * 100), 2)
+        print(f"[DR_PREDICT] Prediction array: {preds[0]}")
+        print(f"[DR_PREDICT] Predicted class id: {class_id}")
+        print(f"[DR_PREDICT] Confidence: {confidence}%")
 
         lang = session.get("lang", DEFAULT_LANGUAGE)
         trans = lambda key: get_translation(key, lang)
@@ -278,6 +285,10 @@ def predict():
         session["dr_image_name"] = filename
         session["dr_confidence"] = confidence
         session["dr_risk_level"] = risk_level
+        print(f"[DR_PREDICT] Stored prediction: {session.get('dr_prediction')}")
+        print(f"[DR_PREDICT] Stored image name: {session.get('dr_image_name')}")
+        print(f"[DR_PREDICT] Stored confidence: {session.get('dr_confidence')}")
+        print(f"[DR_PREDICT] Stored risk level: {session.get('dr_risk_level')}")
 
         return redirect(url_for("dr_result"))
 
@@ -341,7 +352,14 @@ def download_dr_pdf():
         if image_name:
             image_path = os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], image_name)
 
+        print(f"[DOWNLOAD_DR_PDF] Session lang: {lang}")
+        print(f"[DOWNLOAD_DR_PDF] Session prediction: {prediction}")
+        print(f"[DOWNLOAD_DR_PDF] Session image name: {image_name}")
+        print(f"[DOWNLOAD_DR_PDF] Session image path: {image_path}")
+        print(f"[DOWNLOAD_DR_PDF] Session image exists: {os.path.exists(image_path) if image_path else False}")
+        print(f"[DOWNLOAD_DR_PDF] Starting report generation for prediction: {prediction}")
         try:
+            print(f"[DOWNLOAD_DR_PDF] Calling generate_dynamic_medical_report with prediction: {prediction}")
             report_content = generate_dynamic_medical_report(
                 prediction=prediction,
                 request_id=str(uuid.uuid4())[:8],
@@ -355,22 +373,10 @@ def download_dr_pdf():
             print(exc)
             traceback.print_exc()
             print("=" * 80)
+            raise
 
-            # Detect quota / rate limit related errors and return a friendly message
-            msg = str(exc).lower()
-            if any(k in msg for k in ("quota", "resource_exhausted", "429", "rate limit", "free_tier")):
-                return Response(
-                    "Gemini API quota exceeded. Please try again later or use another API key.",
-                    status=200,
-                    mimetype="text/plain",
-                )
-
-            # For other runtime errors during report generation, return a generic non-500 message
-            return Response(
-                "Failed to generate report. Please try again later.",
-                status=200,
-                mimetype="text/plain",
-            )
+        print(f"[DOWNLOAD_DR_PDF] Report content type: {type(report_content).__name__}")
+        print(f"[DOWNLOAD_DR_PDF] Report content keys: {list(report_content.keys()) if isinstance(report_content, dict) else report_content}")
 
         if not report_content:
             raise RuntimeError("Gemini did not return a usable medical report for the uploaded image.")
@@ -387,6 +393,7 @@ def download_dr_pdf():
             return val.strip()
 
         report_content = {k: clean_value(v) for k, v in report_content.items()}
+        print(f"[DOWNLOAD_DR_PDF] Cleaned report content keys: {list(report_content.keys())}")
 
         report_date = datetime.now().strftime("%d-%m-%Y")
         report_time = datetime.now().strftime("%H:%M:%S")
@@ -547,9 +554,12 @@ def download_dr_pdf():
         story.append(Paragraph(trans('pdf.dr.report_label'), footer_style))
         story.append(Paragraph(trans('pdf.dr.version'), footer_style))
 
+        print("[DOWNLOAD_DR_PDF] Building PDF document")
         doc.build(story)
         buffer.seek(0)
+        print(f"[DOWNLOAD_DR_PDF] PDF built successfully, size: {buffer.getbuffer().nbytes} bytes")
 
+        print("[DOWNLOAD_DR_PDF] Calling send_file()")
         return send_file(
             buffer,
             as_attachment=True,

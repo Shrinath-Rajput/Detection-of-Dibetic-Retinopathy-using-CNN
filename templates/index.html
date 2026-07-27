@@ -122,99 +122,95 @@
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>👁️ Diabetic Retinopathy Detection</h1>
-    <p>
-        Advanced AI analysis of retinal images to detect early signs of diabetic retinopathy using deep learning CNN models trained on thousands of fundus images.
-    </p>
+    <h1>{{ t('dr.title') }}</h1>
+    <p>{{ t('dr.subtitle') }}</p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
-    <h2>What is Diabetic Retinopathy?</h2>
-    <p class="section-intro">
-        An eye disease caused by high blood sugar levels damaging blood vessels in the retina. Early detection through AI-powered image analysis can prevent vision loss and blindness.
-    </p>
+    <h2>{{ t('dr.about.title') }}</h2>
+    <p class="section-intro">{{ t('dr.about.text') }}</p>
 </div>
 
 <!-- HOW -->
 <div class="section">
-    <h2 class="animate">🤖 How AI Analysis Works</h2>
+    <h2 class="animate">{{ t('dr.how_ai.title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">📸</div>
-            <h3>Upload Image</h3>
-            <p>Submit a high-quality retinal fundus image</p>
+            <h3>{{ t('dr.how_ai.upload') }}</h3>
+            <p>{{ t('dr.how_ai.upload') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">🔧</div>
-            <h3>Preprocessing</h3>
-            <p>Image enhancement and normalization</p>
+            <h3>{{ t('dr.how_ai.preprocessing') }}</h3>
+            <p>{{ t('dr.how_ai.preprocessing') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">🧠</div>
-            <h3>CNN Analysis</h3>
-            <p>Deep learning model inference</p>
+            <h3>{{ t('dr.how_ai.cnn') }}</h3>
+            <p>{{ t('dr.how_ai.cnn') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">📊</div>
-            <h3>Classification</h3>
-            <p>Severity assessment and care guidance</p>
+            <h3>{{ t('dr.how_ai.classification') }}</h3>
+            <p>{{ t('dr.how_ai.classification') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">❤️</div>
-            <h3>Health Integration</h3>
-            <p>Combine with sensor data</p>
+            <h3>{{ t('dr.how_ai.health') }}</h3>
+            <p>{{ t('dr.how_ai.health') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 28px; margin-bottom: 10px;">✅</div>
-            <h3>Results</h3>
-            <p>Detailed analysis & recommendations</p>
+            <h3>{{ t('dr.how_ai.results') }}</h3>
+            <p>{{ t('dr.how_ai.results') }}</p>
         </div>
     </div>
 </div>
 
 <!-- UPLOAD -->
 <div class="section animate upload-section">
-    <h2>Upload Retinal Image</h2>
+    <h2>{{ t('dr.upload_section.title') }}</h2>
 
     <div class="upload-box animate">
-        <h3>🖼️ Select Image File</h3>
+        <h3>{{ t('dr.upload_section.select_label') }}</h3>
         <form action="/predict" method="POST" enctype="multipart/form-data">
             <div class="file-input-wrapper">
-                <label for="image" class="file-input-label">Choose File</label>
+                <label for="image" class="file-input-label">{{ t('dr.upload_section.choose_file') }}</label>
                 <input type="file" name="image" id="image" required accept="image/*">
-                <div class="file-name" id="fileName">No file selected</div>
+                <div class="file-name" id="fileName">{{ t('dr.upload_section.no_file_selected') }}</div>
             </div>
-            <button type="submit">🔍 Analyze Retina</button>
+            <button type="submit">{{ t('dr.upload_section.analyze_button') }}</button>
         </form>
     </div>
 </div>
 
 <!-- WHY -->
 <div class="section">
-    <h2 class="animate">✨ Why Use AI Detection?</h2>
+    <h2 class="animate">{{ t('dr.why_use.title') }}</h2>
 
     <div class="cards">
         <div class="card animate why-section">
             <div style="font-size: 24px; margin-bottom: 10px;">⛔</div>
-            <h3>Prevent Blindness</h3>
-            <p>Early detection prevents permanent vision loss</p>
+            <h3>{{ t('dr.why_use.prevent_blindness') }}</h3>
+            <p>{{ t('dr.why_use.prevent_blindness') }}</p>
         </div>
         <div class="card animate why-section">
             <div style="font-size: 24px; margin-bottom: 10px;">🎯</div>
-            <h3>Early Detection</h3>
-            <p>AI catches subtle signs before symptoms appear</p>
+            <h3>{{ t('dr.why_use.early_detection') }}</h3>
+            <p>{{ t('dr.why_use.early_detection') }}</p>
         </div>
         <div class="card animate why-section">
             <div style="font-size: 24px; margin-bottom: 10px;">💰</div>
-            <h3>Cost Effective</h3>
-            <p>Affordable screening for everyone</p>
+            <h3>{{ t('dr.why_use.cost_effective') }}</h3>
+            <p>{{ t('dr.why_use.cost_effective') }}</p>
         </div>
         <div class="card animate why-section">
             <div style="font-size: 24px; margin-bottom: 10px;">🌍</div>
-            <h3>Accessible</h3>
-            <p>Rural and remote screening possible</p>
+            <h3>{{ t('dr.why_use.accessible') }}</h3>
+            <p>{{ t('dr.why_use.accessible') }}</p>
         </div>
     </div>
 </div>
@@ -222,7 +218,7 @@
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ <strong>Medical Disclaimer:</strong> This system is for informational awareness only. Always consult with a qualified ophthalmologist for professional medical diagnosis and treatment recommendations.
+        {{ t('dr.disclaimer') }}
     </div>
 </div>
 

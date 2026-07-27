@@ -1,24 +1,33 @@
 <div class="navbar">
-    <h2>🏥 CareSense</h2>
+    <h2>{{ t('nav.brand') }}</h2>
 
     <!-- Toggle button for mobile -->
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="menu-toggle" id="menuToggle">☰</div>
 
     <div class="nav-links" id="navLinks">
-        <a href="/">Home</a>
-        <a href="/dr">Diabetic Retinopathy</a>
+        <a href="/">{{ t('nav.home') }}</a>
+        <a href="/dr">{{ t('nav.dr') }}</a>
 
         <div class="dropdown-wrapper">
-            <a href="#">Input-Based Diseases ▾</a>
+            <a href="#">{{ t('nav.input_based') }}</a>
             <div class="dropdown-menu">
-                <a href="/pcod">PCOD</a>
-                <a href="/migraine">Migraine</a>
-                <a href="/diabetes">Diabetes</a>
+                <a href="/pcod">{{ t('nav.pcod') }}</a>
+                <a href="/migraine">{{ t('nav.migraine') }}</a>
+                <a href="/diabetes">{{ t('nav.diabetes') }}</a>
             </div>
         </div>
 
-        <a href="/live_health">Live Sensor</a>
-        <a href="/chatbot">AI Chat</a>
+        <a href="/live_health">{{ t('nav.live_health') }}</a>
+        <a href="/chatbot">{{ t('nav.chat') }}</a>
+
+        <div class="dropdown-wrapper">
+            <a href="#">🌐 {{ t('nav.language') }} ▾</a>
+            <div class="dropdown-menu">
+                {% for code, label in languages.items() %}
+                    <a href="{{ lang_url(code) }}">{{ label }}</a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 

@@ -35,165 +35,161 @@
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🧠 Migraine Risk Prediction</h1>
-    <p>
-        AI-powered questionnaire to assess migraine risk, identify triggers, and provide personalized prevention strategies based on comprehensive health assessment.
-    </p>
+    <h1>{{ t('migraine.title') }}</h1>
+    <p>{{ t('migraine.subtitle') }}</p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
-    <h2>What is Migraine?</h2>
-    <p class="form-info">
-        Migraine is a neurological disorder characterized by intense, debilitating headaches often accompanied by sensitivity to light, sound, and nausea. Understanding personal triggers and early warning signs is essential for effective management and prevention.
-    </p>
+    <h2>{{ t('migraine.about.title') }}</h2>
+    <p class="form-info">{{ t('migraine.about.text') }}</p>
 </div>
 
 <!-- TRIGGERS -->
 <div class="section">
-    <h2 class="animate">⚡ Common Triggers</h2>
+    <h2 class="animate">{{ t('migraine.triggers_title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">💡</div>
-            <h3>Light Sensitivity</h3>
-            <p>Bright or flashing lights</p>
+            <h3>{{ t('migraine.trigger_light') }}</h3>
+            <p>{{ t('migraine.trigger_light_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">😣</div>
-            <h3>Stress</h3>
-            <p>Emotional or mental stress</p>
+            <h3>{{ t('migraine.trigger_stress') }}</h3>
+            <p>{{ t('migraine.trigger_stress_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">☕</div>
-            <h3>Caffeine</h3>
-            <p>Caffeine intake patterns</p>
+            <h3>{{ t('migraine.trigger_caffeine') }}</h3>
+            <p>{{ t('migraine.trigger_caffeine_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
-            <h3>Poor Sleep</h3>
-            <p>Irregular sleep schedule</p>
+            <h3>{{ t('migraine.trigger_sleep') }}</h3>
+            <p>{{ t('migraine.trigger_sleep_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">🍽️</div>
-            <h3>Skipped Meals</h3>
-            <p>Hunger and fasting</p>
+            <h3>{{ t('migraine.trigger_meals') }}</h3>
+            <p>{{ t('migraine.trigger_meals_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">🧬</div>
-            <h3>Hormonal Changes</h3>
-            <p>Hormone fluctuations</p>
+            <h3>{{ t('migraine.trigger_hormonal') }}</h3>
+            <p>{{ t('migraine.trigger_hormonal_text') }}</p>
         </div>
     </div>
 </div>
 
 <!-- FORM -->
 <div class="section animate">
-    <h2>Migraine Risk Assessment Form</h2>
+    <h2>{{ t('migraine.form_title') }}</h2>
 
     <div class="form-box animate">
         <form action="/migraine_predict" method="POST">
 
             <div class="form-grid">
 
-                <input type="number" name="age" placeholder="Age (years)" required min="1" max="120">
+                <input type="number" name="age" placeholder="{{ t('migraine.age_placeholder') }}" required min="1" max="120">
 
                 <select name="gender" required>
-                    <option value="">-- Select Gender --</option>
-                    <option>Male</option>
-                    <option>Female</option>
+                    <option value="">{{ t('migraine.gender_select') }}</option>
+                    <option>{{ t('migraine.gender_male') }}</option>
+                    <option>{{ t('migraine.gender_female') }}</option>
                 </select>
 
                 <select name="family" required>
-                    <option value="">-- Family History --</option>
-                    <option value="yes">Family History: Yes</option>
-                    <option value="no">No Family History</option>
+                    <option value="">{{ t('migraine.family_history_select') }}</option>
+                    <option value="yes">{{ t('migraine.family_history_yes') }}</option>
+                    <option value="no">{{ t('migraine.family_history_no') }}</option>
                 </select>
 
-                <input type="number" name="frequency" placeholder="Frequency (per month)" min="0" max="30">
-                <input type="number" name="duration" placeholder="Duration (hours)" min="0" max="72">
-                <input type="number" name="intensity" placeholder="Intensity (1-10)" min="1" max="10">
+                <input type="number" name="frequency" placeholder="{{ t('migraine.frequency_placeholder') }}" min="0" max="30">
+                <input type="number" name="duration" placeholder="{{ t('migraine.duration_placeholder') }}" min="0" max="72">
+                <input type="number" name="intensity" placeholder="{{ t('migraine.intensity_placeholder') }}" min="1" max="10">
 
                 <select name="unilateral">
-                    <option value="">-- One-sided Pain --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.unilateral_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="throbbing">
-                    <option value="">-- Throbbing Pain --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.throbbing_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="nausea">
-                    <option value="">-- Nausea --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.nausea_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="light">
-                    <option value="">-- Light Sensitivity --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.light_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="sound">
-                    <option value="">-- Sound Sensitivity --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.sound_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="aura">
-                    <option value="">-- Aura Symptoms --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.aura_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="dizziness">
-                    <option value="">-- Dizziness --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.dizziness_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="activity_worse">
-                    <option value="">-- Activity Worsens Pain --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.activity_worse_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
-                <input type="number" name="sleep" placeholder="Sleep Hours (per night)" min="0" max="24">
+                <input type="number" name="sleep" placeholder="{{ t('migraine.sleep_placeholder') }}" min="0" max="24">
 
                 <select name="insomnia">
-                    <option value="">-- Insomnia --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.insomnia_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
-                <input type="number" name="stress" placeholder="Stress Level (1-10)" min="1" max="10">
+                <input type="number" name="stress" placeholder="{{ t('migraine.stress_placeholder') }}" min="1" max="10">
 
                 <select name="meals">
-                    <option value="">-- Skipped Meals --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.meals_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
                 <select name="caffeine">
-                    <option value="">-- Caffeine Intake --</option>
-                    <option value="high">High</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="low">Low</option>
+                    <option value="">{{ t('migraine.caffeine_select') }}</option>
+                    <option value="high">{{ t('migraine.caffeine_high') }}</option>
+                    <option value="moderate">{{ t('migraine.caffeine_moderate') }}</option>
+                    <option value="low">{{ t('migraine.caffeine_low') }}</option>
                 </select>
 
                 <select name="hormonal">
-                    <option value="">-- Hormonal Trigger --</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
+                    <option value="">{{ t('migraine.hormonal_select') }}</option>
+                    <option value="yes">{{ t('migraine.yes') }}</option>
+                    <option value="no">{{ t('migraine.no') }}</option>
                 </select>
 
             </div>
 
-            <button type="submit">🔍 Predict Migraine Risk</button>
+            <button type="submit">{{ t('migraine.predict_button') }}</button>
         </form>
     </div>
 </div>
@@ -201,7 +197,7 @@
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ <strong>Medical Disclaimer:</strong> This assessment is for informational awareness only. Consult with a neurologist or healthcare provider for professional diagnosis and personalized treatment plans.
+        {{ t('migraine.disclaimer') }}
     </div>
 </div>
 

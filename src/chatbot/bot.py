@@ -10,40 +10,19 @@ from functools import wraps
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
+GEMINI_API_VERSION = "v1beta"
+GEMINI_BASE_URL = f"https://generativelanguage.googleapis.com/{GEMINI_API_VERSION}"
 
-# Try to use the supported Gemini SDK if available
 GENAI_AVAILABLE = False
-try:
-    from google import genai as google_genai
-    GENAI_AVAILABLE = True
-    try:
-        if GEMINI_API_KEY:
-            google_genai_client = google_genai.Client(api_key=GEMINI_API_KEY)
-    except Exception:
-        GENAI_AVAILABLE = False
-except ImportError:
-    GENAI_AVAILABLE = False
-    google_genai_client = None
-
-# Fallback REST API endpoint
-DEFAULT_GEMINI_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-001",
-]
-
-GEMINI_MODELS = [
-    model.strip()
-    for model in os.getenv("GEMINI_MODELS", ",".join(DEFAULT_GEMINI_MODELS)).split(",")
-    if model.strip()
-]
-GEMINI_MODEL = GEMINI_MODELS[0] if GEMINI_MODELS else DEFAULT_GEMINI_MODELS[0]
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+GENAI_SDK_VERSION = "REST-only"
+GEMINI_MODELS = []
+GEMINI_MODEL = None
+GEMINI_RUNTIME_INFO = {}
 
 # Rate limiting configuration
 REQUEST_DELAY = 2  # Minimum seconds between requests
-RETRY_ATTEMPTS = 3  # Number of retries for failed requests
+RETRY_ATTEMPTS = 1  # Only one request per selected model to avoid burning quota
 RETRY_DELAY = 3  # Initial delay in seconds for retry backoff
 
 # Store last request time for rate limiting
@@ -58,31 +37,190 @@ Always recommend consulting a healthcare professional for serious medical concer
 """
 
 
+def discover_supported_gemini_models(api_key=None, timeout=20):
+    """Discover Gemini models that officially support generateContent using the public list models API."""
+    runtime_key = (api_key or os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or "").strip()
+    if not runtime_key:
+        return []
+
+    url = f"{GEMINI_BASE_URL}/models?key={runtime_key}"
+    try:
+        response = requests.get(url, timeout=timeout)
+        if response.status_code != 200:
+            return []
+        payload = response.json() if hasattr(response, 'json') else {}
+    except Exception as exc:
+        print(f"[GEMINI] Failed to discover Gemini models: {exc}")
+        return []
+
+    supported = []
+    for model in payload.get("models", []):
+        name = model.get("name", "")
+        methods = model.get("supportedGenerationMethods", []) or []
+        if "generateContent" in methods and name.startswith("models/"):
+            supported.append(name.split("/", 1)[1])
+    return supported
+
+
+def _initialize_gemini_runtime(api_key=None):
+    """Resolve the available Gemini models once and print startup information."""
+    global GEMINI_MODELS, GEMINI_MODEL, GEMINI_RUNTIME_INFO
+    load_dotenv(override=False)
+    runtime_key = (api_key or os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or "").strip()
+
+    discovered_models = discover_supported_gemini_models(runtime_key)
+    env_models = [
+        model.strip()
+        for model in os.getenv("GEMINI_MODELS", "").split(",")
+        if model.strip()
+    ]
+
+    if discovered_models:
+        GEMINI_MODELS = discovered_models
+    elif env_models:
+        GEMINI_MODELS = env_models
+    else:
+        GEMINI_MODELS = []
+
+    GEMINI_MODEL = GEMINI_MODELS[0] if GEMINI_MODELS else None
+    GEMINI_RUNTIME_INFO = {
+        "api_key_prefix": runtime_key[:10] if runtime_key else "MISSING",
+        "api_version": GEMINI_API_VERSION,
+        "rest_endpoint": f"{GEMINI_BASE_URL}/models",
+        "available_models": GEMINI_MODELS,
+        "selected_model": GEMINI_MODEL,
+    }
+
+    print("[GEMINI] Startup configuration")
+    print(f"[GEMINI] SDK version: {GENAI_SDK_VERSION}")
+    print(f"[GEMINI] API version: {GEMINI_RUNTIME_INFO['api_version']}")
+    print(f"[GEMINI] REST endpoint: {GEMINI_RUNTIME_INFO['rest_endpoint']}")
+    print(f"[GEMINI] Loaded API key prefix: {GEMINI_RUNTIME_INFO['api_key_prefix']}")
+    print(f"[GEMINI] Available Gemini models: {', '.join(GEMINI_MODELS) if GEMINI_MODELS else 'None'}")
+    print(f"[GEMINI] Selected model: {GEMINI_MODEL or 'None'}")
+    return GEMINI_RUNTIME_INFO
+
+
+def _get_gemini_runtime_config(api_key=None, model_name=None):
+    """Load the current Gemini key/model settings from the environment at runtime."""
+    load_dotenv(override=False)
+    runtime_key = (api_key or os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or "").strip()
+    runtime_models = list(GEMINI_MODELS)
+    if not runtime_models:
+        runtime_models = discover_supported_gemini_models(runtime_key)
+    if not runtime_models:
+        env_models = [
+            model.strip()
+            for model in os.getenv("GEMINI_MODELS", "").split(",")
+            if model.strip()
+        ]
+        runtime_models = env_models
+
+    runtime_model = (model_name or os.getenv("GEMINI_MODEL") or runtime_models[0] if runtime_models else None or GEMINI_MODEL or None)
+    if runtime_model is None and runtime_models:
+        runtime_model = runtime_models[0]
+
+    runtime_url = f"{GEMINI_BASE_URL}/models/{runtime_model}:generateContent" if runtime_model else None
+    return runtime_key, runtime_models, runtime_model, runtime_url
+
+
+def _classify_gemini_error(status_code, payload):
+    """Convert Gemini API failures into a human-readable reason."""
+    if not isinstance(payload, dict):
+        return "Gemini API returned an unexpected response"
+
+    error_info = payload.get("error") if isinstance(payload.get("error"), dict) else payload
+    message = ""
+    status_text = ""
+    if isinstance(error_info, dict):
+        message = str(error_info.get("message", ""))
+        status_text = str(error_info.get("status", ""))
+
+    combined = f"{message} {status_text}".lower()
+
+    if status_code == 429 or "quota" in combined or "free_tier" in combined or "resource_exhausted" in combined:
+        return "Quota exceeded for the Gemini API free tier or project quota"
+    if status_code == 429 or "rate limit" in combined or "too many requests" in combined:
+        return "Rate limit exceeded"
+    if status_code in {401, 403} or "invalid api key" in combined or "api key" in combined and "invalid" in combined:
+        return "Invalid or unauthorized API key"
+    if status_code == 400 and "billing" in combined:
+        return "Billing is not enabled for the project"
+    if status_code in {404, 400} and ("not found" in combined or "model" in combined or "unsupported" in combined):
+        return "Unsupported model, wrong endpoint, or model not enabled for the project"
+    if status_code in {403} and ("project" in combined or "permission" in combined):
+        return "Project restriction or access issue"
+    return "Gemini API returned a non-success response"
+
+
+def _print_gemini_error_details(status_code, payload, request_url, model_name, endpoint):
+    """Print the full Gemini API error response for debugging and support."""
+    error_info = payload.get("error") if isinstance(payload, dict) and isinstance(payload.get("error"), dict) else payload
+    error_code = None
+    error_message = None
+    if isinstance(error_info, dict):
+        error_code = error_info.get("code")
+        error_message = error_info.get("message")
+
+    reason = _classify_gemini_error(status_code, payload)
+    print("[CHATBOT] Gemini API Error Details")
+    print(f"HTTP Status: {status_code}")
+    print(f"Error Code: {error_code if error_code is not None else 'N/A'}")
+    print(f"Error Message: {error_message if error_message else 'N/A'}")
+    print(f"Full JSON Response: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+    print(f"Request URL: {request_url}")
+    print(f"Model Name: {model_name}")
+    print(f"API Endpoint: {endpoint}")
+    print(f"Reason: {reason}")
+
+
+def _should_fallback_to_next_model(status_code, payload=None, error_message=None):
+    """Return True when the current Gemini model should be skipped and the next one tried."""
+    if status_code in {429, 404, 403}:
+        return True
+
+    if payload is None:
+        payload = {}
+    if isinstance(payload, dict):
+        error_info = payload.get("error") if isinstance(payload.get("error"), dict) else payload
+        if isinstance(error_info, dict):
+            message = str(error_info.get("message", "")).lower()
+            status_text = str(error_info.get("status", "")).lower()
+            if "quota" in message or "free_tier" in message or "resource_exhausted" in status_text:
+                return True
+            if "not found" in message or "unsupported" in message or "model" in message and "not" in message:
+                return True
+    if error_message:
+        message = str(error_message).lower()
+        if "quota" in message or "resource_exhausted" in message or "free_tier" in message or "unsupported" in message:
+            return True
+    return False
+
+
 def build_gemini_request(user_message, api_key=None, model_name=None):
-    """Build a Gemini request using Google AI Studio API key authentication."""
-    key = api_key or GEMINI_API_KEY
+    """Build a Gemini request using the official REST endpoint and API key authentication."""
+    key, _, model, url = _get_gemini_runtime_config(api_key=api_key, model_name=model_name)
     payload = {
-        "contents": [{"parts": [{"text": user_message}]}],
+        "contents": [{"role": "user", "parts": [{"text": user_message}]}],
+        "system_instruction": {
+            "parts": [{"text": SYSTEM_PROMPT}]
+        },
         "generationConfig": {
-            "temperature": 0.9,
+            "temperature": 0.7,
             "topP": 0.95,
             "topK": 40,
-            "maxOutputTokens": 2000,  # Increased from 400 to allow full medical reports
+            "maxOutputTokens": 1000,
         },
     }
 
     headers = {
         "Content-Type": "application/json",
     }
-    model = model_name or GEMINI_MODEL
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     if key:
         headers["x-goog-api-key"] = key
-        separator = "&" if "?" in url else "?"
-        url = f"{url}{separator}key={key}"
 
-    return {"url": url, "headers": headers, "payload": payload}
+    return {"url": url, "headers": headers, "payload": payload, "model": model}
 
 
 def rate_limit_check():
@@ -110,14 +248,16 @@ def rate_limit_check():
 
 def validate_api_key():
     """Validate API key format and existence"""
-    if not GEMINI_API_KEY:
+    load_dotenv(override=False)
+    key = (os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or "").strip()
+    if not key:
         return False, "API key not set in .env file"
     
-    if len(GEMINI_API_KEY) < 20:
-        return False, f"API key too short (length: {len(GEMINI_API_KEY)})"
+    if len(key) < 20:
+        return False, f"API key too short (length: {len(key)})"
     
     # Accept keys starting with AI, AQ, or other valid prefixes
-    if not (GEMINI_API_KEY.startswith("AI") or GEMINI_API_KEY.startswith("AQ")):
+    if not (key.startswith("AI") or key.startswith("AQ")):
         return False, f"API key has invalid format (should start with 'AI' or 'AQ')"
     
     return True, "API key format valid"
@@ -130,18 +270,30 @@ REPORT_SECTION_KEYS = [
     "Lifestyle Recommendations",
     "Follow-up Advice",
     "Medical Disclaimer",
+    "Notes",
 ]
 
 
-def build_report_prompt(prediction, request_id=None):
+def build_report_prompt(prediction, request_id=None, lang=None):
     """Create a fresh, highly specific Gemini prompt for a retina medical report."""
     diagnosis = (prediction or "unknown diagnosis").strip()
     nonce = request_id or str(uuid.uuid4())[:8]
-    return f"""You are an expert ophthalmologist writing a detailed medical assessment report for retinal imaging. Request ID: {nonce}.
+    language_label = {
+        'en': 'English',
+        'hi': 'Hindi',
+        'mr': 'Marathi'
+    }.get(lang, 'English')
+    language_instruction = (
+        f"Write all section values in {language_label}. "
+        f"Keep the JSON keys exactly in English: Clinical Interpretation, Disease Summary, Possible Medical Concerns, "
+        f"Treatment Guidance, Lifestyle Recommendations, Follow-up Advice, Medical Disclaimer, and Notes."
+    )
 
-Based on the imaging assessment showing "{diagnosis}", create a comprehensive and professionally written report.
+    return f"""You are an expert ophthalmologist writing a professional hospital-style medical assessment report for retinal imaging. Request ID: {nonce}.
 
-CRITICAL: You MUST return valid JSON with EXACTLY these 7 keys (and no other keys):
+Based on the imaging assessment showing \"{diagnosis}\", create a complete, clinically meaningful report.
+
+CRITICAL: You MUST return valid JSON with EXACTLY these 8 keys (and no other keys):
 1. Clinical Interpretation
 2. Disease Summary
 3. Possible Medical Concerns
@@ -149,14 +301,17 @@ CRITICAL: You MUST return valid JSON with EXACTLY these 7 keys (and no other key
 5. Lifestyle Recommendations
 6. Follow-up Advice
 7. Medical Disclaimer
+8. Notes
+
+{language_instruction}
 
 Rules:
-- Write each section as a clear, professional paragraph (2-3 sentences)
-- Never use placeholder text or generic messages
-- Each response must be UNIQUE and different from previous reports for the same diagnosis
-- Never repeat the same wording or phrasing
-- Include specific clinical details relevant to "{diagnosis}"
-- Make the report clinically accurate and actionable
+- Write each section as 3-6 meaningful sentences.
+- Use professional medical language appropriate for ophthalmology and retinal disease.
+- Include specific clinical details and management guidance related to \"{diagnosis}\".
+- Do not use placeholder text, generic fallback messages, or phrases such as "not available", "unavailable", "clinical interpretation not available", "disease summary not available", or "information not available".
+- Do not repeat the same wording or phrasing across sections.
+- Do not include any additional keys, explanations, or metadata.
 
 Return ONLY valid JSON, no markdown, no code blocks, no explanations. Start with {{ and end with }}.
 
@@ -168,7 +323,8 @@ Example format:
   "Treatment Guidance": "Your guidance text here...",
   "Lifestyle Recommendations": "Your recommendations here...",
   "Follow-up Advice": "Your follow-up text here...",
-  "Medical Disclaimer": "Standard medical disclaimer..."
+  "Medical Disclaimer": "Standard medical disclaimer...",
+  "Notes": "Additional clinical notes here..."
 }}"""
 
 
@@ -184,7 +340,33 @@ def extract_report_sections(text):
     cleaned = text.strip()
     if not cleaned:
         return None
-    
+
+    forbidden_markers = [
+        "not available",
+        "unavailable",
+        "information not available",
+        "clinical interpretation not available",
+        "disease summary not available",
+        "placeholder",
+        "fallback",
+        "could not generate",
+        "could not be generated",
+        "उपलब्ध नहीं",
+        "उपलब्ध नाही",
+        "माहिती उपलब्ध नाही",
+    ]
+
+    def is_valid_section(value):
+        if not isinstance(value, str):
+            return False
+        normalized = value.strip().lower()
+        if len(normalized) < 20:
+            return False
+        for marker in forbidden_markers:
+            if marker in normalized:
+                return False
+        return True
+
     # Try 1: Direct JSON parsing - MUST WORK for well-formed JSON
     try:
         parsed = json.loads(cleaned)
@@ -192,58 +374,55 @@ def extract_report_sections(text):
             sections = {}
             for key in REPORT_SECTION_KEYS:
                 value = parsed.get(key)
-                # Ensure we extract the actual string value, not a nested object
-                if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
+                if is_valid_section(value):
                     sections[key] = value.strip()
-            if len(sections) >= 6:
+            if len(sections) >= len(REPORT_SECTION_KEYS) - 1:
                 for key in REPORT_SECTION_KEYS:
                     if key not in sections:
-                        sections[key] = "Based on the analysis, please consult with your healthcare provider."
+                        sections[key] = ""
                 return sections
     except (json.JSONDecodeError, ValueError):
         pass
-    except Exception as e:
+    except Exception:
         pass
-    
+
+    def parse_json_sections(parsed):
+        if not isinstance(parsed, dict):
+            return None
+        sections = {}
+        for key in REPORT_SECTION_KEYS:
+            value = parsed.get(key)
+            if is_valid_section(value):
+                sections[key] = value.strip()
+        if len(sections) == len(REPORT_SECTION_KEYS):
+            return sections
+        if len(sections) == len(REPORT_SECTION_KEYS) - 1 and "Medical Disclaimer" not in sections:
+            sections["Medical Disclaimer"] = "This report is for informational purposes only and cannot substitute professional medical evaluation. Please consult a licensed healthcare provider."
+            return sections
+        return None
+
     # Try 2: JSON wrapped in code blocks (markdown)
     if "```" in cleaned:
-        # Extract content between backticks
         code_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", cleaned, re.I | re.S)
         if code_match:
             json_content = code_match.group(1).strip()
             try:
                 parsed = json.loads(json_content)
-                if isinstance(parsed, dict):
-                    sections = {}
-                    for key in REPORT_SECTION_KEYS:
-                        value = parsed.get(key)
-                        if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
-                            sections[key] = value.strip()
-                    if len(sections) >= 6:
-                        for key in REPORT_SECTION_KEYS:
-                            if key not in sections:
-                                sections[key] = "Based on the analysis, please consult with your healthcare provider."
-                        return sections
+                sections = parse_json_sections(parsed)
+                if sections:
+                    return sections
             except (json.JSONDecodeError, ValueError):
                 pass
-    
+
     # Try 3: Find JSON object anywhere in the text (handles extra text before/after)
     json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned, re.S)
     if json_match:
         json_str = json_match.group(0)
         try:
             parsed = json.loads(json_str)
-            if isinstance(parsed, dict):
-                sections = {}
-                for key in REPORT_SECTION_KEYS:
-                    value = parsed.get(key)
-                    if isinstance(value, str) and value.strip() and len(value.strip()) > 5:
-                        sections[key] = value.strip()
-                if len(sections) >= 6:
-                    for key in REPORT_SECTION_KEYS:
-                        if key not in sections:
-                            sections[key] = "Based on the analysis, please consult with your healthcare provider."
-                    return sections
+            sections = parse_json_sections(parsed)
+            if sections:
+                return sections
         except (json.JSONDecodeError, ValueError):
             pass
     
@@ -297,10 +476,10 @@ def extract_report_sections(text):
             sections[current_section] = content
     
     # If we got good sections, return
-    if len(sections) >= 6:
+    if len(sections) >= len(REPORT_SECTION_KEYS) - 1:
         for key in REPORT_SECTION_KEYS:
             if key not in sections:
-                sections[key] = "Based on the analysis, please consult with your healthcare provider."
+                sections[key] = ""
         return sections
     
     # Try 5: As last resort, distribute paragraphs if we have any content
@@ -315,28 +494,25 @@ def extract_report_sections(text):
     return None
 
 
-def generate_dynamic_medical_report(prediction, request_id=None, strict=True, api_key=None):
+def generate_dynamic_medical_report(prediction, request_id=None, strict=True, api_key=None, lang=None):
     """
     Generate a fresh, Gemini-produced medical report for the retina prediction.
     CRITICAL: Only return properly parsed sections, never raw response text.
     """
-    prompt = build_report_prompt(prediction=prediction, request_id=request_id)
+    prompt = build_report_prompt(prediction=prediction, request_id=request_id, lang=lang)
     
     try:
-        reply = chatbot_response(prompt, strict=False, api_key=api_key)
+        reply = chatbot_response(prompt, strict=True, api_key=api_key, lang=lang)
     except Exception as exc:
         print(f"[REPORT] Gemini API Error: {exc}")
-        if strict:
-            raise RuntimeError("Gemini API is currently unavailable. Please check your internet connection and API key.") from exc
-        return None
+        raise RuntimeError(f"Gemini medical report generation failed: {exc}") from exc
 
     if not reply or not reply.strip():
         print(f"[REPORT] Gemini returned empty response")
-        if strict:
-            raise RuntimeError("Gemini API returned an empty response. Please try again.")
-        return None
+        raise RuntimeError("Gemini API returned an empty response. Please try again.")
 
     print(f"[REPORT] Received response from Gemini (length: {len(reply)})")
+    print(f"[REPORT] Raw Gemini response: {reply}")
     
     # Parse the response - handles JSON, markdown, plain text
     sections = extract_report_sections(reply)
@@ -350,7 +526,7 @@ def generate_dynamic_medical_report(prediction, request_id=None, strict=True, ap
         print(f"[REPORT] Got {len(sections)} sections, completing missing sections...")
         for key in REPORT_SECTION_KEYS:
             if key not in sections:
-                sections[key] = "Based on the analysis, please consult with your healthcare provider for personalized medical guidance."
+                sections[key] = ""
         return sections
     
     # Parsing failed - don't use raw response
@@ -413,10 +589,9 @@ def get_fallback_response(user_message):
     return responses["default"]
 
 
-def chatbot_response(user_message, strict=False, api_key=None):
+def chatbot_response(user_message, strict=False, api_key=None, lang=None):
     """
-    Send user message to Gemini API or use intelligent offline fallback.
-    Silently handles all API failures without exposing errors to user.
+    Send user message to Gemini API once per selected model and surface the real error if the request fails.
     """
     global quota_reset_time
 
@@ -424,69 +599,96 @@ def chatbot_response(user_message, strict=False, api_key=None):
         return "Please enter a valid question."
 
     if not rate_limit_check():
-        if strict:
-            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
-        return get_fallback_response(user_message)
+        raise RuntimeError("Gemini requests are temporarily rate-limited. Please try again shortly.")
 
-    if not (api_key or GEMINI_API_KEY):
-        if strict:
-            raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
-        return get_fallback_response(user_message)
+    runtime_key, runtime_models, runtime_model, runtime_url = _get_gemini_runtime_config(api_key=api_key)
+    if not runtime_key:
+        raise RuntimeError("GEMINI_API_KEY is not configured. Set it in the environment or .env file.")
 
-    for model_name in GEMINI_MODELS:
-        if GENAI_AVAILABLE and google_genai_client is not None:
-            try:
-                response = google_genai_client.models.generate_content(
-                    model=model_name,
-                    contents=user_message,
-                )
-                reply = response.text if hasattr(response, 'text') else str(response)
-                print(f"[CHATBOT] Gemini Response Generated via {model_name}")
-                return reply
-            except Exception as exc:
-                print(f"[CHATBOT] Gemini SDK model failed: {model_name}: {exc}")
-                continue
+    if not runtime_models:
+        raise RuntimeError("No Gemini models are available for this API key. Verify the key and account access.")
 
-        for attempt in range(RETRY_ATTEMPTS):
-            try:
-                request = build_gemini_request(user_message, api_key=api_key, model_name=model_name)
-                response = requests.post(
-                    request["url"],
-                    headers=request["headers"],
-                    json=request["payload"],
-                    timeout=20,
-                )
+    _initialize_gemini_runtime(runtime_key)
+    runtime_key, runtime_models, runtime_model, runtime_url = _get_gemini_runtime_config(api_key=api_key)
 
-                if response.status_code == 200:
+    print("[CHATBOT] Gemini configuration")
+    print(f"API Key loaded: yes")
+    print(f"API Key length: {len(runtime_key)}")
+    print(f"API Key prefix: {runtime_key[:10]}")
+    print(f"Model Name: {runtime_model}")
+    print(f"API Endpoint: {runtime_url}")
+
+    if lang:
+        lang_label = {
+            'en': 'English',
+            'hi': 'Hindi',
+            'mr': 'Marathi'
+        }.get(lang, lang)
+        user_message = f"Respond ONLY in {lang_label}.\n\n" + user_message
+
+    last_error = None
+    for model_name in runtime_models:
+        print(f"[CHATBOT] Attempting Gemini model: {model_name}")
+        try:
+            request = build_gemini_request(user_message, api_key=runtime_key, model_name=model_name)
+            response = requests.post(
+                request["url"],
+                headers=request["headers"],
+                json=request["payload"],
+                timeout=30,
+            )
+
+            if response.status_code == 200:
+                try:
                     data = response.json()
-                    if ("candidates" in data and len(data["candidates"]) > 0 and
-                        "content" in data["candidates"][0] and
-                        "parts" in data["candidates"][0]["content"] and
-                        len(data["candidates"][0]["content"]["parts"]) > 0):
-                        reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                        print(f"[CHATBOT] Gemini Response Generated via {model_name}")
-                        return reply
+                except ValueError:
+                    data = {}
+                if ("candidates" in data and len(data["candidates"]) > 0 and
+                    "content" in data["candidates"][0] and
+                    "parts" in data["candidates"][0]["content"] and
+                    len(data["candidates"][0]["content"]["parts"]) > 0):
+                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                    print(f"[CHATBOT] Gemini Response Generated via {model_name}")
+                    return reply
 
-                if response.status_code in {404, 429, 500, 502, 503, 504}:
-                    print(f"[CHATBOT] Gemini REST model failed: {model_name} ({response.status_code})")
-                    if attempt < RETRY_ATTEMPTS - 1:
-                        time.sleep(RETRY_DELAY * (attempt + 1))
-                        continue
-                    break
-                break
-            except requests.RequestException as exc:
-                print(f"[CHATBOT] Gemini REST request failed for {model_name}: {exc}")
-                if attempt < RETRY_ATTEMPTS - 1:
-                    time.sleep(RETRY_DELAY * (attempt + 1))
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {"raw_text": response.text}
+
+            _print_gemini_error_details(
+                response.status_code,
+                payload,
+                request["url"],
+                model_name,
+                request["url"],
+            )
+
+            if response.status_code in {401, 403}:
+                raise RuntimeError(f"Gemini API request failed: {response.status_code} - configuration or authorization issue")
+
+            last_error = payload
+            if _should_fallback_to_next_model(response.status_code, payload):
+                if model_name != runtime_models[-1]:
+                    print(f"[CHATBOT] Switching to the next Gemini model after {model_name}")
                     continue
-                break
-            except Exception as exc:
-                print(f"[CHATBOT] Gemini request error for {model_name}: {exc}")
-                break
+                raise RuntimeError(f"Gemini API request failed for all available models: {response.status_code}")
+            raise RuntimeError(f"Gemini API request failed: {response.status_code}")
+        except requests.RequestException as exc:
+            print(f"[CHATBOT] Gemini REST request failed for {model_name}: {exc}")
+            last_error = {"error": {"message": str(exc)}}
+            if model_name != runtime_models[-1]:
+                continue
+            raise RuntimeError(f"Gemini REST request failed for {model_name}: {exc}") from exc
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            print(f"[CHATBOT] Gemini request error for {model_name}: {exc}")
+            if model_name != runtime_models[-1]:
+                continue
+            raise RuntimeError(f"Gemini request error for {model_name}: {exc}") from exc
 
     quota_reset_time = time.time() + 60
-    if strict:
-        raise RuntimeError("AI report generation is temporarily unavailable. Please try again later.")
-
-    print("[CHATBOT] Using Offline Medical Knowledge")
-    return get_fallback_response(user_message)
+    if last_error is not None:
+        raise RuntimeError(f"Gemini API did not return a usable response: {last_error}")
+    raise RuntimeError("Gemini API did not return a usable response")

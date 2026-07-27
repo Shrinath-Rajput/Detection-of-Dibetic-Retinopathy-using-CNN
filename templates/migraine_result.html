@@ -171,20 +171,20 @@
 
 <div class="result-container animate">
 
-    <h2 class="animate">🧠 Migraine Risk Assessment</h2>
+    <h2 class="animate">{{ t('migraine_result.title') }}</h2>
 
     <div class="risk animate">
-        Risk Level: {{ risk }}
+        {{ t('result.risk_level_label') }} {{ risk }}
     </div>
 
-    <h4 class="animate">⚡ Identified Triggers / Symptoms:</h4>
+    <h4 class="animate">{{ t('migraine_result.triggers_title') }}</h4>
     <ul>
         {% for r in risks %}
             <li class="animate">{{ r }}</li>
         {% endfor %}
     </ul>
 
-    <h4 class="animate">✅ Preventive Recommendations:</h4>
+    <h4 class="animate">{{ t('migraine_result.recommendations_title') }}</h4>
     <ul>
         {% for a in advice %}
             <li class="animate">{{ a }}</li>
@@ -192,11 +192,11 @@
     </ul>
 
     <a class="pdf-download animate" href="/download_migraine_pdf">
-        📄 Download Professional PDF Report
+        {{ t('migraine_result.download_pdf') }}
     </a>
 
     <a class="back animate" href="/migraine">
-        ⬅️ Perform Another Assessment
+        {{ t('migraine_result.another_assessment') }}
     </a>
 
 </div>

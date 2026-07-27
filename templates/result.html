@@ -198,85 +198,91 @@
 <div class="result-container">
 
     <div class="result-header animate">
-        <h1>🎯 Analysis Results</h1>
-        <p style="color: #4a5568; font-size: 15px;">Comprehensive health assessment report</p>
+        <h1>{{ t('result.title') }}</h1>
+        <p style="color: #4a5568; font-size: 15px;">{{ t('result.description') }}</p>
     </div>
 
     <!-- DR RESULT -->
     <div class="result-card animate">
-        <h2>👁️ Diabetic Retinopathy Analysis</h2>
+        <h2>{{ t('result.dr_section_title') }}</h2>
 
             {% if image_path %}
             <div class="image-box">
-                <img src="{{ image_path }}" alt="Retinal Image Analysis">
+                <img src="{{ image_path }}" alt="{{ t('result.dr_section_title') }}">
             </div>
             {% else %}
             <div class="image-box">
-                <p style="color: #4a5568; font-size: 16px;">No retinal image available.</p>
+                <p style="color: #4a5568; font-size: 16px;">{{ t('result.no_image') }}</p>
             </div>
             {% endif %}
 
             <div class="prediction-result" style="text-align:center;">
-                <div class="prediction-label">Diagnosis:</div>
+                <div class="prediction-label">{{ t('result.diagnosis_label') }}</div>
                 <div class="prediction-value">{{ prediction }}</div>
-                <div class="prediction-label" style="margin-top: 12px;">Risk Level:</div>
-                <div class="prediction-value">{{ risk_level if risk_level else 'Not Available' }}</div>
+                <div class="prediction-label" style="margin-top: 12px;">{{ t('result.risk_level_label') }}</div>
+                <div class="prediction-value">{{ risk_level if risk_level else t('result.not_available') }}</div>
             </div>
 
             <div style="text-align:center; margin-top:20px;">
-                <a href="{{ url_for('download_dr_pdf') }}" class="btn-back" style="margin-right:12px;">📄 Download Professional PDF Report</a>
-                <a href="{{ url_for('dr_page') }}" class="btn-back">🔁 Analyze Another Image</a>
+                <a href="{{ url_for('download_dr_pdf') }}" class="btn-back" style="margin-right:12px;">{{ t('result.download_report') }}</a>
+                <a href="{{ url_for('dr_page') }}" class="btn-back">{{ t('result.analyze_another') }}</a>
             </div>
     </div>
 
     <!-- HEALTH -->
     {% if health %}
     <div class="result-card animate">
-        <h2>❤️ Live Health Monitoring</h2>
+        <h2>{{ t('result.health_title') }}</h2>
 
         {% if health.error %}
-            <p class="status-badge status-danger">⚠️ Sensor Error: {{ health.error }}</p>
+            <p class="status-badge status-danger">{{ t('result.sensor_error') }} {{ health.error }}</p>
         {% else %}
 
-            <h3 style="color: #003366; margin-top: 20px; margin-bottom: 15px;">📊 Sensor Readings</h3>
+            <h3 style="color: #003366; margin-top: 20px; margin-bottom: 15px;">{{ t('result.sensor_readings') }}</h3>
             <div class="health-metric">
-                <span class="metric-label">Heart Rate:</span>
+                <span class="metric-label">{{ t('result.heart_rate_label') }}</span>
                 <span class="metric-value">{{ health["Heart Rate"] }} BPM</span>
             </div>
             <div class="health-metric">
-                <span class="metric-label">SpO₂ Level:</span>
+                <span class="metric-label">{{ t('result.spo2_label') }}</span>
                 <span class="metric-value">{{ health["SpO2"] }}%</span>
             </div>
 
-            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">🔍 Body Analysis</h3>
+            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">{{ t('result.body_analysis') }}</h3>
             <div class="health-metric">
-                <span class="metric-label">Heart Rate Status:</span>
-                {% if health["Body Analysis"]["heart_rate"][0] == "Normal" %}
-                    <span class="status-badge status-ok">✓ {{ health["Body Analysis"]["heart_rate"][0] }}</span>
+                <span class="metric-label">{{ t('result.heart_rate_status') }}</span>
+                {% set hr_status = health["Body Analysis"]["heart_rate"][0] %}
+                {% if hr_status in ['Normal', 'NORMAL'] %}
+                    <span class="status-badge status-ok">✓ {{ t('live_health.status_normal') }}</span>
+                {% elif hr_status in ['LOW', 'Low', 'low'] %}
+                    <span class="status-badge status-warn">⚠️ {{ t('live_health.status_low') }}</span>
+                {% elif hr_status in ['HIGH', 'High', 'high'] %}
+                    <span class="status-badge status-warn">⚠️ {{ t('live_health.status_high') }}</span>
                 {% else %}
-                    <span class="status-badge status-warn">⚠️ {{ health["Body Analysis"]["heart_rate"][0] }}</span>
+                    <span class="status-badge">{{ hr_status }}</span>
                 {% endif %}
             </div>
 
             <div class="health-metric">
-                <span class="metric-label">SpO₂ Status:</span>
-                {% if health["Body Analysis"]["spo2"][0] == "Normal" %}
-                    <span class="status-badge status-ok">✓ {{ health["Body Analysis"]["spo2"][0] }}</span>
+                <span class="metric-label">{{ t('result.spo2_status') }}</span>
+                {% set spo2_status = health["Body Analysis"]["spo2"][0] %}
+                {% if spo2_status in ['Normal', 'NORMAL'] %}
+                    <span class="status-badge status-ok">✓ {{ t('live_health.status_normal') }}</span>
+                {% elif spo2_status in ['LOW', 'Low', 'low'] %}
+                    <span class="status-badge status-danger">✕ {{ t('live_health.status_low') }}</span>
                 {% else %}
-                    <span class="status-badge status-danger">✕ {{ health["Body Analysis"]["spo2"][0] }}</span>
+                    <span class="status-badge">{{ spo2_status }}</span>
                 {% endif %}
             </div>
 
-            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">⚠️ Risk Prediction</h3>
+            <h3 style="color: #003366; margin-top: 30px; margin-bottom: 15px;">{{ t('result.risk_prediction') }}</h3>
             <ul>
                 {% for r in health["Risk Prediction"] %}
                     <li class="animate">{{ r }}</li>
                 {% endfor %}
             </ul>
 
-            <p class="note" style="margin-top: 20px;">
-                ⚠️ AI-based risk analysis for awareness only — not a medical diagnosis.
-            </p>
+            <p class="note" style="margin-top: 20px;">{{ t('result.no_risks_found') }}</p>
 
         {% endif %}
     </div>

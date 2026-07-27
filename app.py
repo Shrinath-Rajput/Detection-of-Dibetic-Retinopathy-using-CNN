@@ -15,13 +15,44 @@ from werkzeug.utils import secure_filename
 
 from src.services.sensor_service import sensor_data, start_sensor_thread
 from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report
+from src.i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, get_language_label, get_translation
 
 app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
 
+@app.before_request
+def ensure_language():
+    lang = session.get("lang")
+    if not lang or lang not in SUPPORTED_LANGUAGES:
+        session["lang"] = DEFAULT_LANGUAGE
+
+@app.context_processor
+def inject_translations():
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    def t(key):
+        return get_translation(key, lang)
+    def lang_url(code):
+        return url_for("set_language", lang=code, next=request.path)
+    return {
+        "t": t,
+        "current_lang": lang,
+        "languages": SUPPORTED_LANGUAGES,
+        "lang_url": lang_url,
+        "language_label": get_language_label(lang)
+    }
+
+@app.route("/set_language/<lang>")
+def set_language(lang):
+    if lang not in SUPPORTED_LANGUAGES:
+        lang = DEFAULT_LANGUAGE
+    session["lang"] = lang
+    next_url = request.args.get("next") or request.referrer or url_for("home")
+    return redirect(next_url)
+
 @app.errorhandler(404)
 def handle_not_found(error):
-    return "Not Found", 404
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    return get_translation("common.error_not_found", lang), 404
 
 @app.errorhandler(Exception)
 def handle_uncaught_exception(error):
@@ -34,12 +65,17 @@ def handle_uncaught_exception(error):
     print(error)
     traceback.print_exc()
     print("=" * 80)
-    return "Internal Server Error", 500
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    return get_translation("common.internal_server_error", lang), 500
 
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config['JSON_SORT_KEYS'] = False
+
+def get_translator():
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    return lambda key: get_translation(key, lang)
 
 import gdown
 
@@ -88,7 +124,44 @@ def preprocess_image(img_path):
     img = tf.keras.preprocessing.image.img_to_array(img) / 255.0
     return np.expand_dims(img, axis=0)
 
-def analyze_health(hr, spo2):
+
+def get_pdf_font(lang_code):
+    """Return a TrueType font name registered with reportlab that supports the requested language.
+    Tries common Windows Devanagari fonts and falls back to Helvetica.
+    """
+    try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+    except Exception:
+        return 'Helvetica'
+
+    candidates = [
+        'Nirmala.ttc',
+        'Nirmala.ttf',
+        'NirmalaUI.ttf',
+        'Mangal.ttf',
+        'DejaVuSans.ttf',
+        'ArialUnicodeMS.ttf',
+        'NotoSansDevanagari-Regular.ttf'
+    ]
+
+    fonts_dir = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
+    for fname in candidates:
+        path = os.path.join(fonts_dir, fname)
+        if os.path.exists(path):
+            try:
+                font_key = 'Deva' + fname.replace('.', '_')
+                if font_key not in pdfmetrics.getRegisteredFontNames():
+                    pdfmetrics.registerFont(TTFont(font_key, path))
+                return font_key
+            except Exception:
+                continue
+
+    # Fallback to Helvetica
+    return 'Helvetica'
+
+def analyze_health(hr, spo2, lang=DEFAULT_LANGUAGE):
+    trans = lambda key: get_translation(key, lang)
     hr_status = "UNKNOWN"
     spo2_status = "UNKNOWN"
     risk = []
@@ -125,10 +198,10 @@ def analyze_health(hr, spo2):
     if hr is not None:
         if hr < 60:
             hr_status = "LOW"
-            risk.append("Low heart rate (Bradycardia)")
+            risk.append(trans('health.low_heart_rate'))
         elif hr > 100:
             hr_status = "HIGH"
-            risk.append("High heart rate (Stress/Hypertension)")
+            risk.append(trans('health.high_heart_rate'))
         else:
             hr_status = "NORMAL"
     else:
@@ -137,7 +210,7 @@ def analyze_health(hr, spo2):
     if spo2 is not None:
         if spo2 < 95:
             spo2_status = "LOW"
-            risk.append("Low oxygen level (Breathing issue)")
+            risk.append(trans('health.low_oxygen'))
         else:
             spo2_status = "NORMAL"
     else:
@@ -145,23 +218,25 @@ def analyze_health(hr, spo2):
 
     if not risk:
         advice = [
-            "All vitals are normal. Maintain healthy lifestyle.",
-            "Continue monitoring your health regularly.",
-            "Stay active and exercise regularly.",
-            "Ensure proper sleep and rest."
+            trans('health.normal_vitals_1'),
+            trans('health.normal_vitals_2'),
+            trans('health.normal_vitals_3'),
+            trans('health.normal_vitals_4')
         ]
     else:
         advice = [
-            "Take proper rest",
-            "Practice deep breathing",
-            "Reduce stress",
-            "Drink enough water",
-            "Consult doctor if values persist"
+            trans('health.advice_rest'),
+            trans('health.advice_breathe'),
+            trans('health.advice_reduce_stress'),
+            trans('health.advice_hydrate'),
+            trans('health.advice_consult')
         ]
 
     return {
-        "heart_rate_status": hr_status,
-        "spo2_status": spo2_status,
+        "heart_rate_status_code": hr_status,
+        "heart_rate_status": trans(f'live_health.status_{hr_status.lower()}') if hr_status in ['NORMAL', 'LOW', 'HIGH', 'WAITING'] else hr_status,
+        "spo2_status_code": spo2_status,
+        "spo2_status": trans(f'live_health.status_{spo2_status.lower()}') if spo2_status in ['NORMAL', 'LOW', 'HIGH', 'WAITING'] else spo2_status,
         "risk": risk,
         "advice": advice
     }
@@ -189,12 +264,15 @@ def predict():
         class_id = int(np.argmax(preds))
         confidence = round(float(preds[0][class_id] * 100), 2)
 
+        lang = session.get("lang", DEFAULT_LANGUAGE)
+        trans = lambda key: get_translation(key, lang)
+
         if confidence >= 90:
-            risk_level = "🔴 High Risk"
+            risk_level = trans("risk.high")
         elif confidence >= 70:
-            risk_level = "🟡 Moderate Risk"
+            risk_level = trans("risk.moderate")
         else:
-            risk_level = "🟢 Low Risk"
+            risk_level = trans("risk.low")
 
         session["dr_prediction"] = INDEX_TO_CLASS[class_id]
         session["dr_image_name"] = filename
@@ -253,50 +331,49 @@ def download_dr_pdf():
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
+        lang = session.get("lang", DEFAULT_LANGUAGE)
+        trans = lambda key: get_translation(key, lang)
+        font_name = get_pdf_font(lang)
+
         prediction = session.get("dr_prediction", "Not Available")
         image_name = session.get("dr_image_name")
         image_path = None
         if image_name:
             image_path = os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], image_name)
 
-        report_content = generate_dynamic_medical_report(
-            prediction=prediction,
-            request_id=str(uuid.uuid4())[:8],
-            strict=False,
-        )
+        try:
+            report_content = generate_dynamic_medical_report(
+                prediction=prediction,
+                request_id=str(uuid.uuid4())[:8],
+                strict=True,
+                lang=lang,
+            )
+        except RuntimeError as exc:
+            import traceback
+            print("=" * 80)
+            print("DOWNLOAD PDF GEMINI ERROR")
+            print(exc)
+            traceback.print_exc()
+            print("=" * 80)
+
+            # Detect quota / rate limit related errors and return a friendly message
+            msg = str(exc).lower()
+            if any(k in msg for k in ("quota", "resource_exhausted", "429", "rate limit", "free_tier")):
+                return Response(
+                    "Gemini API quota exceeded. Please try again later or use another API key.",
+                    status=200,
+                    mimetype="text/plain",
+                )
+
+            # For other runtime errors during report generation, return a generic non-500 message
+            return Response(
+                "Failed to generate report. Please try again later.",
+                status=200,
+                mimetype="text/plain",
+            )
 
         if not report_content:
-            default_diagnosis = prediction if prediction != "Not Available" else "retinal changes"
-            report_content = {
-                "Clinical Interpretation": (
-                    f"The retinal image suggests a clinical picture consistent with {default_diagnosis}. "
-                    "Further ophthalmic evaluation is recommended for confirmation."
-                ),
-                "Disease Summary": (
-                    f"The analysis indicates features associated with {default_diagnosis}. "
-                    "A specialist should review the image and patient history to establish a precise diagnosis."
-                ),
-                "Possible Medical Concerns": (
-                    "Potential concerns include vision impairment, progressive retinal damage, and related vascular changes. "
-                    "Timely follow-up can help reduce the risk of complications."
-                ),
-                "Treatment Guidance": (
-                    "Initial management should focus on regular monitoring, lifestyle support, and referral to an eye care specialist. "
-                    "Medical treatment should be determined by a qualified clinician."
-                ),
-                "Lifestyle Recommendations": (
-                    "Maintain a healthy diet, control blood sugar levels, avoid smoking, and follow up with regular eye exams. "
-                    "These measures help support overall retinal health."
-                ),
-                "Follow-up Advice": (
-                    "Schedule an appointment with an ophthalmologist for a comprehensive retinal examination. "
-                    "Early intervention is important for optimal outcomes."
-                ),
-                "Medical Disclaimer": (
-                    "This report is generated for informational purposes only and is not a substitute for professional medical advice. "
-                    "Please consult a licensed healthcare provider for diagnosis and treatment."
-                ),
-            }
+            raise RuntimeError("Gemini did not return a usable medical report for the uploaded image.")
 
         def clean_value(val):
             if not val or not isinstance(val, str):
@@ -333,7 +410,7 @@ def download_dr_pdf():
             textColor=HexColor('#1a3d5c'),
             spaceAfter=12,
             alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
+            fontName=font_name
         )
 
         heading_style = ParagraphStyle(
@@ -343,7 +420,7 @@ def download_dr_pdf():
             textColor=HexColor('#2c5aa0'),
             spaceAfter=8,
             spaceBefore=8,
-            fontName='Helvetica-Bold'
+            fontName=font_name
         )
 
         section_header_style = ParagraphStyle(
@@ -353,7 +430,7 @@ def download_dr_pdf():
             textColor=HexColor('#1e40af'),
             spaceAfter=6,
             spaceBefore=6,
-            fontName='Helvetica-Bold',
+            fontName=font_name,
         )
 
         normal_style = ParagraphStyle(
@@ -364,6 +441,7 @@ def download_dr_pdf():
             spaceAfter=8,
             leading=14,
             alignment=TA_LEFT,
+            fontName=font_name,
         )
 
         footer_style = ParagraphStyle(
@@ -373,24 +451,25 @@ def download_dr_pdf():
             textColor=HexColor('#666666'),
             spaceAfter=4,
             alignment=TA_CENTER,
+            fontName=font_name,
         )
 
         story = []
-        story.append(Paragraph('DIABETIC RETINOPATHY ANALYSIS', title_style))
+        story.append(Paragraph(trans('pdf.dr.title'), title_style))
         story.append(Spacer(1, 8))
-        story.append(Paragraph('AI-Powered Retinal Assessment Report', heading_style))
+        story.append(Paragraph(trans('pdf.dr.subtitle'), heading_style))
         story.append(Spacer(1, 12))
 
         meta_data = [
-            ['Report Date:', report_date, 'Report ID:', report_id],
-            ['Prediction:', prediction, 'Analysis Time:', report_time],
+            [trans('pdf.dr.report_date'), report_date, trans('pdf.dr.report_id'), report_id],
+            [trans('pdf.dr.prediction'), prediction, trans('pdf.dr.analysis_time'), report_time],
         ]
         meta_table = Table(meta_data, colWidths=[1.5*inch, 1.8*inch, 1.5*inch, 1.5*inch])
         meta_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), HexColor('#f0f4f8')),
             ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#1a3d5c')),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), font_name),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
@@ -413,7 +492,7 @@ def download_dr_pdf():
                 print(img_e)
                 traceback.print_exc()
                 print("=" * 80)
-                story.append(Paragraph('Retinal image could not be embedded.', normal_style))
+                story.append(Paragraph(trans('pdf.dr.image_error'), normal_style))
                 story.append(Spacer(1, 8))
 
         story.append(Spacer(1, 8))
@@ -438,15 +517,19 @@ def download_dr_pdf():
                 return parts if parts else [s]
             return [s] if len(s) > 3 else []
 
+        # Use the exact report keys produced by Gemini and fallback content.
         sections = [
-            ("Clinical Interpretation", "CLINICAL INTERPRETATION"),
-            ("Disease Summary", "DISEASE SUMMARY"),
-            ("Possible Medical Concerns", "POSSIBLE MEDICAL CONCERNS"),
-            ("Treatment Guidance", "TREATMENT GUIDANCE"),
-            ("Lifestyle Recommendations", "LIFESTYLE RECOMMENDATIONS"),
-            ("Follow-up Advice", "FOLLOW-UP ADVICE"),
-            ("Medical Disclaimer", "MEDICAL DISCLAIMER"),
+            ("Clinical Interpretation", trans('pdf.dr.clinical_interpretation')),
+            ("Disease Summary", trans('pdf.dr.disease_summary')),
+            ("Possible Medical Concerns", trans('pdf.dr.possible_medical_concerns')),
+            ("Treatment Guidance", trans('pdf.dr.treatment_guidance')),
+            ("Lifestyle Recommendations", trans('pdf.dr.lifestyle_recommendations')),
+            ("Follow-up Advice", trans('pdf.dr.follow_up_advice')),
+            ("Medical Disclaimer", trans('pdf.dr.medical_disclaimer')),
+            ("Notes", trans('pdf.dr.notes') if trans('pdf.dr.notes') != 'pdf.dr.notes' else 'Notes'),
         ]
+
+        print(f"[DOWNLOAD_DR_PDF] report_content keys: {list(report_content.keys()) if isinstance(report_content, dict) else report_content}")
 
         for key, title in sections:
             value = report_content.get(key, '')
@@ -457,12 +540,12 @@ def download_dr_pdf():
                 for item in items:
                     story.append(Paragraph(f'• {item}', normal_style))
             else:
-                story.append(Paragraph(value if value else 'Information not available', normal_style))
+                story.append(Paragraph(value if value else trans('pdf.dr.no_information'), normal_style))
             story.append(Spacer(1, 8))
 
-        story.append(Paragraph('Generated by CareSense AI', footer_style))
-        story.append(Paragraph('Professional Eye Disease Analysis Report', footer_style))
-        story.append(Paragraph('Version 1.0', footer_style))
+        story.append(Paragraph(trans('pdf.dr.generated_by'), footer_style))
+        story.append(Paragraph(trans('pdf.dr.report_label'), footer_style))
+        story.append(Paragraph(trans('pdf.dr.version'), footer_style))
 
         doc.build(story)
         buffer.seek(0)
@@ -481,154 +564,6 @@ def download_dr_pdf():
         traceback.print_exc()
         print("=" * 80)
         raise
-
-    heading_style = ParagraphStyle(
-        'CustomHeading',
-        parent=styles['Heading2'],
-        fontSize=14,
-        textColor=HexColor('#2c5aa0'),
-        spaceAfter=8,
-        spaceBefore=8,
-        fontName='Helvetica-Bold'
-    )
-
-    section_header_style = ParagraphStyle(
-        'SectionHeader',
-        parent=styles['Heading3'],
-        fontSize=12,
-        textColor=HexColor('#1e40af'),
-        spaceAfter=6,
-        spaceBefore=6,
-        fontName='Helvetica-Bold',
-    )
-
-    normal_style = ParagraphStyle(
-        'CustomNormal',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=HexColor('#333333'),
-        spaceAfter=8,
-        leading=14,
-        alignment=TA_LEFT,
-    )
-
-    footer_style = ParagraphStyle(
-        'Footer',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=HexColor('#666666'),
-        spaceAfter=4,
-        alignment=TA_CENTER,
-    )
-
-    story = []
-
-    # Header
-    story.append(Paragraph('DIABETIC RETINOPATHY ANALYSIS', title_style))
-    story.append(Spacer(1, 8))
-    story.append(Paragraph('AI-Powered Retinal Assessment Report', heading_style))
-    story.append(Spacer(1, 12))
-
-    # Report Info
-    meta_data = [
-        ['Report Date:', report_date, 'Report ID:', report_id],
-        ['Prediction:', prediction, 'Analysis Time:', report_time],
-    ]
-    meta_table = Table(meta_data, colWidths=[1.5*inch, 1.8*inch, 1.5*inch, 1.5*inch])
-    meta_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), HexColor('#f0f4f8')),
-        ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#1a3d5c')),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('GRID', (0, 0), (-1, -1), 1, HexColor('#cccccc')),
-    ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 12))
-    story.append(Paragraph('_' * 80, normal_style))
-    story.append(Spacer(1, 12))
-
-    # Add image if available
-    if image_path and os.path.exists(image_path):
-        try:
-            img = Image(image_path)
-            img._restrictSize(5.5 * inch, 4.0 * inch)
-            story.append(img)
-            story.append(Spacer(1, 12))
-        except Exception:
-            story.append(Paragraph('Retinal image could not be embedded.', normal_style))
-            story.append(Spacer(1, 8))
-    
-    story.append(Spacer(1, 8))
-
-    def _split_items(s):
-        """Split text into bullet points, but only for actual content"""
-        if not s or not isinstance(s, str):
-            return []
-        
-        s = s.strip()
-        
-        # Reject JSON or code-like content
-        if s.startswith('{') or s.startswith('[') or '\\' in s:
-            return [s] if len(s) > 5 else []
-        
-        # Try various delimiters
-        if '\n' in s:
-            parts = [p.strip() for p in s.splitlines() if p.strip() and len(p.strip()) > 3]
-            return parts if parts else [s]
-        if '•' in s:
-            parts = [p.strip() for p in s.split('•') if p.strip() and len(p.strip()) > 3]
-            return parts if parts else [s]
-        if ';' in s and s.count(';') >= 2:
-            parts = [p.strip() for p in s.split(';') if p.strip() and len(p.strip()) > 3]
-            return parts if parts else [s]
-        if ',' in s and s.count(',') >= 2:
-            parts = [p.strip() for p in s.split(',') if p.strip() and len(p.strip()) > 3]
-            return parts if parts else [s]
-        
-        # Return as single item
-        return [s] if len(s) > 3 else []
-
-    sections = [
-        ("Clinical Interpretation", "CLINICAL INTERPRETATION"),
-        ("Disease Summary", "DISEASE SUMMARY"),
-        ("Possible Medical Concerns", "POSSIBLE MEDICAL CONCERNS"),
-        ("Treatment Guidance", "TREATMENT GUIDANCE"),
-        ("Lifestyle Recommendations", "LIFESTYLE RECOMMENDATIONS"),
-        ("Follow-up Advice", "FOLLOW-UP ADVICE"),
-        ("Medical Disclaimer", "MEDICAL DISCLAIMER"),
-    ]
-
-    for key, title in sections:
-        value = report_content.get(key, '')
-        story.append(Paragraph(title, section_header_style))
-        story.append(Spacer(1, 6))
-        items = _split_items(value)
-        if items:
-            for item in items:
-                story.append(Paragraph(f'• {item}', normal_style))
-        else:
-            story.append(Paragraph(value if value else 'Information not available', normal_style))
-        story.append(Spacer(1, 8))
-
-    story.append(Paragraph('Generated by CareSense AI', footer_style))
-    story.append(Paragraph('Professional Eye Disease Analysis Report', footer_style))
-    story.append(Paragraph('Version 1.0', footer_style))
-
-    doc.build(story)
-    buffer.seek(0)
-
-    # Ensure we return exact bytes with Content-Length to avoid browser partial-download issues
-    pdf_bytes = buffer.getvalue()
-    from flask import Response
-    headers = {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="DR_Analysis_Report.pdf"',
-        'Content-Length': str(len(pdf_bytes)),
-    }
-    return Response(pdf_bytes, headers=headers)
 
 @app.route("/live_health")
 def live_health():
@@ -654,7 +589,8 @@ def get_sensor_data():
 def health_analysis():
     hr = sensor_data.get("heart_rate")
     spo2 = sensor_data.get("spo2")
-    return jsonify(analyze_health(hr, spo2))
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    return jsonify(analyze_health(hr, spo2, lang))
 
 @app.route("/pcod")
 def pcod():
@@ -673,6 +609,7 @@ def pcod_predict():
         diet = request.form.get("diet", "balanced")
         family = request.form.get("family_history", "no")
 
+        trans = get_translator()
         score = 0
         score += 2 if bmi >= 25 else 0
         score += fatigue + stress
@@ -680,15 +617,16 @@ def pcod_predict():
         score += 1 if activity == "low" else 0
         score += 1 if diet == "junk" else 0
 
-        risk = "HIGH PCOD RISK" if score >= 10 else "MODERATE PCOD RISK" if score >= 6 else "LOW PCOD RISK"
+        risk_code = "high_pcod" if score >= 10 else "moderate_pcod" if score >= 6 else "low_pcod"
+        risk = trans(f"risk.{risk_code}")
 
         advice = [
-            "Maintain healthy BMI",
-            "Follow balanced diet",
-            "Exercise regularly",
-            "Improve sleep quality",
-            "Reduce stress",
-            "Consult gynecologist if symptoms persist"
+            trans('advice.pcod_bmi'),
+            trans('advice.pcod_diet'),
+            trans('advice.pcod_exercise'),
+            trans('advice.pcod_sleep'),
+            trans('advice.pcod_stress'),
+            trans('advice.pcod_consult')
         ]
         from flask import session
         session["pcod_age"] = age
@@ -700,6 +638,7 @@ def pcod_predict():
         session["pcod_activity"] = activity
         session["pcod_diet"] = diet
         session["pcod_family"] = family
+        session["pcod_risk_code"] = risk_code
         session["pcod_risk"] = risk
         session["pcod_advice"] = advice
         return render_template("pcod_result.html", risk=risk, advice=advice)
@@ -727,6 +666,7 @@ def diabetes_predict():
         diet = request.form.get("diet", "no")
         bp = request.form.get("bp", "no")
 
+        trans = get_translator()
         score = (
             (2 if bmi >= 25 else 0) +
             (2 if family == "yes" else 0) +
@@ -738,14 +678,15 @@ def diabetes_predict():
             (1 if bp == "yes" else 0)
         )
 
-        risk = "HIGH DIABETES RISK" if score >= 7 else "MODERATE DIABETES RISK" if score >= 4 else "LOW DIABETES RISK"
+        risk_code = "high_diabetes" if score >= 7 else "moderate_diabetes" if score >= 4 else "low_diabetes"
+        risk = trans(f"risk.{risk_code}")
 
         advice = [
-            "Maintain healthy body weight",
-            "Follow low sugar balanced diet",
-            "Exercise regularly",
-            "Monitor blood glucose levels",
-            "Consult physician if symptoms persist"
+            trans('advice.diabetes_weight'),
+            trans('advice.diabetes_diet'),
+            trans('advice.diabetes_exercise'),
+            trans('advice.diabetes_monitor'),
+            trans('advice.diabetes_consult')
         ]
 
         session["diabetes_age"] = age
@@ -760,6 +701,7 @@ def diabetes_predict():
         session["diabetes_activity"] = activity
         session["diabetes_diet"] = diet
         session["diabetes_bp"] = bp
+        session["diabetes_risk_code"] = risk_code
         session["diabetes_risk"] = risk
         session["diabetes_advice"] = advice
 
@@ -781,6 +723,10 @@ def download_diabetes_pdf():
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    trans = lambda key: get_translation(key, lang)
+    font_name = get_pdf_font(lang)
+
     report_date = datetime.now().strftime("%d-%m-%Y")
     report_time = datetime.now().strftime("%H:%M:%S")
     report_id = str(uuid.uuid4())[:12].upper()
@@ -792,30 +738,34 @@ def download_diabetes_pdf():
     bmi = session.get("diabetes_bmi", "N/A")
     family = session.get("diabetes_family", "N/A")
     risk = session.get("diabetes_risk", "Not Available")
+    risk_code = session.get("diabetes_risk_code", "low_diabetes")
     advice = session.get("diabetes_advice", [])
 
-    if "HIGH" in risk:
+    if risk_code == "high_diabetes":
         concerns = [
-            "High Blood Sugar Risk",
-            "Insulin Resistance",
-            "Cardiovascular Risk",
-            "Kidney Complications",
-            "Vision Problems"
+            trans('pdf.diabetes.concern_high_blood_sugar'),
+            trans('pdf.diabetes.concern_insulin_resistance'),
+            trans('pdf.diabetes.concern_cardiovascular_risk'),
+            trans('pdf.diabetes.concern_kidney_complications'),
+            trans('pdf.diabetes.concern_vision_problems')
         ]
         risk_color = HexColor('#DC2626')
-    elif "MODERATE" in risk:
+        risk_display = trans('risk.high_diabetes')
+    elif risk_code == "moderate_diabetes":
         concerns = [
-            "Prediabetes Risk",
-            "Weight Management Required",
-            "Lifestyle Improvement Needed"
+            trans('pdf.diabetes.concern_prediabetes_risk'),
+            trans('pdf.diabetes.concern_weight_management'),
+            trans('pdf.diabetes.concern_lifestyle_improvement')
         ]
         risk_color = HexColor('#F59E0B')
+        risk_display = trans('risk.moderate_diabetes')
     else:
         concerns = [
-            "No significant diabetes risk detected",
-            "Continue healthy lifestyle"
+            trans('pdf.diabetes.concern_no_significant_risk'),
+            trans('pdf.diabetes.concern_continue_healthy_lifestyle')
         ]
         risk_color = HexColor('#10B981')
+        risk_display = trans('risk.low_diabetes')
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -831,7 +781,7 @@ def download_diabetes_pdf():
     title_style = ParagraphStyle(
         'ReportTitle',
         parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
+        fontName=font_name,
         fontSize=24,
         textColor=HexColor('#2F3B8A'),
         alignment=TA_CENTER,
@@ -840,7 +790,7 @@ def download_diabetes_pdf():
     subtitle_style = ParagraphStyle(
         'ReportSubtitle',
         parent=styles['Heading2'],
-        fontName='Helvetica',
+        fontName=font_name,
         fontSize=13,
         textColor=HexColor('#4A4A4A'),
         alignment=TA_CENTER,
@@ -849,7 +799,7 @@ def download_diabetes_pdf():
     section_header_style = ParagraphStyle(
         'SectionHeader',
         parent=styles['Heading2'],
-        fontName='Helvetica-Bold',
+        fontName=font_name,
         fontSize=11,
         textColor=white,
         backColor=HexColor('#3C4DA0'),
@@ -862,7 +812,7 @@ def download_diabetes_pdf():
     normal_style = ParagraphStyle(
         'Normal',
         parent=styles['Normal'],
-        fontName='Helvetica',
+        fontName=font_name,
         fontSize=10,
         leading=13,
         textColor=HexColor('#333333')
@@ -870,7 +820,7 @@ def download_diabetes_pdf():
     disclaimer_style = ParagraphStyle(
         'Disclaimer',
         parent=styles['Normal'],
-        fontName='Helvetica',
+        fontName=font_name,
         fontSize=9,
         leading=12,
         textColor=HexColor('#555555'),
@@ -882,7 +832,7 @@ def download_diabetes_pdf():
     footer_style = ParagraphStyle(
         'Footer',
         parent=styles['Normal'],
-        fontName='Helvetica',
+        fontName=font_name,
         fontSize=9,
         textColor=HexColor('#777777'),
         alignment=TA_CENTER
@@ -890,19 +840,19 @@ def download_diabetes_pdf():
 
     story = []
     story.append(Spacer(1, 10))
-    story.append(Paragraph('CareSense AI', title_style))
-    story.append(Paragraph('Diabetes Risk Assessment Report', subtitle_style))
+    story.append(Paragraph(trans('pdf.diabetes.title'), title_style))
+    story.append(Paragraph(trans('pdf.diabetes.subtitle'), subtitle_style))
     story.append(Spacer(1, 8))
 
     meta_table = Table(
         [
-            ['Report Date:', report_date, 'Report Time:', report_time],
-            ['Unique Report ID:', report_id, '', '']
+            [trans('pdf.diabetes.report_date'), report_date, trans('pdf.diabetes.report_time'), report_time],
+            [trans('pdf.diabetes.report_id'), report_id, '', '']
         ],
         colWidths=[1.35 * inch, 2.15 * inch, 1.2 * inch, 1.2 * inch]
     )
     meta_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (-1, -1), font_name),
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#444444')),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
@@ -910,7 +860,7 @@ def download_diabetes_pdf():
     ]))
     story.append(meta_table)
     story.append(Spacer(1, 12))
-    story.append(Paragraph('PATIENT DETAILS', section_header_style))
+    story.append(Paragraph(trans('pdf.diabetes.patient_details'), section_header_style))
 
     patient_table = Table(
         [
@@ -921,7 +871,7 @@ def download_diabetes_pdf():
         colWidths=[1.25 * inch, 2.25 * inch, 1.25 * inch, 1.25 * inch]
     )
     patient_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (-1, -1), font_name),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#2E3B60')),
         ('BACKGROUND', (0, 0), (-1, 0), HexColor('#F1F5FF')),
@@ -936,15 +886,16 @@ def download_diabetes_pdf():
     ]))
     story.append(patient_table)
     story.append(Spacer(1, 14))
-    story.append(Paragraph('ASSESSMENT RESULT', section_header_style))
+    story.append(Paragraph(trans('pdf.diabetes.assessment_result'), section_header_style))
     story.append(Spacer(1, 6))
 
     risk_table = Table(
-        [[Paragraph('Risk Level', ParagraphStyle('Label', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=HexColor('#ffffff'))),
-          Paragraph(risk, ParagraphStyle('RiskText', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=white, alignment=TA_CENTER))]],
+        [[Paragraph(trans('pdf.diabetes.risk_level'), ParagraphStyle('Label', parent=styles['Normal'], fontName=font_name, fontSize=10, textColor=HexColor('#ffffff'))),
+          Paragraph(risk_display, ParagraphStyle('RiskText', parent=styles['Normal'], fontName=font_name, fontSize=11, textColor=white, alignment=TA_CENTER))]],
         colWidths=[1.4 * inch, 4.35 * inch]
     )
     risk_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), font_name),
         ('BACKGROUND', (0, 0), (0, 0), HexColor('#3C4DA0')),
         ('BACKGROUND', (1, 0), (1, 0), risk_color),
         ('TEXTCOLOR', (0, 0), (-1, -1), white),
@@ -958,34 +909,33 @@ def download_diabetes_pdf():
     ]))
     story.append(risk_table)
     story.append(Spacer(1, 8))
-    story.append(Paragraph('Assessment based on BMI, fatigue symptoms, activity levels, diet, family history, and blood pressure indicators.', normal_style))
+    story.append(Paragraph(trans('pdf.diabetes.assessment_summary'), normal_style))
     story.append(Spacer(1, 12))
-    story.append(Paragraph('POSSIBLE HEALTH CONCERNS', section_header_style))
+    story.append(Paragraph(trans('pdf.diabetes.possible_concerns'), section_header_style))
     story.append(Spacer(1, 4))
 
     for concern in concerns:
         story.append(Paragraph(f'• {concern}', normal_style))
 
     story.append(Spacer(1, 12))
-    story.append(Paragraph('PERSONALIZED RECOMMENDATIONS', section_header_style))
+    story.append(Paragraph(trans('pdf.diabetes.personalized_recommendations'), section_header_style))
     story.append(Spacer(1, 4))
 
     if advice:
         for item in advice:
             story.append(Paragraph(f'• {item}', normal_style))
     else:
-        story.append(Paragraph('• No recommendations available at this time.', normal_style))
+        story.append(Paragraph(f'• {trans("pdf.diabetes.no_recommendations")}', normal_style))
 
     story.append(Spacer(1, 12))
-    story.append(Paragraph('MEDICAL DISCLAIMER', section_header_style))
+    story.append(Paragraph(trans('pdf.diabetes.medical_disclaimer'), section_header_style))
     story.append(Spacer(1, 4))
-    disclaimer_text = ("This AI-generated report is intended only for preliminary health awareness and should not replace professional medical diagnosis "
-                       "or treatment. Please consult a qualified physician or diabetologist for proper evaluation.")
+    disclaimer_text = trans('pdf.diabetes.disclaimer')
     story.append(Paragraph(disclaimer_text, disclaimer_style))
     story.append(Spacer(1, 16))
-    story.append(Paragraph('Generated by CareSense AI', footer_style))
-    story.append(Paragraph('Professional Diabetes Assessment Report', footer_style))
-    story.append(Paragraph('Version 1.0', footer_style))
+    story.append(Paragraph(trans('pdf.diabetes.generated_by'), footer_style))
+    story.append(Paragraph(trans('pdf.diabetes.report_label'), footer_style))
+    story.append(Paragraph(trans('pdf.diabetes.version'), footer_style))
 
     doc.build(story)
     buffer.seek(0)
@@ -1054,16 +1004,34 @@ def migraine_predict():
             score += 1
             risks.append("Low Sleep Duration")
 
-        risk = "HIGH MIGRAINE RISK" if score >= 10 else "MODERATE MIGRAINE RISK" if score >= 6 else "LOW MIGRAINE RISK"
+        risk_code = "high_migraine" if score >= 10 else "moderate_migraine" if score >= 6 else "low_migraine"
+        risk = trans(f"risk.{risk_code}")
 
         advice = [
-            "Maintain regular sleep routine",
-            "Reduce stress",
-            "Avoid migraine triggers",
-            "Stay hydrated",
-            "Limit caffeine",
-            "Consult neurologist if frequent headaches"
+            trans('advice.migraine_sleep'),
+            trans('advice.migraine_stress'),
+            trans('advice.migraine_triggers'),
+            trans('advice.migraine_hydrate'),
+            trans('advice.migraine_caffeine'),
+            trans('advice.migraine_consult')
         ]
+
+        risk_label_map = {
+            'family': trans('migraine.field_family_history'),
+            'unilateral': trans('migraine.field_unilateral'),
+            'throbbing': trans('migraine.field_throbbing'),
+            'nausea': trans('migraine.field_nausea'),
+            'light': trans('migraine.field_light'),
+            'sound': trans('migraine.field_sound'),
+            'aura': trans('migraine.field_aura'),
+            'dizziness': trans('migraine.field_dizziness'),
+            'activity_worse': trans('migraine.field_activity_worse'),
+            'insomnia': trans('migraine.field_insomnia'),
+            'meals': trans('migraine.field_meals'),
+            'hormonal': trans('migraine.field_hormonal')
+        }
+
+        risks = [risk_label_map.get(field, field.replace('_', ' ').title()) for field in risks]
 
         # Store data in session
         session["migraine_age"] = age
@@ -1086,6 +1054,7 @@ def migraine_predict():
         session["migraine_meals"] = meals
         session["migraine_caffeine"] = caffeine
         session["migraine_hormonal"] = hormonal
+        session["migraine_risk_code"] = risk_code
         session["migraine_risk"] = risk
         session["migraine_risks"] = risks
         session["migraine_advice"] = advice
@@ -1123,6 +1092,10 @@ def download_pcod_pdf():
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
     
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    trans = lambda key: get_translation(key, lang)
+    font_name = get_pdf_font(lang)
+
     # Get session data
     risk = session.get("pcod_risk", "Not Available")
     age = session.get("pcod_age", "N/A")
@@ -1163,7 +1136,7 @@ def download_pcod_pdf():
         textColor=HexColor('#003D7A'),
         spaceAfter=3,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     subtitle_style = ParagraphStyle(
@@ -1173,7 +1146,7 @@ def download_pcod_pdf():
         textColor=HexColor('#003D7A'),
         spaceAfter=12,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     section_header_style = ParagraphStyle(
@@ -1185,7 +1158,7 @@ def download_pcod_pdf():
         spaceAfter=12,
         spaceBefore=6,
         leftIndent=6,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     normal_style = ParagraphStyle(
@@ -1194,31 +1167,33 @@ def download_pcod_pdf():
         fontSize=10,
         textColor=HexColor('#333333'),
         spaceAfter=6,
-        leading=12
+        leading=12,
+        fontName=font_name
     )
     
     # Determine risk colors and concerns
-    if "HIGH" in risk:
+    risk_code = session.get('pcod_risk_code', 'low_pcod')
+    if risk_code == 'high_pcod':
         risk_color = HexColor('#DC2626')
         concerns = [
-            "Hormonal Imbalance",
-            "Irregular Menstrual Cycle",
-            "Insulin Resistance",
-            "Weight Gain",
-            "Fertility Issues"
+            trans('pdf.pcod.concern_hormonal'),
+            trans('pdf.pcod.concern_metabolic'),
+            trans('pdf.pcod.concern_weight_gain'),
+            trans('pdf.pcod.concern_insulin_resistance'),
+            trans('pdf.pcod.concern_fertility_issues')
         ]
-    elif "MODERATE" in risk:
+    elif risk_code == 'moderate_pcod':
         risk_color = HexColor('#F59E0B')
         concerns = [
-            "Hormonal Imbalance",
-            "Lifestyle-related Metabolic Changes",
-            "Irregular Periods"
+            trans('pdf.pcod.concern_hormonal'),
+            trans('pdf.pcod.concern_metabolic_changes'),
+            trans('pdf.pcod.concern_irregular_periods')
         ]
     else:
         risk_color = HexColor('#10B981')
         concerns = [
-            "No significant concerns detected",
-            "Continue maintaining a healthy lifestyle"
+            trans('pdf.pcod.concern_no_significant_concerns'),
+            trans('pdf.pcod.concern_continue_healthy_lifestyle')
         ]
     
     # Build story
@@ -1226,8 +1201,8 @@ def download_pcod_pdf():
     
     # Header
     story.append(Spacer(1, 12))
-    story.append(Paragraph("CareSense AI", title_style))
-    story.append(Paragraph("PCOD Risk Assessment Report", subtitle_style))
+    story.append(Paragraph(trans('pdf.pcod.title'), title_style))
+    story.append(Paragraph(trans('pdf.pcod.subtitle'), subtitle_style))
     story.append(Spacer(1, 6))
     
     # Separator
@@ -1236,13 +1211,13 @@ def download_pcod_pdf():
     
     # Report Info
     report_info_data = [
-        ["Report Date", report_date],
-        ["Report Time", report_time],
-        ["Report ID", report_id]
+        [trans('pdf.pcod.report_date'), report_date],
+        [trans('pdf.pcod.report_time'), report_time],
+        [trans('pdf.pcod.report_id'), report_id]
     ]
     report_info_table = Table(report_info_data, colWidths=[2*inch, 2*inch])
     report_info_table.setStyle(TableStyle([
-        ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
+        ('FONT', (0, 0), (-1, -1), font_name, 10),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
         ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
         ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
@@ -1254,23 +1229,44 @@ def download_pcod_pdf():
     story.append(Spacer(1, 12))
     
     # Patient Details Section
-    story.append(Paragraph("PATIENT DETAILS", section_header_style))
+    story.append(Paragraph(trans('pdf.pcod.patient_details'), section_header_style))
     
+    def _translate_activity(value):
+        try:
+            return trans(f'pcod.activity_{value}')
+        except Exception:
+            return str(value).title()
+
+    def _translate_diet(value):
+        try:
+            return trans(f'pcod.diet_{value}')
+        except Exception:
+            return str(value).title()
+
+    def _translate_gender(value):
+        if isinstance(value, str):
+            lower = value.lower()
+            if lower == 'male':
+                return trans('common.male')
+            if lower == 'female':
+                return trans('common.female')
+        return str(value).title()
+
     patient_data = [
-        ["Age", str(age)],
-        ["Gender", str(gender)],
-        ["BMI", str(bmi)],
-        ["Fatigue Level (1-10)", str(fatigue)],
-        ["Sleep Quality (1-10)", str(sleep)],
-        ["Stress Level (1-10)", str(stress)],
-        ["Activity Level", str(activity).title()],
-        ["Diet Type", str(diet).title()],
-        ["Family History", "Yes" if family == "yes" else "No"]
+        [trans('pdf.pcod.field_age'), str(age)],
+        [trans('pdf.pcod.field_gender'), _translate_gender(gender)],
+        [trans('pdf.pcod.field_bmi'), str(bmi)],
+        [trans('pdf.pcod.field_fatigue'), str(fatigue)],
+        [trans('pdf.pcod.field_sleep'), str(sleep)],
+        [trans('pdf.pcod.field_stress'), str(stress)],
+        [trans('pdf.pcod.field_activity'), _translate_activity(activity)],
+        [trans('pdf.pcod.field_diet'), _translate_diet(diet)],
+        [trans('pdf.pcod.field_family_history'), trans('common.yes') if family == 'yes' else trans('common.no')]
     ]
     
     patient_table = Table(patient_data, colWidths=[2.5*inch, 2*inch])
     patient_table.setStyle(TableStyle([
-        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('FONT', (0, 0), (-1, -1), font_name, 9),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
         ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
         ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
@@ -1283,7 +1279,7 @@ def download_pcod_pdf():
     story.append(Spacer(1, 12))
     
     # Assessment Result Section
-    story.append(Paragraph("ASSESSMENT RESULT", section_header_style))
+    story.append(Paragraph(trans('pdf.pcod.assessment_result'), section_header_style))
     story.append(Spacer(1, 6))
     
     risk_style = ParagraphStyle(
@@ -1296,18 +1292,18 @@ def download_pcod_pdf():
         spaceBefore=6,
         leftIndent=8,
         rightIndent=8,
-        fontName='Helvetica-Bold',
+        fontName=font_name,
         alignment=TA_LEFT
     )
-    story.append(Paragraph(f"Risk Level: {risk}", risk_style))
+    story.append(Paragraph(f"{trans('pdf.pcod.risk_level')}: {risk}", risk_style))
     story.append(Spacer(1, 6))
-    story.append(Paragraph("Assessment based on BMI, fatigue, sleep quality, stress level, activity level, diet type, and family history.", normal_style))
+    story.append(Paragraph(trans('pdf.pcod.assessment_summary'), normal_style))
     story.append(Spacer(1, 12))
     story.append(Paragraph("_" * 80, normal_style))
     story.append(Spacer(1, 12))
     
     # Possible Health Concerns Section
-    story.append(Paragraph("POSSIBLE HEALTH CONCERNS", section_header_style))
+    story.append(Paragraph(trans('pdf.pcod.possible_concerns'), section_header_style))
     story.append(Spacer(1, 6))
     
     for concern in concerns:
@@ -1319,7 +1315,7 @@ def download_pcod_pdf():
     story.append(Spacer(1, 12))
     
     # Personalized Recommendations Section
-    story.append(Paragraph("PERSONALIZED RECOMMENDATIONS", section_header_style))
+    story.append(Paragraph(trans('pdf.pcod.personalized_recommendations'), section_header_style))
     story.append(Spacer(1, 6))
     
     for rec in advice:
@@ -1331,10 +1327,10 @@ def download_pcod_pdf():
     story.append(Spacer(1, 12))
     
     # Medical Disclaimer Section
-    story.append(Paragraph("MEDICAL DISCLAIMER", section_header_style))
+    story.append(Paragraph(trans('pdf.pcod.medical_disclaimer'), section_header_style))
     story.append(Spacer(1, 6))
     
-    disclaimer_text = """This report is AI-generated by CareSense AI and is intended only for preliminary health awareness. It should not replace professional medical diagnosis or treatment. Please consult a qualified gynecologist or endocrinologist for medical advice, diagnosis, or treatment recommendations."""
+    disclaimer_text = trans('pdf.pcod.disclaimer')
     
     disclaimer_style = ParagraphStyle(
         'Disclaimer',
@@ -1364,9 +1360,9 @@ def download_pcod_pdf():
     )
     story.append(Paragraph("_" * 80, normal_style))
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Generated by CareSense AI", footer_style))
-    story.append(Paragraph("Professional Medical Assessment Report", footer_style))
-    story.append(Paragraph("Version 1.0", footer_style))
+    story.append(Paragraph(trans('pdf.pcod.generated_by'), footer_style))
+    story.append(Paragraph(trans('pdf.pcod.report_label'), footer_style))
+    story.append(Paragraph(trans('pdf.pcod.version'), footer_style))
     
     # Build PDF
     doc.build(story)
@@ -1392,8 +1388,13 @@ def download_migraine_pdf():
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
     
+    lang = session.get("lang", DEFAULT_LANGUAGE)
+    trans = lambda key: get_translation(key, lang)
+    font_name = get_pdf_font(lang)
+
     # Get session data
     risk = session.get("migraine_risk", "Not Available")
+    risk_code = session.get("migraine_risk_code", "low_migraine")
     age = session.get("migraine_age", "N/A")
     gender = session.get("migraine_gender", "N/A")
     family = session.get("migraine_family", "N/A")
@@ -1444,7 +1445,7 @@ def download_migraine_pdf():
         textColor=HexColor('#6B3FA0'),
         spaceAfter=3,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     subtitle_style = ParagraphStyle(
@@ -1454,7 +1455,7 @@ def download_migraine_pdf():
         textColor=HexColor('#6B3FA0'),
         spaceAfter=12,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     section_header_style = ParagraphStyle(
@@ -1466,7 +1467,7 @@ def download_migraine_pdf():
         spaceAfter=12,
         spaceBefore=6,
         leftIndent=6,
-        fontName='Helvetica-Bold'
+        fontName=font_name
     )
     
     normal_style = ParagraphStyle(
@@ -1475,27 +1476,28 @@ def download_migraine_pdf():
         fontSize=10,
         textColor=HexColor('#333333'),
         spaceAfter=6,
-        leading=12
+        leading=12,
+        fontName=font_name
     )
     
     # Determine risk colors and recommendations
-    if "HIGH" in risk:
+    if risk_code == 'high_migraine':
         risk_color = HexColor('#DC2626')
-        risk_display = "HIGH MIGRAINE RISK"
-    elif "MODERATE" in risk:
+        risk_display = trans('risk.high_migraine')
+    elif risk_code == 'moderate_migraine':
         risk_color = HexColor('#F59E0B')
-        risk_display = "MODERATE MIGRAINE RISK"
+        risk_display = trans('risk.moderate_migraine')
     else:
         risk_color = HexColor('#10B981')
-        risk_display = "LOW MIGRAINE RISK"
+        risk_display = trans('risk.low_migraine')
     
     # Build story
     story = []
     
     # Header
     story.append(Spacer(1, 12))
-    story.append(Paragraph("CareSense AI", title_style))
-    story.append(Paragraph("Migraine Risk Assessment Report", subtitle_style))
+    story.append(Paragraph(trans('pdf.migraine.title'), title_style))
+    story.append(Paragraph(trans('pdf.migraine.subtitle'), subtitle_style))
     story.append(Spacer(1, 6))
     
     # Separator
@@ -1504,13 +1506,13 @@ def download_migraine_pdf():
     
     # Report Info
     report_info_data = [
-        ["Report Date", report_date],
-        ["Report Time", report_time],
-        ["Report ID", report_id]
+        [trans('pdf.migraine.report_date'), report_date],
+        [trans('pdf.migraine.report_time'), report_time],
+        [trans('pdf.migraine.report_id'), report_id]
     ]
     report_info_table = Table(report_info_data, colWidths=[2*inch, 2*inch])
     report_info_table.setStyle(TableStyle([
-        ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
+        ('FONT', (0, 0), (-1, -1), font_name, 10),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
         ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
         ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
@@ -1522,34 +1524,34 @@ def download_migraine_pdf():
     story.append(Spacer(1, 12))
     
     # Patient Details Section
-    story.append(Paragraph("PATIENT DETAILS", section_header_style))
+    story.append(Paragraph(trans('pdf.migraine.patient_details'), section_header_style))
     
     patient_data = [
-        ["Age", str(age)],
-        ["Gender", str(gender).title()],
-        ["Family History", "Yes" if family == "yes" else "No"],
-        ["Frequency (per month)", str(frequency)],
-        ["Duration (hours)", str(duration)],
-        ["Intensity (1-10)", str(intensity)],
-        ["One-sided Pain", "Yes" if unilateral == "yes" else "No"],
-        ["Throbbing Pain", "Yes" if throbbing == "yes" else "No"],
-        ["Nausea", "Yes" if nausea == "yes" else "No"],
-        ["Light Sensitivity", "Yes" if light == "yes" else "No"],
-        ["Sound Sensitivity", "Yes" if sound == "yes" else "No"],
-        ["Aura Symptoms", "Yes" if aura == "yes" else "No"],
-        ["Dizziness", "Yes" if dizziness == "yes" else "No"],
-        ["Activity Worsens Pain", "Yes" if activity_worse == "yes" else "No"],
-        ["Sleep Hours (per night)", str(sleep)],
-        ["Insomnia", "Yes" if insomnia == "yes" else "No"],
-        ["Stress Level (1-10)", str(stress)],
-        ["Skipped Meals", "Yes" if meals == "yes" else "No"],
-        ["Caffeine Intake", str(caffeine).title()],
-        ["Hormonal Trigger", "Yes" if hormonal == "yes" else "No"],
+        [trans('pdf.migraine.field_age'), str(age)],
+        [trans('pdf.migraine.field_gender'), str(gender).title()],
+        [trans('pdf.migraine.field_family_history'), trans('common.yes') if family == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_frequency'), str(frequency)],
+        [trans('pdf.migraine.field_duration'), str(duration)],
+        [trans('pdf.migraine.field_intensity'), str(intensity)],
+        [trans('pdf.migraine.field_unilateral'), trans('common.yes') if unilateral == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_throbbing'), trans('common.yes') if throbbing == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_nausea'), trans('common.yes') if nausea == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_light'), trans('common.yes') if light == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_sound'), trans('common.yes') if sound == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_aura'), trans('common.yes') if aura == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_dizziness'), trans('common.yes') if dizziness == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_activity_worse'), trans('common.yes') if activity_worse == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_sleep'), str(sleep)],
+        [trans('pdf.migraine.field_insomnia'), trans('common.yes') if insomnia == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_stress'), str(stress)],
+        [trans('pdf.migraine.field_meals'), trans('common.yes') if meals == 'yes' else trans('common.no')],
+        [trans('pdf.migraine.field_caffeine'), str(caffeine).title()],
+        [trans('pdf.migraine.field_hormonal'), trans('common.yes') if hormonal == 'yes' else trans('common.no')],
     ]
     
     patient_table = Table(patient_data, colWidths=[2.5*inch, 2*inch])
     patient_table.setStyle(TableStyle([
-        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('FONT', (0, 0), (-1, -1), font_name, 9),
         ('TEXTCOLOR', (0, 0), (-1, -1), HexColor('#333333')),
         ('GRID', (0, 0), (-1, -1), 1, HexColor('#E5E7EB')),
         ('BACKGROUND', (0, 0), (0, -1), HexColor('#F3F4F6')),
@@ -1562,7 +1564,7 @@ def download_migraine_pdf():
     story.append(Spacer(1, 12))
     
     # Assessment Result Section
-    story.append(Paragraph("ASSESSMENT RESULT", section_header_style))
+    story.append(Paragraph(trans('pdf.migraine.assessment_result'), section_header_style))
     story.append(Spacer(1, 6))
     
     risk_style = ParagraphStyle(
@@ -1575,18 +1577,18 @@ def download_migraine_pdf():
         spaceBefore=6,
         leftIndent=8,
         rightIndent=8,
-        fontName='Helvetica-Bold',
+        fontName=font_name,
         alignment=TA_LEFT
     )
-    story.append(Paragraph(f"Risk Level: {risk_display}", risk_style))
+    story.append(Paragraph(f"{trans('pdf.migraine.risk_level')}: {risk_display}", risk_style))
     story.append(Spacer(1, 6))
-    story.append(Paragraph("Assessment based on migraine symptoms, triggers, family history, lifestyle factors, and environmental sensitivities.", normal_style))
+    story.append(Paragraph(trans('pdf.migraine.assessment_summary'), normal_style))
     story.append(Spacer(1, 12))
     story.append(Paragraph("_" * 80, normal_style))
     story.append(Spacer(1, 12))
     
     # Identified Triggers Section
-    story.append(Paragraph("IDENTIFIED TRIGGERS / SYMPTOMS", section_header_style))
+    story.append(Paragraph(trans('pdf.migraine.identified_triggers'), section_header_style))
     story.append(Spacer(1, 6))
     
     if triggers:
@@ -1594,14 +1596,14 @@ def download_migraine_pdf():
             trigger_para = Paragraph(f"• {trigger}", normal_style)
             story.append(trigger_para)
     else:
-        story.append(Paragraph("• No significant triggers identified", normal_style))
+        story.append(Paragraph(f"• {trans('live_health.no_risks')}", normal_style))
     
     story.append(Spacer(1, 12))
     story.append(Paragraph("_" * 80, normal_style))
     story.append(Spacer(1, 12))
     
     # Personalized Recommendations Section
-    story.append(Paragraph("PERSONALIZED RECOMMENDATIONS", section_header_style))
+    story.append(Paragraph(trans('pdf.migraine.personalized_recommendations'), section_header_style))
     story.append(Spacer(1, 6))
     
     for rec in advice:
@@ -1613,10 +1615,10 @@ def download_migraine_pdf():
     story.append(Spacer(1, 12))
     
     # Medical Disclaimer Section
-    story.append(Paragraph("MEDICAL DISCLAIMER", section_header_style))
+    story.append(Paragraph(trans('pdf.migraine.medical_disclaimer'), section_header_style))
     story.append(Spacer(1, 6))
     
-    disclaimer_text = """This AI-generated report is intended only for preliminary health awareness and should not replace professional medical diagnosis or treatment. Please consult a qualified neurologist for proper evaluation."""
+    disclaimer_text = trans('pdf.migraine.disclaimer')
     
     disclaimer_style = ParagraphStyle(
         'Disclaimer',
@@ -1646,9 +1648,9 @@ def download_migraine_pdf():
     )
     story.append(Paragraph("_" * 80, normal_style))
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Generated by CareSense AI", footer_style))
-    story.append(Paragraph("Professional Migraine Assessment Report", footer_style))
-    story.append(Paragraph("Version 1.0", footer_style))
+    story.append(Paragraph(trans('pdf.migraine.generated_by'), footer_style))
+    story.append(Paragraph(trans('pdf.migraine.report_label'), footer_style))
+    story.append(Paragraph(trans('pdf.migraine.version'), footer_style))
     
     # Build PDF
     doc.build(story)
@@ -1668,21 +1670,22 @@ def chat():
         data = request.get_json(force=True, silent=True)
         
         if data is None:
-            return jsonify({"reply": "Invalid request format"}), 400
+            return jsonify({"reply": get_translation('chatbot.invalid_question', session.get('lang', DEFAULT_LANGUAGE))}), 400
         
         user_msg = data.get("message", "").strip()
         
         if not user_msg:
-            return jsonify({"reply": "Please ask a question"}), 400
+            return jsonify({"reply": get_translation('chatbot.invalid_question', session.get('lang', DEFAULT_LANGUAGE))}), 400
         
-        # Call chatbot
+        # Call chatbot with selected language to enforce response language
         try:
-            reply = chatbot_response(user_msg)
+            lang = session.get('lang', DEFAULT_LANGUAGE)
+            reply = chatbot_response(user_msg, lang=lang)
             return jsonify({"reply": reply}), 200
         except Exception as bot_error:
             import traceback
             error_msg = f"{type(bot_error).__name__}: {str(bot_error)}\n{traceback.format_exc()}"
-            return jsonify({"reply": f"ERROR: {error_msg}"}), 500
+            return jsonify({"reply": f"{get_translation('chatbot.error', lang)} {error_msg}"}), 500
             
     except Exception as e:
         import traceback

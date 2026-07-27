@@ -127,31 +127,31 @@
 <div class="result-container">
 
     <div class="result-header animate">
-        <h1>📊 PCOD Assessment Results</h1>
+        <h1>{{ t('pcod_result.title') }}</h1>
     </div>
 
     <!-- RESULT -->
     <div class="result-card animate">
-        <h2>🌸 PCOD Risk Assessment</h2>
-        <p class="danger animate">Risk Level: {{ risk }}</p>
+        <h2>{{ t('pcod_result.heading') }}</h2>
+        <p class="danger animate">{{ t('result.risk_level_label') }} {{ risk }}</p>
         <p style="color: #4a5568; margin-top: 15px;">
-            Assessment based on BMI, stress, sleep quality, activity level, diet, and family history.
+            {{ t('pcod_result.summary_text') }}
         </p>
     </div>
 
     <!-- CONCERNS -->
     <div class="result-card animate">
-        <h2>⚠️ Possible Health Concerns</h2>
+        <h2>{{ t('pcod_result.possible_concerns') }}</h2>
         <ul>
-            <li class="animate">Hormonal imbalance</li>
-            <li class="animate">Metabolic issues</li>
-            <li class="animate">Stress-related effects</li>
+            <li class="animate">{{ t('pcod_result.concern_hormonal') }}</li>
+            <li class="animate">{{ t('pcod_result.concern_metabolic') }}</li>
+            <li class="animate">{{ t('pcod_result.concern_stress') }}</li>
         </ul>
     </div>
 
     <!-- ADVICE -->
     <div class="result-card animate">
-        <h2>✅ Personalized Recommendations</h2>
+        <h2>{{ t('pcod_result.recommendations') }}</h2>
         <ul>
             {% for a in advice %}
             <li class="animate">{{ a }}</li>
@@ -163,13 +163,13 @@
     <div class="button-container animate">
 
     <a href="/download_pcod_pdf" class="btn animate">
-        📄 Download Professional PDF Report
+        {{ t('pcod_result.download_pdf') }}
     </a>
 
     <br><br>
 
     <a href="/pcod" class="btn animate">
-        🔁 Perform Another Assessment
+        {{ t('pcod_result.another_assessment') }}
     </a>
 
 </div>

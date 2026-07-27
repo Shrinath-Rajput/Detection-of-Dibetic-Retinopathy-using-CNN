@@ -356,34 +356,35 @@
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🤖 AI Healthcare Chatbot</h1>
-    <p>
-        Get instant answers to your health questions from our AI-powered healthcare assistant. Ask about symptoms, preventive care, lifestyle changes, and more.
-    </p>
+    <h1>{{ t('chatbot.title') }}</h1>
+    <p>{{ t('chatbot.subtitle') }}</p>
 </div>
 
 <!-- CHAT CONTAINER -->
 <div class="chat-container animate">
     <div class="chat-header">
-        <h3>💬 Ask CareSense AI</h3>
-        <p>Real-time medical information and guidance</p>
+        <h3>💬 {{ t('chatbot.title') }}</h3>
+        <p>{{ t('chatbot.subtitle') }}</p>
     </div>
 
     <div id="chat-box" class="chat-box animate">
         <div class="bot-msg">
-            <strong>🤖 CareSense Bot:</strong> Hello! 👋 I'm your AI health assistant. Ask me anything about health, nutrition, lifestyle, or any of our diagnostic services. How can I help you today?
+            <strong>🤖 CareSense Bot:</strong> {{ t('chatbot.greeting') }}
         </div>
     </div>
+    <script>
+        const chatbotErrorMessage = `{{ t('chatbot.error_message') }}`;
+    </script>
 
     <div class="chat-input animate">
         <input 
             type="text" 
             id="userInput" 
             class="form-control" 
-            placeholder="Type your question here... (e.g., 'What is diabetic retinopathy?')"
+            placeholder="{{ t('chatbot.placeholder') }}"
             onkeypress="if(event.key==='Enter') sendMessage()"
         >
-        <button class="send-button" onclick="sendMessage()">Send →</button>
+        <button class="send-button" onclick="sendMessage()">{{ t('chatbot.send_button') }}</button>
     </div>
 </div>
 
@@ -428,7 +429,7 @@
             console.error("Chatbot Error:", error);
             let botDiv = document.createElement("div");
             botDiv.className = "bot-msg";
-            botDiv.innerHTML = `<strong>🤖 CareSense Bot:</strong> I apologize, but I encountered an error. Please try again.`;
+            botDiv.innerHTML = `<strong>🤖 CareSense Bot:</strong> {{ t('chatbot.error_message') }}`;
             chatBox.appendChild(botDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         });

@@ -8,7 +8,7 @@ import sys
 import json
 sys.path.insert(0, 'd:\\e drive\\Only_Project\\dr_cnn')
 
-from src.chatbot.bot import generate_dynamic_medical_report, extract_report_sections
+from src.chatbot.bot import generate_dynamic_medical_report, extract_report_sections, build_report_prompt
 
 # Test different disease predictions
 TEST_CASES = [
@@ -18,6 +18,12 @@ TEST_CASES = [
     "Severe",
     "Proliferate_DR",
 ]
+
+# Prompt must request the full report schema, including Notes.
+prompt = build_report_prompt("Mild", request_id="test-prompt", lang="en")
+if '"Notes"' not in prompt:
+    print("[FAIL] Prompt does not request the Notes section")
+    sys.exit(1)
 
 # Hardcoded error messages that should NEVER appear
 FORBIDDEN_FALLBACK_TEXTS = [
@@ -65,6 +71,7 @@ for disease in TEST_CASES:
             "Lifestyle Recommendations",
             "Follow-up Advice",
             "Medical Disclaimer",
+            "Notes",
         ]
         
         missing_sections = [s for s in expected_sections if s not in report]

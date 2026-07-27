@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diabetes Prediction Result</title>
+    <title>{{ t('diabetes_result.title') }}</title>
 
     <!-- FONTS -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -169,11 +169,11 @@
 
 <div class="container animate">
 
-    <h2 class="animate">🧪 Diabetes Risk Assessment</h2>
+    <h2 class="animate">{{ t('diabetes_result.title') }}</h2>
 
     <div class="risk animate">{{ risk }}</div>
 
-    <h4 class="animate">🎯 Preventive Recommendations</h4>
+    <h4 class="animate">{{ t('diabetes_result.recommendations') }}</h4>
     <ul>
         {% for a in advice %}
             <li class="animate">{{ a }}</li>
@@ -181,10 +181,10 @@
     </ul>
 
     <a href="/download_diabetes_pdf" class="btn animate" style="margin-bottom: 16px;">
-        📄 Download Professional PDF Report
+        {{ t('diabetes_result.download_pdf') }}
     </a>
     <a href="/diabetes" class="btn animate">
-        🔁 Perform Another Assessment
+        {{ t('diabetes_result.another_assessment') }}
     </a>
 
 </div>

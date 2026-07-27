@@ -3,13 +3,13 @@
 {% block content %}
 
 <div class="chat-container animate">
-    <h2 class="animate">🤖 AI Health Assistant</h2>
+    <h2 class="animate">{{ t('chat.title') }}</h2>
 
     <div id="chat-box" class="chat-box"></div>
 
     <div class="input-area animate">
-        <input type="text" id="user-input" placeholder="Ask something..." />
-        <button onclick="sendMessage()">Send</button>
+        <input type="text" id="user-input" placeholder="{{ t('chat.placeholder') }}" />
+        <button onclick="sendMessage()">{{ t('chat.send') }}</button>
     </div>
 </div>
 

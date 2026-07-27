@@ -141,134 +141,132 @@
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🏥 CareSense AI Assistant</h1>
-    <p>
-        Advanced AI-powered clinical decision support system for early detection of Diabetic Retinopathy, PCOD, Migraine, Diabetes, and real-time health monitoring.
-    </p>
+    <h1>{{ t('home.hero.title') }}</h1>
+    <p>{{ t('home.hero.subtitle') }}</p>
 </div>
 
 <!-- PROBLEM -->
 <div class="section animate">
-    <h2>🚨 The Challenge</h2>
+    <h2>{{ t('home.challenge.title') }}</h2>
     <p class="section-intro">
-        <span class="feature-highlight">Diabetic Retinopathy</span> causes preventable blindness if not detected early. Combined with other health conditions, timely diagnosis and monitoring are critical for better patient outcomes.
+        {{ t('home.challenge.text') }}
     </p>
 </div>
 
 <!-- SOLUTION -->
 <div class="section">
-    <h2 class="animate">💡 Our Solution</h2>
+    <h2 class="animate">{{ t('home.solution.title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
             <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">🤖</div>
-            <h3>AI-Based Analysis</h3>
-            <p>Advanced CNN models for retinal analysis with real-time processing</p>
+            <h3>{{ t('home.solution.ai_based.title') }}</h3>
+            <p>{{ t('home.solution.ai_based.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📊</div>
-            <h3>Smart Classification</h3>
-            <p>Automatic disease classification with risk-based assessment</p>
+            <h3>{{ t('home.solution.classification.title') }}</h3>
+            <p>{{ t('home.solution.classification.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📡</div>
-            <h3>IoT Monitoring</h3>
-            <p>Real-time health monitoring via ESP32 + MAX30102 sensor</p>
+            <h3>{{ t('home.solution.iot.title') }}</h3>
+            <p>{{ t('home.solution.iot.text') }}</p>
         </div>
     </div>
 </div>
 
 <!-- WORKFLOW -->
 <div class="section">
-    <h2 class="animate">⚙️ How It Works</h2>
+    <h2 class="animate">{{ t('home.workflow.title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
             <div style="font-size: 40px;">📸</div>
-            <h3>Upload Image</h3>
-            <p>Secure image upload</p>
+            <h3>{{ t('home.workflow.upload.title') }}</h3>
+            <p>{{ t('home.workflow.upload.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 40px;">🔄</div>
-            <h3>Preprocessing</h3>
-            <p>Advanced processing</p>
+            <h3>{{ t('home.workflow.preprocessing.title') }}</h3>
+            <p>{{ t('home.workflow.preprocessing.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 40px;">🧠</div>
-            <h3>CNN Analysis</h3>
-            <p>AI processing</p>
+            <h3>{{ t('home.workflow.analysis.title') }}</h3>
+            <p>{{ t('home.workflow.analysis.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 40px;">📈</div>
-            <h3>Prediction</h3>
-            <p>Result generation</p>
+            <h3>{{ t('home.workflow.prediction.title') }}</h3>
+            <p>{{ t('home.workflow.prediction.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 40px;">❤️</div>
-            <h3>Health Data</h3>
-            <p>Vital monitoring</p>
+            <h3>{{ t('home.workflow.health.title') }}</h3>
+            <p>{{ t('home.workflow.health.text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 40px;">✅</div>
-            <h3>Results</h3>
-            <p>Comprehensive report</p>
+            <h3>{{ t('home.workflow.results.title') }}</h3>
+            <p>{{ t('home.workflow.results.text') }}</p>
         </div>
     </div>
 </div>
 
 <!-- TECH -->
 <div class="section">
-    <h2 class="animate">🧪 Technology Stack</h2>
+    <h2 class="animate">{{ t('home.technology.title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
-            <h3>⚙️ Backend</h3>
-            <p>Python + Flask</p>
+            <h3>⚙️ {{ t('home.technology.backend') }}</h3>
+            <p>{{ t('home.technology.backend_text') }}</p>
         </div>
         <div class="card animate">
-            <h3>🤖 AI/ML</h3>
-            <p>TensorFlow & Keras</p>
+            <h3>🤖 {{ t('home.technology.ai') }}</h3>
+            <p>{{ t('home.technology.ai_text') }}</p>
         </div>
         <div class="card animate">
-            <h3>👁️ Vision</h3>
-            <p>OpenCV</p>
+            <h3>👁️ {{ t('home.technology.vision') }}</h3>
+            <p>{{ t('home.technology.vision_text') }}</p>
         </div>
         <div class="card animate">
-            <h3>📱 IoT</h3>
-            <p>ESP32 + MAX30102</p>
+            <h3>📱 {{ t('home.technology.iot') }}</h3>
+            <p>{{ t('home.technology.iot_text') }}</p>
         </div>
     </div>
 </div>
 
 <!-- IMPACT -->
 <div class="section">
-    <h2 class="animate">📊 Impact & Results</h2>
+    <h2 class="animate">{{ t('home.impact.title') }}</h2>
 
     <div class="stats">
         <div class="stat animate">
-            <h3>90%+</h3>
-            <p>Early Detection</p>
+            <h3>{{ t('home.impact.result_01') }}</h3>
+            <p>{{ t('home.impact.early_detection') }}</p>
         </div>
         <div class="stat animate">
-            <h3>60%</h3>
-            <p>Faster Diagnosis</p>
+            <h3>{{ t('home.impact.result_02') }}</h3>
+            <p>{{ t('home.impact.faster_diagnosis') }}</p>
         </div>
         <div class="stat animate">
-            <h3>24×7</h3>
-            <p>Continuous Monitoring</p>
+            <h3>{{ t('home.impact.result_03') }}</h3>
+            <p>{{ t('home.impact.continuous_monitoring') }}</p>
         </div>
         <div class="stat animate">
-            <h3>∞</h3>
-            <p>Highly Scalable</p>
+            <h3>{{ t('home.impact.result_04') }}</h3>
+            <p>{{ t('home.impact.highly_scalable') }}</p>
         </div>
     </div>
 </div>
 
 <!-- CTA -->
 <div class="cta animate">
-    <h2>🚀 Begin Your Health Journey</h2>
-    <p>Start with AI-powered diagnostics today and take control of your health</p>
-    <a href="/dr">Start DR Analysis →</a>
+    <h2>{{ t('home.cta.title') }}</h2>
+    <p>{{ t('home.cta.text') }}</p>
+    <a href="/dr">{{ t('home.cta.button') }}</a>
 </div>
 
 {% endblock %}

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CareSense AI - Premium Healthcare Platform</title>
+    <title>{{ t('base.title') }}</title>
 
     <!-- FONTS -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -268,10 +268,6 @@
         .animate:nth-child(5) { animation-delay: 0.5s; }
         .animate:nth-child(6) { animation-delay: 0.6s; }
 
-        /* RESPONSIVE */
-=======
-        /* Premium Dark Navbar Mobile */
->>>>>>> 867749d (all)
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block !important;
@@ -326,14 +322,14 @@
 <footer class="premium-footer">
     <div class="footer-content">
         <div class="footer-section">
-            <h3>🏥 CareSense AI</h3>
-            <p>Advanced AI-Powered Clinical Decision Support System</p>
+            <h3>{{ t('base.footer.name') }}</h3>
+            <p>{{ t('base.footer.description') }}</p>
         </div>
         <div class="footer-section">
-            <p><strong>Premium Diagnostics</strong> - Diabetic Retinopathy Detection • PCOD Analysis • Migraine Prediction • Real-Time Health Monitoring</p>
+            <p><strong>{{ t('base.footer.products') }}</strong></p>
         </div>
         <div class="footer-section">
-            <p>© 2024 CareSense. All Rights Reserved. | Built with ❤️ for Better Healthcare</p>
+            <p>{{ t('base.footer.copyright') }}</p>
         </div>
     </div>
     <div class="footer-glow"></div>
@@ -359,26 +355,6 @@
 
     // Add animation to elements on scroll
     const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.card, .stat, .section, .hero, .form-box').forEach(el => {
-        observer.observe(el);
-    });
-</script>
-
-</body>
-</html>
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };

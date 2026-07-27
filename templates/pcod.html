@@ -39,100 +39,96 @@
 
 <!-- HERO -->
 <div class="hero animate">
-    <h1>🌸 PCOD Risk Assessment</h1>
-    <p>
-        Advanced AI-based questionnaire system for early detection of Polycystic Ovarian Disease through comprehensive health assessment.
-    </p>
+    <h1>{{ t('pcod.title') }}</h1>
+    <p>{{ t('pcod.subtitle') }}</p>
 </div>
 
 <!-- ABOUT -->
 <div class="section animate">
-    <h2>What is PCOD?</h2>
-    <p class="form-info">
-        Polycystic Ovarian Disease (PCOD) is a hormonal disorder affecting women of reproductive age. It's characterized by imbalanced hormone levels and can impact fertility, metabolism, and overall health. Early detection and lifestyle management are crucial.
-    </p>
+    <h2>{{ t('pcod.about.title') }}</h2>
+    <p class="form-info">{{ t('pcod.about.text') }}</p>
 </div>
 
 <!-- SYMPTOMS -->
 <div class="section">
-    <h2 class="animate">🔍 Common Indicators</h2>
+    <h2 class="animate">{{ t('pcod.indicators_title') }}</h2>
 
     <div class="cards">
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">⚖️</div>
-            <h3>Weight Gain</h3>
-            <p>Unexplained weight changes</p>
+            <h3>{{ t('pcod.indicator_weight') }}</h3>
+            <p>{{ t('pcod.indicator_weight_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
-            <h3>Fatigue</h3>
-            <p>Persistent tiredness</p>
+            <h3>{{ t('pcod.indicator_fatigue') }}</h3>
+            <p>{{ t('pcod.indicator_fatigue_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">😣</div>
-            <h3>Stress</h3>
-            <p>Mental health concerns</p>
+            <h3>{{ t('pcod.indicator_stress') }}</h3>
+            <p>{{ t('pcod.indicator_stress_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">🩸</div>
-            <h3>Irregular Periods</h3>
-            <p>Menstrual irregularities</p>
+            <h3>{{ t('pcod.indicator_periods') }}</h3>
+            <p>{{ t('pcod.indicator_periods_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">🥗</div>
-            <h3>Poor Diet</h3>
-            <p>Unhealthy eating patterns</p>
+            <h3>{{ t('pcod.indicator_diet') }}</h3>
+            <p>{{ t('pcod.indicator_diet_text') }}</p>
         </div>
         <div class="card animate">
             <div style="font-size: 24px; margin-bottom: 10px;">👩‍👧</div>
-            <h3>Family History</h3>
-            <p>Genetic predisposition</p>
+            <h3>{{ t('pcod.indicator_family') }}</h3>
+            <p>{{ t('pcod.indicator_family_text') }}</p>
         </div>
     </div>
 </div>
 
 <!-- FORM -->
 <div class="section animate">
-    <h2>PCOD Risk Assessment Form</h2>
+    <h2>{{ t('pcod.form_title') }}</h2>
 
     <div class="form-box animate">
         <form action="/pcod_predict" method="POST">
 
             <div class="form-grid">
-                <input type="number" name="age" placeholder="Age (years)" required min="1" max="120">
+                <input type="number" name="age" placeholder="{{ t('pcod.age_placeholder') }}" required min="1" max="120">
 
                 <select name="gender" required>
-                    <option value="">-- Gender --</option>
-                    <option>Female</option>
+                    <option value="">{{ t('pcod.gender_select') }}</option>
+                    <option>{{ t('pcod.gender_female') }}</option>
                 </select>
 
-                <input type="number" step="0.1" name="bmi" placeholder="BMI" required min="10" max="60">
+                <input type="number" step="0.1" name="bmi" placeholder="{{ t('pcod.bmi_placeholder') }}" required min="10" max="60">
 
-                <input type="number" name="fatigue" placeholder="Fatigue Level (1-10)" min="1" max="10">
-                <input type="number" name="sleep" placeholder="Sleep Quality (1-10)" min="1" max="10">
-                <input type="number" name="stress" placeholder="Stress Level (1-10)" min="1" max="10">
+                <input type="number" name="fatigue" placeholder="{{ t('pcod.fatigue_placeholder') }}" min="1" max="10">
+                <input type="number" name="sleep" placeholder="{{ t('pcod.sleep_placeholder') }}" min="1" max="10">
+                <input type="number" name="stress" placeholder="{{ t('pcod.stress_placeholder') }}" min="1" max="10">
 
                 <select name="activity">
-                    <option value="">-- Activity Level --</option>
-                    <option value="low">Low Activity</option>
-                    <option value="moderate">Moderate Activity</option>
-                    <option value="high">High Activity</option>
+                    <option value="">{{ t('pcod.activity_select') }}</option>
+                    <option value="low">{{ t('pcod.activity_low') }}</option>
+                    <option value="moderate">{{ t('pcod.activity_moderate') }}</option>
+                    <option value="high">{{ t('pcod.activity_high') }}</option>
                 </select>
 
                 <select name="diet">
-                    <option value="">-- Diet Type --</option>
-                    <option value="balanced">Balanced Diet</option>
-                    <option value="junk">Junk Food Diet</option>
+                    <option value="">{{ t('pcod.diet_select') }}</option>
+                    <option value="balanced">{{ t('pcod.diet_balanced') }}</option>
+                    <option value="junk">{{ t('pcod.diet_junk') }}</option>
                 </select>
 
                 <select name="family_history" required>
-                    <option value="">-- Family History --</option>
-                    <option value="yes">Family History: Yes</option>
-                    <option value="no">No Family History</option>
+                    <option value="">{{ t('pcod.family_history_select') }}</option>
+                    <option value="yes">{{ t('pcod.family_history_yes') }}</option>
+                    <option value="no">{{ t('pcod.family_history_no') }}</option>
                 </select>
             </div>
 
-            <button type="submit">🔍 Assess PCOD Risk</button>
+            <button type="submit">{{ t('pcod.assess_button') }}</button>
         </form>
     </div>
 </div>
@@ -140,7 +136,7 @@
 <!-- NOTE -->
 <div class="section animate">
     <div class="note">
-        ⚠️ <strong>Medical Disclaimer:</strong> This assessment is for informational purposes only. Please consult with a gynecologist or endocrinologist for professional diagnosis and treatment recommendations.
+        {{ t('pcod.disclaimer') }}
     </div>
 </div>
 

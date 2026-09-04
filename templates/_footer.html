@@ -1,0 +1,229 @@
+<!-- =========================================================
+     CARESENSE REUSABLE COMPACT FOOTER COMPONENT
+     ========================================================= -->
+<footer class="caresense-compact-footer" id="caresenseFooter">
+    <div class="footer-inner-container">
+        
+        <!-- Row 1: Brand & Tagline -->
+        <div class="footer-brand-line">
+            <span class="footer-brand-title">
+                <span class="footer-brand-icon">🏥</span>
+                {% if current_lang == 'hi' %}
+                    केयरसेंस एआई
+                {% elif current_lang == 'mr' %}
+                    केअरसेन्स एआय
+                {% else %}
+                    CareSense AI
+                {% endif %}
+            </span>
+            <span class="footer-bullet">•</span>
+            <span class="footer-tagline">
+                {% if current_lang == 'hi' %}
+                    उन्नत एआई-समर्थित क्लिनिकल निर्णय समर्थन प्रणाली
+                {% elif current_lang == 'mr' %}
+                    प्रगत एआय-संचलित क्लिनिकल निर्णय समर्थन प्रणाली
+                {% else %}
+                    Advanced AI-Powered Clinical Decision Support System
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- Row 2: Navigation Links -->
+        <nav class="footer-navigation" aria-label="Footer Navigation">
+            <a href="/">
+                {% if current_lang == 'hi' %}होम{% elif current_lang == 'mr' %}मुख्यपृष्ठ{% else %}Home{% endif %}
+            </a>
+            <span class="footer-nav-sep">|</span>
+
+            <a href="/dr">
+                {% if current_lang == 'hi' %}डायबेटिक रेटिनोपैथी{% elif current_lang == 'mr' %}डायबेटिक रेटिनोपॅथी{% else %}Diabetic Retinopathy{% endif %}
+            </a>
+            <span class="footer-nav-sep">|</span>
+
+            <a href="/pcod">
+                {% if current_lang == 'hi' %}इनपुट-आधारित रोग{% elif current_lang == 'mr' %}इनपुट-आधारित आजार{% else %}Input-Based Diseases{% endif %}
+            </a>
+            <span class="footer-nav-sep">|</span>
+
+            <a href="/live_health">
+                {% if current_lang == 'hi' %}लाइव सेंसर{% elif current_lang == 'mr' %}लाइव्ह सेन्सर{% else %}Live Sensor{% endif %}
+            </a>
+            <span class="footer-nav-sep">|</span>
+
+            <a href="/chatbot">
+                {% if current_lang == 'hi' %}एआई चैट{% elif current_lang == 'mr' %}एआय चॅट{% else %}AI Chat{% endif %}
+            </a>
+        </nav>
+
+        <!-- Row 3: Platform Scope Line -->
+        <div class="footer-platform-line">
+            {% if current_lang == 'hi' %}
+                प्रीमियम डायग्नोस्टिक्स • प्रारंभिक पहचान • रीयल-टाइम स्वास्थ्य निगरानी
+            {% elif current_lang == 'mr' %}
+                प्रीमियम डायग्नोस्टिक्स • लवकर आजार निदान • रिअल-टाइम आरोग्य देखरेख
+            {% else %}
+                Premium Diagnostics • Early Detection • Real-Time Health Monitoring
+            {% endif %}
+        </div>
+
+        <!-- Row 4: Copyright Line -->
+        <div class="footer-copyright-line">
+            {% if current_lang == 'hi' %}
+                © 2024 CareSense. सर्व अधिकार सुरक्षित। | बेहतर स्वास्थ्य के लिए ❤️ के साथ निर्मित
+            {% elif current_lang == 'mr' %}
+                © 2024 CareSense. सर्व हक्क राखीव. | उत्तम आरोग्यासाठी ❤️ सह निर्मित
+            {% else %}
+                © 2024 CareSense. All Rights Reserved. | Built with ❤️ for Better Healthcare
+            {% endif %}
+        </div>
+
+    </div>
+</footer>
+
+<style>
+    /* Compact Dark Navy/Blue Navbar-Matching Footer Styling */
+    .caresense-compact-footer {
+        position: relative;
+        width: 100%;
+        background: #090e1f;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 20px 24px 18px 24px;
+        margin-top: 40px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
+        text-align: center;
+        clear: both;
+    }
+
+    .footer-inner-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Brand & Tagline */
+    .footer-brand-line {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 2px;
+    }
+
+    .footer-brand-title {
+        font-size: 14.5px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .footer-brand-icon {
+        font-size: 14px;
+        -webkit-text-fill-color: initial;
+    }
+
+    .footer-bullet {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .footer-tagline {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+
+    /* Navigation Links */
+    .footer-navigation {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 2px 0;
+    }
+
+    .footer-navigation a {
+        color: #e2e8f0;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 2px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .footer-navigation a:hover {
+        color: #00D9FF;
+        background-color: rgba(0, 217, 255, 0.1);
+    }
+
+    .footer-nav-sep {
+        color: rgba(255, 255, 255, 0.18);
+        font-size: 11px;
+        user-select: none;
+    }
+
+    /* Platform Line */
+    .footer-platform-line {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #94a3b8;
+        letter-spacing: 0.2px;
+    }
+
+    /* Copyright Line */
+    .footer-copyright-line {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .caresense-compact-footer {
+            padding: 16px 14px 14px 14px;
+            margin-top: 30px;
+        }
+
+        .footer-brand-line {
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .footer-bullet {
+            display: none;
+        }
+
+        .footer-navigation {
+            gap: 2px;
+        }
+
+        .footer-navigation a {
+            font-size: 12px;
+            padding: 2px 4px;
+        }
+
+        .footer-nav-sep {
+            margin: 0 1px;
+        }
+
+        .footer-platform-line {
+            font-size: 11px;
+        }
+
+        .footer-copyright-line {
+            font-size: 10.5px;
+        }
+    }
+</style>

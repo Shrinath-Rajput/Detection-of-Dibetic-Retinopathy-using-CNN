@@ -15,7 +15,6 @@
     <script defer src="{{ url_for('static', filename='js/animations.js') }}"></script>
 
     <style>
-<<<<<<< HEAD
         /* Global Premium Design */
         * {
             margin: 0;
@@ -176,21 +175,7 @@
             margin: 0 auto;
         }
 
-        /* FOOTER */
-        footer {
-            background: rgba(0, 51, 102, 0.05);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            text-align: center;
-            color: #4a5568;
-            font-size: 14px;
-            margin-top: 80px;
-        }
-
-        footer p {
-            margin: 8px 0;
-        }
+        /* Compact common footer styled via _footer.html */
 
         /* ANIMATIONS */
         @keyframes fadeInUp {
@@ -318,22 +303,8 @@
     {% block content %}{% endblock %}
 </div>
 
-<!-- FOOTER -->
-<footer class="premium-footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>{{ t('base.footer.name') }}</h3>
-            <p>{{ t('base.footer.description') }}</p>
-        </div>
-        <div class="footer-section">
-            <p><strong>{{ t('base.footer.products') }}</strong></p>
-        </div>
-        <div class="footer-section">
-            <p>{{ t('base.footer.copyright') }}</p>
-        </div>
-    </div>
-    <div class="footer-glow"></div>
-</footer>
+<!-- REUSABLE COMPACT FOOTER -->
+{% include '_footer.html' %}
 
 <script>
     // Mobile Menu Toggle

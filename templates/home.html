@@ -2,271 +2,1366 @@
 {% block content %}
 
 <style>
-    /* Home Page Specific Premium Styles */
-    .cta {
-        text-align: center;
-        margin-top: 100px;
-        padding: 100px 60px;
-        background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(236, 72, 153, 0.1) 100%);
-        border-radius: 32px;
-        border: 2px solid rgba(0, 217, 255, 0.35);
-        box-shadow: 0 30px 100px rgba(0, 217, 255, 0.25), 0 0 80px rgba(139, 92, 246, 0.15);
+    /* =========================================================
+       CARESENSE HOME PAGE — ACCURATE REFERENCE SCREENSHOT THEME
+       ========================================================= */
+
+    /* Ensure body and container take full width without horizontal overflow */
+    body {
+        background: #f1f6fd !important;
+        color: #0f172a !important;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Override parent container to permit full viewport hero banner */
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ---------------------------------------------------------
+       1. NAVBAR OVERRIDES (SPECIFIC TO HOME PAGE)
+       --------------------------------------------------------- */
+    .navbar {
+        background: #090e1f !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 14px 44px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        transition: none !important;
+    }
+
+    .navbar h2 {
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.3px !important;
+        font-size: 22px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .navbar .nav-links a {
+        background: #121c38 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px !important;
+        padding: 8px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        color: #e2e8f0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        transition: all 0.2s ease !important;
+        margin: 0 4px !important;
+    }
+
+    .navbar .nav-links a:hover {
+        background: #1c2a52 !important;
+        color: #38bdf8 !important;
+        border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+
+    .navbar .nav-links a::after {
+        display: none !important;
+    }
+
+    /* Active Highlighted State for Home Pill */
+    .navbar .nav-links a[href="/"] {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: 1px solid #0284c7 !important;
+        box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4) !important;
+    }
+
+    .navbar .dropdown-menu {
+        background: #0c142b !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .navbar .dropdown-menu a {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: #cbd5e1 !important;
+        padding: 10px 16px !important;
+        margin: 2px 0 !important;
+    }
+
+    .navbar .dropdown-menu a:hover {
+        background: #1e293b !important;
+        color: #38bdf8 !important;
+    }
+
+    /* ---------------------------------------------------------
+       2. FULL-WIDTH HERO SECTION & SLIDER
+       --------------------------------------------------------- */
+    .hero-slider-section {
         position: relative;
+        width: 100vw;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        min-height: 600px;
+        height: 72vh;
+        max-height: 720px;
+        background: #090e1f;
         overflow: hidden;
-        transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
-        backdrop-filter: blur(30px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
 
-    .cta::before {
-        content: '';
+    /* Slide container and individual slides */
+    .slider-container {
         position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(0, 217, 255, 0.3) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 25s ease-in-out infinite;
-        z-index: 1;
-        filter: blur(60px);
+        inset: 0;
+        width: 100%;
+        height: 100%;
     }
 
-    .cta::after {
-        content: '';
+    .hero-slide {
         position: absolute;
-        bottom: -30%;
-        left: 5%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 30s ease-in-out infinite reverse;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
         z-index: 1;
-        filter: blur(60px);
     }
 
-    .cta:hover {
-        background: linear-gradient(135deg, rgba(0, 217, 255, 0.2) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(236, 72, 153, 0.15) 100%);
-        border-color: rgba(0, 217, 255, 0.5);
-        box-shadow: 0 40px 140px rgba(0, 217, 255, 0.35), 0 0 100px rgba(139, 92, 246, 0.25);
-        transform: translateY(-15px);
-    }
-
-    .cta h2 {
-        font-size: 48px;
-        color: white;
-        margin-bottom: 25px;
-        font-weight: 900;
-        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 50%, #EC4899 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -1.5px;
-        position: relative;
+    .hero-slide.active {
+        opacity: 1;
+        visibility: visible;
         z-index: 2;
-        filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.3));
     }
 
-    .cta p {
-        color: rgba(255, 255, 255, 0.85);
-        margin-bottom: 40px !important;
-        font-size: 19px;
+    .hero-slide-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center right;
+        display: block;
+    }
+
+    /* Dark Blue Overlay on the left side matching reference screenshot */
+    .hero-gradient-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            90deg,
+            #090e1f 0%,
+            rgba(9, 14, 31, 0.96) 30%,
+            rgba(9, 14, 31, 0.82) 48%,
+            rgba(9, 14, 31, 0.3) 75%,
+            rgba(9, 14, 31, 0.05) 100%
+        );
+        z-index: 3;
+        pointer-events: none;
+    }
+
+    /* Hero Text Content (Left-aligned over the gradient) */
+    .hero-content-wrapper {
         position: relative;
-        z-index: 2;
-        font-weight: 500;
+        z-index: 4;
+        max-width: 1340px;
+        width: 100%;
+        height: 100%;
+        margin: 0 auto;
+        padding: 0 48px;
+        display: flex;
+        align-items: center;
     }
 
-    .cta a {
-        display: inline-block;
-        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 50%, #EC4899 100%);
-        background-size: 200% 200%;
-        animation: rotate-gradient 6s ease infinite;
-        color: white;
-        padding: 18px 50px;
-        border-radius: 14px;
-        text-decoration: none;
+    .hero-text-block {
+        max-width: 580px;
+        padding: 40px 0;
+    }
+
+    /* Small badge: "AI Powered Eye Care" */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(18, 28, 56, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50px;
+        padding: 6px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 22px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-badge .badge-icon {
+        font-size: 14px;
+        color: #38bdf8;
+    }
+
+    /* Main Heading */
+    .hero-title {
+        font-size: 50px;
+        line-height: 1.14;
         font-weight: 800;
-        transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
-        box-shadow: 0 15px 60px rgba(0, 217, 255, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
+        letter-spacing: -0.8px;
+        color: #ffffff;
+        margin: 0 0 18px 0;
+    }
+
+    .hero-title .text-cyan-accent {
+        color: #38bdf8;
+        font-weight: 850;
+    }
+
+    /* Description */
+    .hero-description {
         font-size: 16px;
-        position: relative;
-        z-index: 2;
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        letter-spacing: -0.3px;
+        line-height: 1.6;
+        color: #94a3b8;
+        margin: 0 0 32px 0;
+        font-weight: 450;
     }
 
-    .cta a:hover {
-        transform: translateY(-10px) scale(1.08);
-        box-shadow: 0 25px 80px rgba(0, 217, 255, 0.5), 0 0 60px rgba(139, 92, 246, 0.4);
-        border-color: rgba(255, 255, 255, 0.6);
+    /* Buttons */
+    .hero-btn-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 38px;
     }
 
-    .section-intro {
-        text-align: center;
-        max-width: 900px;
-        margin: 0 auto 60px;
+    .btn-hero-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #0284c7;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: none;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-hero-primary:hover {
+        background: #0369a1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(2, 132, 199, 0.45);
+    }
+
+    .btn-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #ffffff;
+        color: #0284c7 !important;
+        border: 1.5px solid rgba(2, 132, 199, 0.25);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 26px;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-hero-secondary:hover {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        transform: translateY(-2px);
+    }
+
+    /* Three Small Feature Highlights below buttons */
+    .hero-features-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+
+    .hero-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .hero-feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(2, 132, 199, 0.18);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 18px;
-        color: var(--text-secondary);
-        line-height: 2;
-        font-weight: 500;
+        color: #38bdf8;
+        flex-shrink: 0;
     }
 
-    .feature-highlight {
+    .hero-feature-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-feature-heading {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.25;
+    }
+
+    .hero-feature-subtext {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.3;
+    }
+
+    /* Left and Right Circular Slider Arrow Controls */
+    .slider-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 22px;
+        transition: all 0.25s ease;
+        backdrop-filter: blur(8px);
+        user-select: none;
+    }
+
+    .slider-arrow:hover {
+        background: rgba(2, 132, 199, 0.85);
+        border-color: #0284c7;
+        transform: translateY(-50%) scale(1.08);
+    }
+
+    .slider-arrow.prev {
+        left: 24px;
+    }
+
+    .slider-arrow.next {
+        right: 24px;
+    }
+
+    /* Carousel Dot Indicators at Bottom Center */
+    .slider-indicators {
+        position: absolute;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 10;
+    }
+
+    .slider-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slider-dot.active {
+        width: 24px;
+        border-radius: 10px;
+        background: #0284c7;
+        box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+    }
+
+    /* ---------------------------------------------------------
+       3. OUR FEATURES SECTION
+       --------------------------------------------------------- */
+    .home-features-section {
+        background: linear-gradient(180deg, #f1f6fd 0%, #e9f2fb 60%, #f4f8fe 100%);
+        width: 100%;
+        padding: 56px 24px 70px 24px;
+    }
+
+    .features-inner-container {
+        max-width: 1240px;
+        margin: 0 auto;
+    }
+
+    /* Centered Header */
+    .features-header {
+        text-align: center;
+        max-width: 780px;
+        margin: 0 auto 46px auto;
+    }
+
+    .features-kicker {
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0284c7;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .features-main-title {
+        font-size: 36px;
+        font-weight: 850;
+        line-height: 1.2;
+        letter-spacing: -0.6px;
+        color: #0a1931;
+        margin: 0 0 12px 0;
+    }
+
+    .features-subtitle {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #64748b;
+        margin: 0;
+        font-weight: 450;
+    }
+
+    /* 4 Feature Cards Grid */
+    .features-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-bottom: 44px;
+    }
+
+    .feature-clean-card {
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        border-radius: 20px;
+        padding: 28px 24px;
+        box-shadow: 0 10px 30px rgba(0, 51, 102, 0.04);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+
+    .feature-clean-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(2, 132, 199, 0.4);
+        box-shadow: 0 16px 40px rgba(2, 132, 199, 0.12);
+    }
+
+    .feature-clean-icon-box {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #e0f2fe;
+        color: #0284c7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-clean-card:hover .feature-clean-icon-box {
+        transform: scale(1.1);
+        background: #bae6fd;
+    }
+
+    .feature-clean-card h3 {
+        font-size: 18px;
+        font-weight: 750;
+        color: #0a1931;
+        margin: 0 0 8px 0;
+    }
+
+    .feature-clean-card p {
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: #64748b;
+        margin: 0 0 24px 0;
+        flex-grow: 1;
+    }
+
+    .feature-clean-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 18px;
+        background: #f8fafc;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0284c7;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        box-sizing: border-box;
+    }
+
+    .feature-clean-btn:hover {
+        background: #0284c7;
+        color: #ffffff !important;
+        border-color: #0284c7;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    /* ---------------------------------------------------------
+       4. TRUST / HIGHLIGHT SECTION
+       --------------------------------------------------------- */
+    .trust-horizontal-card {
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        border-radius: 20px;
+        padding: 28px 36px;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.04);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 50px;
+    }
+
+    .trust-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+        position: relative;
+    }
+
+    .trust-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: -12px;
+        top: 15%;
+        height: 70%;
+        width: 1px;
+        background: #e2e8f0;
+    }
+
+    .trust-icon-box {
+        font-size: 26px;
+        color: #0284c7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .trust-title {
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.35;
+    }
+
+    /* ---------------------------------------------------------
+       5. EXTENDED CLINICAL WORKFLOW & METRICS SECTION (FOR 3-SCREEN SCROLL)
+       --------------------------------------------------------- */
+    .extended-workflow-card {
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 8px 28px rgba(0, 51, 102, 0.04);
+        margin-bottom: 46px;
+    }
+
+    .workflow-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .workflow-kicker {
+        font-size: 13px;
         font-weight: 800;
-        color: #00D9FF;
-        text-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        color: #0284c7;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .workflow-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0a1931;
+        margin: 6px 0 0 0;
+    }
+
+    .workflow-steps-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    .workflow-step-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 22px 18px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .workflow-step-item:hover {
+        transform: translateY(-4px);
+        background: #ffffff;
+        border-color: #0284c7;
+        box-shadow: 0 8px 20px rgba(2, 132, 199, 0.1);
+    }
+
+    .workflow-step-num {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #0284c7;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px auto;
+    }
+
+    .workflow-step-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .workflow-step-title {
+        font-size: 15px;
+        font-weight: 750;
+        color: #0a1931;
+        margin-bottom: 6px;
+    }
+
+    .workflow-step-desc {
+        font-size: 12.5px;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Bottom CTA Card */
+    .home-bottom-cta {
+        background: linear-gradient(135deg, #0f172a 0%, #0369a1 100%);
+        border-radius: 24px;
+        padding: 44px 36px;
+        text-align: center;
+        color: #ffffff;
+        box-shadow: 0 16px 40px rgba(2, 132, 199, 0.2);
+    }
+
+    .home-bottom-cta h2 {
+        font-size: 30px;
+        font-weight: 800;
+        margin: 0 0 12px 0;
+    }
+
+    .home-bottom-cta p {
+        font-size: 15px;
+        color: #cbd5e1;
+        max-width: 650px;
+        margin: 0 auto 28px auto;
+        line-height: 1.6;
+    }
+
+    /* ---------------------------------------------------------
+       6. RESPONSIVE BREAKPOINTS
+       --------------------------------------------------------- */
+    @media (max-width: 1080px) {
+        .features-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .trust-horizontal-card {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        .trust-item:not(:last-child)::after {
+            display: none;
+        }
+        .workflow-steps-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .hero-title {
+            font-size: 40px;
+        }
     }
 
     @media (max-width: 768px) {
-        .cta {
-            padding: 60px 30px;
-            margin-top: 80px;
+        .navbar {
+            padding: 12px 20px !important;
         }
-
-        .cta h2 {
+        .hero-slider-section {
+            height: auto;
+            min-height: 540px;
+        }
+        .hero-content-wrapper {
+            padding: 40px 24px;
+        }
+        .hero-title {
             font-size: 32px;
-            margin-bottom: 20px;
         }
-
-        .cta a {
-            padding: 16px 40px;
-            font-size: 16px;
+        .features-cards-grid {
+            grid-template-columns: 1fr;
         }
-
-        .section-intro {
-            font-size: 16px;
+        .trust-horizontal-card {
+            grid-template-columns: 1fr;
+            padding: 24px 20px;
+        }
+        .workflow-steps-grid {
+            grid-template-columns: 1fr;
+        }
+        .slider-arrow {
+            display: none;
         }
     }
 </style>
 
-<!-- HERO -->
-<div class="hero animate">
-    <h1>{{ t('home.hero.title') }}</h1>
-    <p>{{ t('home.hero.subtitle') }}</p>
-</div>
+<!-- =========================================================
+     FULL-WIDTH HERO SLIDER SECTION
+     ========================================================= -->
+<section class="hero-slider-section" id="heroSliderSection">
 
-<!-- PROBLEM -->
-<div class="section animate">
-    <h2>{{ t('home.challenge.title') }}</h2>
-    <p class="section-intro">
-        {{ t('home.challenge.text') }}
-    </p>
-</div>
-
-<!-- SOLUTION -->
-<div class="section">
-    <h2 class="animate">{{ t('home.solution.title') }}</h2>
-
-    <div class="cards">
-        <div class="card animate">
-            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">🤖</div>
-            <h3>{{ t('home.solution.ai_based.title') }}</h3>
-            <p>{{ t('home.solution.ai_based.text') }}</p>
+    <!-- Image Slides (8 High-Quality Clinical AI & Ophthalmology Images) -->
+    <div class="slider-container" id="sliderContainer">
+        
+        <!-- Slide 1 (Exact Match to User Reference Screenshot) -->
+        <div class="hero-slide active">
+            <img src="{{ url_for('static', filename='images/hero/image.png') }}" 
+                 alt="Clinical ophthalmologist analyzing retinal fundus OCT scan with AI diagnostic workstation" 
+                 class="hero-slide-img" 
+                 loading="eager" />
         </div>
-        <div class="card animate">
-            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📊</div>
-            <h3>{{ t('home.solution.classification.title') }}</h3>
-            <p>{{ t('home.solution.classification.text') }}</p>
+
+        <!-- Slide 2 (Doctor Reviewing Retinal Photography on Medical Display) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_2.jpg') }}" 
+                 alt="Ophthalmology specialist analyzing retinal fundus photograph on medical display" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
         </div>
-        <div class="card animate">
-            <div style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));">📡</div>
-            <h3>{{ t('home.solution.iot.title') }}</h3>
-            <p>{{ t('home.solution.iot.text') }}</p>
+
+        <!-- Slide 3 (Digital Eye Examination & Slit Lamp OCT Diagnostic System) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_3.jpg') }}" 
+                 alt="Digital eye examination in modern ophthalmology center" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+        <!-- Slide 4 (Clinical AI Retinal Heatmap & Microvascular Lesion Diagnostics) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_4.jpg') }}" 
+                 alt="Clinical artificial intelligence eye diagnostic interface" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+        <!-- Slide 5 (High-Tech Diagnostic Fundus Camera & Clinical Eye Care Station) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_5.jpg') }}" 
+                 alt="High-tech ophthalmology diagnostic equipment in modern clinic" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+        <!-- Slide 6 (Eye Surgeons Analyzing 3D Retinal Vascular Scan Report) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_6.jpg') }}" 
+                 alt="Ophthalmology team reviewing AI diabetic retinopathy report" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+        <!-- Slide 7 (Laser Retinal Scanner Machine in Operation) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_7.jpg') }}" 
+                 alt="Precision optical eye scanner machine in operation" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+        <!-- Slide 8 (Clinical AI Neural Network Retina Diagnostic Research) -->
+        <div class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero/hero_8.jpg') }}" 
+                 alt="Ophthalmology researcher working with advanced neural network software" 
+                 class="hero-slide-img" 
+                 loading="lazy" />
+        </div>
+
+    </div>
+
+    <!-- Gradient Overlay (Dark Navy on Left for Clear Text Readability) -->
+    <div class="hero-gradient-overlay"></div>
+
+    <!-- Left Content (Badge, Heading, Description, Action Buttons, Highlights) -->
+    <div class="hero-content-wrapper">
+        <div class="hero-text-block">
+
+            <!-- Small Badge -->
+            <div class="hero-badge">
+                <span class="badge-icon">🌐</span>
+                <span>
+                    {% if current_lang == 'hi' %}
+                        एआई संचालित नेत्र देखभाल
+                    {% elif current_lang == 'mr' %}
+                        एआय संचलित नेत्र काळजी
+                    {% else %}
+                        AI Powered Eye Care
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="hero-title">
+                {% if current_lang == 'hi' %}
+                    डायबिटिक <span class="text-cyan-accent">रेटिनोपैथी</span><br>पहचान
+                {% elif current_lang == 'mr' %}
+                    डायबेटिक <span class="text-cyan-accent">रेटिनोपॅथी</span><br>तपासणी
+                {% else %}
+                    Diabetic <span class="text-cyan-accent">Retinopathy</span><br>Detection
+                {% endif %}
+            </h1>
+
+            <!-- Description -->
+            <p class="hero-description">
+                {% if current_lang == 'hi' %}
+                    रेटिना छवि अपलोड करें और प्रारंभिक रोग पहचान के लिए सटीक एआई-संचालित विश्लेषण प्राप्त करें।
+                {% elif current_lang == 'mr' %}
+                    रेटिना प्रतिमा अपलोड करा आणि लवकर आजार निदानासाठी अचूक एआय-संचलित विश्लेषण मिळवा.
+                {% else %}
+                    Upload a retinal image and get accurate AI-powered analysis for early disease detection.
+                {% endif %}
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="hero-btn-row">
+                <a href="/dr" class="btn-hero-primary" id="heroStartScanBtn">
+                    <span>👁</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            रेटिनोपैथी स्कैन शुरू करें
+                        {% elif current_lang == 'mr' %}
+                            रेटिनोपॅथी स्कॅन सुरू करा
+                        {% else %}
+                            Start Retinopathy Scan
+                        {% endif %}
+                    </span>
+                </a>
+
+                <a href="/live_health" class="btn-hero-secondary" id="heroLiveSensorBtn">
+                    <span>((•))</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            लाइव पेशेंट सेंसर
+                        {% elif current_lang == 'mr' %}
+                            लाइव्ह पेशंट सेन्सर
+                        {% else %}
+                            Live Patient Sensor
+                        {% endif %}
+                    </span>
+                </a>
+            </div>
+
+            <!-- Feature Highlights under Buttons -->
+            <div class="hero-features-row">
+                <!-- Highlight 1 -->
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon">🛡️</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}सुरक्षित और निजी{% elif current_lang == 'mr' %}सुरक्षित आणि खाजगी{% else %}Secure &amp; Private{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}आपका डेटा सुरक्षित है{% elif current_lang == 'mr' %}तुमचा डेटा सुरक्षित आहे{% else %}Your data is protected{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Highlight 2 -->
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon">⚡</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}एआई संचालित{% elif current_lang == 'mr' %}एआय संचलित{% else %}AI Powered{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}उन्नत विश्लेषण{% elif current_lang == 'mr' %}प्रगत विश्लेषण{% else %}Advanced analysis{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Highlight 3 -->
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon">📑</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}विस्तृत रिपोर्ट{% elif current_lang == 'mr' %}सविस्तर अहवाल{% else %}Detailed Reports{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}क्लिनिकल अंतर्दृष्टि{% elif current_lang == 'mr' %}क्लिनिकल माहिती{% else %}Clinical insights{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
 
-<!-- WORKFLOW -->
-<div class="section">
-    <h2 class="animate">{{ t('home.workflow.title') }}</h2>
+    <!-- Circular Navigation Arrows -->
+    <button class="slider-arrow prev" id="sliderPrevBtn" aria-label="Previous Slide">‹</button>
+    <button class="slider-arrow next" id="sliderNextBtn" aria-label="Next Slide">›</button>
 
-    <div class="cards">
-        <div class="card animate">
-            <div style="font-size: 40px;">📸</div>
-            <h3>{{ t('home.workflow.upload.title') }}</h3>
-            <p>{{ t('home.workflow.upload.text') }}</p>
-        </div>
-        <div class="card animate">
-            <div style="font-size: 40px;">🔄</div>
-            <h3>{{ t('home.workflow.preprocessing.title') }}</h3>
-            <p>{{ t('home.workflow.preprocessing.text') }}</p>
-        </div>
-        <div class="card animate">
-            <div style="font-size: 40px;">🧠</div>
-            <h3>{{ t('home.workflow.analysis.title') }}</h3>
-            <p>{{ t('home.workflow.analysis.text') }}</p>
-        </div>
-        <div class="card animate">
-            <div style="font-size: 40px;">📈</div>
-            <h3>{{ t('home.workflow.prediction.title') }}</h3>
-            <p>{{ t('home.workflow.prediction.text') }}</p>
-        </div>
-        <div class="card animate">
-            <div style="font-size: 40px;">❤️</div>
-            <h3>{{ t('home.workflow.health.title') }}</h3>
-            <p>{{ t('home.workflow.health.text') }}</p>
-        </div>
-        <div class="card animate">
-            <div style="font-size: 40px;">✅</div>
-            <h3>{{ t('home.workflow.results.title') }}</h3>
-            <p>{{ t('home.workflow.results.text') }}</p>
-        </div>
+    <!-- Bottom Center Carousel Indicators -->
+    <div class="slider-indicators" id="sliderIndicators">
+        <span class="slider-dot active" data-index="0"></span>
+        <span class="slider-dot" data-index="1"></span>
+        <span class="slider-dot" data-index="2"></span>
+        <span class="slider-dot" data-index="3"></span>
+        <span class="slider-dot" data-index="4"></span>
+        <span class="slider-dot" data-index="5"></span>
+        <span class="slider-dot" data-index="6"></span>
+        <span class="slider-dot" data-index="7"></span>
     </div>
-</div>
 
-<!-- TECH -->
-<div class="section">
-    <h2 class="animate">{{ t('home.technology.title') }}</h2>
+</section>
 
-    <div class="cards">
-        <div class="card animate">
-            <h3>⚙️ {{ t('home.technology.backend') }}</h3>
-            <p>{{ t('home.technology.backend_text') }}</p>
+
+<!-- =========================================================
+     OUR FEATURES & TRUST SECTION
+     ========================================================= -->
+<section class="home-features-section">
+    <div class="features-inner-container">
+
+        <!-- Centered Header -->
+        <div class="features-header">
+            <span class="features-kicker">
+                — {% if current_lang == 'hi' %}हमारी विशेषताएं{% elif current_lang == 'mr' %}आमची वैशिष्ट्ये{% else %}Our Features{% endif %} —
+            </span>
+            <h2 class="features-main-title">
+                {% if current_lang == 'hi' %}
+                    संपूर्ण डायबिटीज केयर समाधान
+                {% elif current_lang == 'mr' %}
+                    संपूर्ण मधुमेह काळजी उपाय
+                {% else %}
+                    Complete Diabetes Care Solution
+                {% endif %}
+            </h2>
+            <p class="features-subtitle">
+                {% if current_lang == 'hi' %}
+                    व्यापक मधुमेह प्रबंधन और प्रारंभिक पहचान के लिए एआई-संचालित उपकरण
+                {% elif current_lang == 'mr' %}
+                    सर्वसमावेशक मधुमेह व्यवस्थापन आणि लवकर निदानासाठी एआय-संचलित साधने
+                {% else %}
+                    AI-powered tools for comprehensive diabetes management and early detection
+                {% endif %}
+            </p>
         </div>
-        <div class="card animate">
-            <h3>🤖 {{ t('home.technology.ai') }}</h3>
-            <p>{{ t('home.technology.ai_text') }}</p>
+
+        <!-- 4 Clean Rounded Feature Cards -->
+        <div class="features-cards-grid">
+
+            <!-- Card 1: Diabetic Retinopathy -->
+            <div class="feature-clean-card">
+                <div>
+                    <div class="feature-clean-icon-box">👁</div>
+                    <h3>
+                        {% if current_lang == 'hi' %}
+                            डायबिटिक रेटिनोपैथी
+                        {% elif current_lang == 'mr' %}
+                            डायबेटिक रेटिनोपॅथी
+                        {% else %}
+                            Diabetic Retinopathy
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if current_lang == 'hi' %}
+                            रेटिना चित्र अपलोड करें और एआई-संचालित विश्लेषण प्राप्त करें
+                        {% elif current_lang == 'mr' %}
+                            रेटिना प्रतिमा अपलोड करा आणि एआय-संचलित विश्लेषण मिळवा
+                        {% else %}
+                            Upload retinal images and get AI-powered analysis
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="/dr" class="feature-clean-btn" id="cardDrBtn">
+                    <span>{% if current_lang == 'hi' %}शुरू करें{% elif current_lang == 'mr' %}सुरू करा{% else %}Get Started{% endif %} →</span>
+                </a>
+            </div>
+
+            <!-- Card 2: Input-Based Diseases -->
+            <div class="feature-clean-card">
+                <div>
+                    <div class="feature-clean-icon-box">📄</div>
+                    <h3>
+                        {% if current_lang == 'hi' %}
+                            लक्षण-आधारित रोग
+                        {% elif current_lang == 'mr' %}
+                            लक्षण-आधारित आजार
+                        {% else %}
+                            Input-Based Diseases
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if current_lang == 'hi' %}
+                            मल्टी-रोग जोखिम विश्लेषण के लिए रोगी विवरण दर्ज करें
+                        {% elif current_lang == 'mr' %}
+                            मल्टी-आजार जोखीम विश्लेषणासाठी रुग्णाचे तपशील प्रविष्ट करा
+                        {% else %}
+                            Enter patient details for multi-disease risk analysis
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="/pcod" class="feature-clean-btn" id="cardPcodBtn">
+                    <span>{% if current_lang == 'hi' %}शुरू करें{% elif current_lang == 'mr' %}सुरू करा{% else %}Get Started{% endif %} →</span>
+                </a>
+            </div>
+
+            <!-- Card 3: Live Patient Sensor -->
+            <div class="feature-clean-card">
+                <div>
+                    <div class="feature-clean-icon-box">📡</div>
+                    <h3>
+                        {% if current_lang == 'hi' %}
+                            लाइव पेशेंट सेंसर
+                        {% elif current_lang == 'mr' %}
+                            लाइव्ह पेशंट सेन्सर
+                        {% else %}
+                            Live Patient Sensor
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if current_lang == 'hi' %}
+                            स्मार्ट आईओटी सेंसर के साथ रीयल-टाइम निगरानी
+                        {% elif current_lang == 'mr' %}
+                            स्मार्ट आयओटी सेन्सरसह रिअल-टाइम देखरेख
+                        {% else %}
+                            Real-time monitoring with smart IoT sensors
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="/live_health" class="feature-clean-btn" id="cardSensorBtn">
+                    <span>{% if current_lang == 'hi' %}शुरू करें{% elif current_lang == 'mr' %}सुरू करा{% else %}Get Started{% endif %} →</span>
+                </a>
+            </div>
+
+            <!-- Card 4: AI Chat -->
+            <div class="feature-clean-card">
+                <div>
+                    <div class="feature-clean-icon-box">💬</div>
+                    <h3>
+                        {% if current_lang == 'hi' %}
+                            एआई चैट
+                        {% elif current_lang == 'mr' %}
+                            एआय चॅट
+                        {% else %}
+                            AI Chat
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if current_lang == 'hi' %}
+                            एआई सहायता से त्वरित चिकित्सा मार्गदर्शन प्राप्त करें
+                        {% elif current_lang == 'mr' %}
+                            एआय मदतीने त्वरित वैद्यकीय मार्गदर्शन मिळवा
+                        {% else %}
+                            Get instant medical guidance with AI assistance
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="/chatbot" class="feature-clean-btn" id="cardChatBtn">
+                    <span>{% if current_lang == 'hi' %}शुरू करें{% elif current_lang == 'mr' %}सुरू करा{% else %}Get Started{% endif %} →</span>
+                </a>
+            </div>
+
         </div>
-        <div class="card animate">
-            <h3>👁️ {{ t('home.technology.vision') }}</h3>
-            <p>{{ t('home.technology.vision_text') }}</p>
+
+        <!-- 6. Trust / Highlight Horizontal Bar (Matching Reference Screenshot) -->
+        <div class="trust-horizontal-card">
+            <!-- Item 1 -->
+            <div class="trust-item">
+                <div class="trust-icon-box">👥</div>
+                <div class="trust-title">
+                    {% if current_lang == 'hi' %}
+                        स्वास्थ्य पेशेवरों द्वारा<br>विश्वसनीय
+                    {% elif current_lang == 'mr' %}
+                        आरोग्य तज्ञांद्वारे<br>विश्वासार्ह
+                    {% else %}
+                        Trusted by<br>Healthcare Professionals
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="trust-item">
+                <div class="trust-icon-box">🛡️</div>
+                <div class="trust-title">
+                    {% if current_lang == 'hi' %}
+                        सुरक्षित और<br>HIPAA अनुरूप
+                    {% elif current_lang == 'mr' %}
+                        सुरक्षित आणि<br>HIPAA अनुरूप
+                    {% else %}
+                        Secure &amp;<br>HIPAA Compliant
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="trust-item">
+                <div class="trust-icon-box">⚡</div>
+                <div class="trust-title">
+                    {% if current_lang == 'hi' %}
+                        एआई-संचालित<br>सटीकता
+                    {% elif current_lang == 'mr' %}
+                        एआय-संचलित<br>अचूकता
+                    {% else %}
+                        AI-Powered<br>Accuracy
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="trust-item">
+                <div class="trust-icon-box">❤️</div>
+                <div class="trust-title">
+                    {% if current_lang == 'hi' %}
+                        बेहतर परिणाम<br>स्वस्थ जीवन
+                    {% elif current_lang == 'mr' %}
+                        उत्तम परिणाम<br>निरोगी जीवन
+                    {% else %}
+                        Better Outcomes<br>Healthier Lives
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="card animate">
-            <h3>📱 {{ t('home.technology.iot') }}</h3>
-            <p>{{ t('home.technology.iot_text') }}</p>
+
+        <!-- 7. Extended Workflow Section (For complete 3-screen landing page scroll) -->
+        <div class="extended-workflow-card">
+            <div class="workflow-header">
+                <span class="workflow-kicker">
+                    {% if current_lang == 'hi' %}क्लिनिकल कार्यप्रणाली{% elif current_lang == 'mr' %}क्लिनिकल कार्यपद्धती{% else %}Clinical Workflow{% endif %}
+                </span>
+                <h3 class="workflow-title">
+                    {% if current_lang == 'hi' %}
+                        चार सरल चरणों में त्वरित जांच
+                    {% elif current_lang == 'mr' %}
+                        चार सोप्या टप्प्यांत जलद तपासणी
+                    {% else %}
+                        Screening in 4 Simple Steps
+                    {% endif %}
+                </h3>
+            </div>
+
+            <div class="workflow-steps-grid">
+                <div class="workflow-step-item">
+                    <div class="workflow-step-num">1</div>
+                    <div class="workflow-step-icon">📸</div>
+                    <div class="workflow-step-title">
+                        {% if current_lang == 'hi' %}इमेज अपलोड{% elif current_lang == 'mr' %}प्रतिमा अपलोड{% else %}Upload Scan{% endif %}
+                    </div>
+                    <p class="workflow-step-desc">
+                        {% if current_lang == 'hi' %}रेटिना फंडस स्कैन अपलोड करें{% elif current_lang == 'mr' %}रेटिना फंडस स्कॅन अपलोड करा{% else %}Upload digital fundus photo{% endif %}
+                    </p>
+                </div>
+
+                <div class="workflow-step-item">
+                    <div class="workflow-step-num">2</div>
+                    <div class="workflow-step-icon">⚙️</div>
+                    <div class="workflow-step-title">
+                        {% if current_lang == 'hi' %}प्री-प्रोसेसिंग{% elif current_lang == 'mr' %}प्री-प्रोसेसिंग{% else %}Preprocessing{% endif %}
+                    </div>
+                    <p class="workflow-step-desc">
+                        {% if current_lang == 'hi' %}ऑटो-एन्हांसमेंट और स्केलिंग{% elif current_lang == 'mr' %}स्वयंचलित कॉन्ट्रास्ट वाढ{% else %}Auto contrast enhancement{% endif %}
+                    </p>
+                </div>
+
+                <div class="workflow-step-item">
+                    <div class="workflow-step-num">3</div>
+                    <div class="workflow-step-icon">🧠</div>
+                    <div class="workflow-step-title">
+                        {% if current_lang == 'hi' %}सीएनएन विश्लेषण{% elif current_lang == 'mr' %}सीएनएन विश्लेषण{% else %}CNN Inference{% endif %}
+                    </div>
+                    <p class="workflow-step-desc">
+                        {% if current_lang == 'hi' %}डीप लर्निंग द्वारा सटीक पहचान{% elif current_lang == 'mr' %}डीप लर्निंग अचूक तपासणी{% else %}Deep learning feature detection{% endif %}
+                    </p>
+                </div>
+
+                <div class="workflow-step-item">
+                    <div class="workflow-step-num">4</div>
+                    <div class="workflow-step-icon">📑</div>
+                    <div class="workflow-step-title">
+                        {% if current_lang == 'hi' %}क्लिनिकल रिपोर्ट{% elif current_lang == 'mr' %}क्लिनिकल अहवाल{% else %}Instant Report{% endif %}
+                    </div>
+                    <p class="workflow-step-desc">
+                        {% if current_lang == 'hi' %}विस्तृत पीडीएफ और सलाह{% elif current_lang == 'mr' %}तपशीलवार पीडीएफ अहवाल{% else %}Comprehensive PDF insights{% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
+
+        <!-- 8. Bottom Call to Action Card -->
+        <div class="home-bottom-cta">
+            <h2>
+                {% if current_lang == 'hi' %}
+                    आज ही अपनी रेटिना स्वास्थ्य जांच शुरू करें
+                {% elif current_lang == 'mr' %}
+                    आजच तुमची रेटिना आरोग्य तपासणी सुरू करा
+                {% else %}
+                    Start Your Retinal Health Assessment Today
+                {% endif %}
+            </h2>
+            <p>
+                {% if current_lang == 'hi' %}
+                    अस्पताल-मान्य क्लिनिकल एआई द्वारा सेकंडों में तेज और सटीक डायबिटिक रेटिनोपैथी स्क्रीनिंग का अनुभव करें।
+                {% elif current_lang == 'mr' %}
+                    क्लिनिकल एआयद्वारे काही सेकंदांत जलद आणि अचूक डायबेटिक रेटिनोपॅथी तपासणीचा अनुभव घ्या.
+                {% else %}
+                    Experience rapid, hospital-validated AI diagnostic screening in seconds. Immediate clinical confidence for clinicians and patients.
+                {% endif %}
+            </p>
+            <a href="/dr" class="btn-hero-primary" style="padding: 16px 36px; font-size: 16px;">
+                <span>👁</span>
+                <span>
+                    {% if current_lang == 'hi' %}
+                        रेटिनोपैथी स्कैन शुरू करें
+                    {% elif current_lang == 'mr' %}
+                        रेटिनोपॅथी स्कॅन सुरू करा
+                    {% else %}
+                        Start Retinopathy Scan
+                    {% endif %}
+                </span>
+            </a>
+        </div>
+
     </div>
-</div>
+</section>
 
-<!-- IMPACT -->
-<div class="section">
-    <h2 class="animate">{{ t('home.impact.title') }}</h2>
+<!-- =========================================================
+     HERO SLIDER JAVASCRIPT LOGIC (2-SECOND AUTO-TRANSITION)
+     ========================================================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+    const prevBtn = document.getElementById('sliderPrevBtn');
+    const nextBtn = document.getElementById('sliderNextBtn');
+    const sliderSection = document.getElementById('heroSliderSection');
 
-    <div class="stats">
-        <div class="stat animate">
-            <h3>{{ t('home.impact.result_01') }}</h3>
-            <p>{{ t('home.impact.early_detection') }}</p>
-        </div>
-        <div class="stat animate">
-            <h3>{{ t('home.impact.result_02') }}</h3>
-            <p>{{ t('home.impact.faster_diagnosis') }}</p>
-        </div>
-        <div class="stat animate">
-            <h3>{{ t('home.impact.result_03') }}</h3>
-            <p>{{ t('home.impact.continuous_monitoring') }}</p>
-        </div>
-        <div class="stat animate">
-            <h3>{{ t('home.impact.result_04') }}</h3>
-            <p>{{ t('home.impact.highly_scalable') }}</p>
-        </div>
-    </div>
-</div>
+    if (!slides.length) return;
 
-<!-- CTA -->
-<div class="cta animate">
-    <h2>{{ t('home.cta.title') }}</h2>
-    <p>{{ t('home.cta.text') }}</p>
-    <a href="/dr">{{ t('home.cta.button') }}</a>
-</div>
+    let currentIndex = 0;
+    const totalSlides = slides.length;
+    const INTERVAL_TIME = 2000; // 2 seconds as strictly requested
+    let slideTimer = null;
+
+    function showSlide(index) {
+        // Wrap around bounds
+        if (index >= totalSlides) {
+            currentIndex = 0;
+        } else if (index < 0) {
+            currentIndex = totalSlides - 1;
+        } else {
+            currentIndex = index;
+        }
+
+        // Update slides
+        slides.forEach((slide, i) => {
+            if (i === currentIndex) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        // Update dots
+        dots.forEach((dot, i) => {
+            if (i === currentIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    function nextSlide() {
+        showSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentIndex - 1);
+    }
+
+    function startTimer() {
+        stopTimer();
+        slideTimer = setInterval(nextSlide, INTERVAL_TIME);
+    }
+
+    function stopTimer() {
+        if (slideTimer) {
+            clearInterval(slideTimer);
+            slideTimer = null;
+        }
+    }
+
+    // Event Listeners for arrow buttons
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            nextSlide();
+            startTimer(); // Reset interval
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            prevSlide();
+            startTimer(); // Reset interval
+        });
+    }
+
+    // Event Listeners for indicators
+    dots.forEach(dot => {
+        dot.addEventListener('click', function () {
+            const idx = parseInt(this.getAttribute('data-index'), 10);
+            showSlide(idx);
+            startTimer(); // Reset interval
+        });
+    });
+
+    // Pause on mouse enter, resume on mouse leave
+    if (sliderSection) {
+        sliderSection.addEventListener('mouseenter', stopTimer);
+        sliderSection.addEventListener('mouseleave', startTimer);
+    }
+
+    // Start auto slider
+    startTimer();
+});
+</script>
 
 {% endblock %}

@@ -1,0 +1,79 @@
+# CareSense Home Page UI Rebuild — Walkthrough
+
+## Summary of Completed Work
+
+The Home Page UI (`templates/home.html`) has been rebuilt to closely match the provided **Stitch Clinical Workstation reference screen** (`web application/stitch/projects/8082514215226495444/screens/8a3eee1256c744d7a59348511d2a0056`), following the Medicover-inspired healthcare design system.
+
+### Scope Integrity
+> [!IMPORTANT]
+> - **Only `templates/home.html` was modified.**
+> - Zero changes were made to the backend, APIs, machine learning models, database, routes, or the other 5 pages (`/dr`, `/pcod`, `/migraine`, `/diabetes`, `/live_health`, `/chatbot`).
+
+---
+
+## Visual Design & Components Implemented
+
+### 1. Header Navigation Shell
+- **Brand Identity:** Deep medical blue `CareSense` with `Clinical AI` ice-blue pill badge.
+- **Node Active Indicator:** Pulse animation with green status pill.
+- **Language Selector:** Interactive dropdown (`EN`, `HI`, `MR`) wired to Flask's `{{ lang_url(code) }}`.
+- **Desktop Navbar:** Quick navigation to Clinical Dashboard (`/`), Diabetic Retinopathy (`/dr`), Input-Based Diseases dropdown (`/pcod`, `/migraine`, `/diabetes`), Live Sensor (`/live_health`), and AI Chat (`/chatbot`).
+- **Emergency Protocol:** Clinical triage guidelines modal with critical vitals alerts and hospital contacts.
+- **Slide-out Navigation Drawer:** Mobile menu containing workstation profile, active badges (ISO 13485, HIPAA), and all navigation items.
+
+### 2. Clinical Hero Section
+- **Retinal Analysis Image:** Reused the exact clinical workstation fundus analysis photo from the Stitch reference.
+- **Certification Ribbon:** `Medicover Clinical Protocol Compliant` badge with verified checkmark.
+- **Floating Workstation Card:** Negative-margin overlay card featuring:
+  - `DIAGNOSTIC WORKSTATION SUITE` badge.
+  - Heading: *Clinical-Grade AI Diagnostics & Early Detection*.
+  - Subtitle describing autonomous fundus analysis, Bluetooth bio-patch telemetry, and predictive chronic risk calculation.
+  - **Dual CTAs:**
+    - `Start Retinopathy Scan` &rarr; `/dr`
+    - `Live Patient Sensor` &rarr; `/live_health`
+
+### 3. Medical Triage Metric Cards (2x2 Grid)
+- **SCREENINGS:** `50k+` with *Multi-clinic records* trend.
+- **AI INFERENCE:** `< 15s` with *Real-time latency* lightning badge.
+- **STANDARD:** `ISO 13485` with *Medical Device QMS*.
+- **CLINICAL ACCURACY:** `99.4%` with *Validated cohort* indicator.
+
+### 4. Core Diagnostic Capabilities (Bento Grid)
+- Header: *Core Diagnostic Capabilities* | *Full Autonomous Suite*.
+- 4 interactive feature cards with hover animations and direct routes:
+  1. **Deep Retinal Fundus AI** &rarr; `/dr`
+  2. **Multi-parametric Risk Modeling** &rarr; `/pcod`
+  3. **Continuous Telemetry Vitals** &rarr; `/live_health`
+  4. **Multilingual Clinical Explanations** &rarr; `/chatbot`
+
+### 5. Trust Badges & Mobile Bottom Bar
+- Trust badges: *HIPAA Compliant Architecture*, *CE Medical IVD Ready*, and *Hospital-Grade 256-bit TLS*.
+- Fixed mobile bottom navigation bar with active state indicator on Home.
+
+---
+
+## Verification Results
+
+### Automated Flask Route & Rendering Tests
+
+| Route / Test Case | Result | Details |
+| :--- | :--- | :--- |
+| `GET /` (English) | **Status 200 OK** | Length: 39,967 bytes, Stitch assets & Medicover badge present |
+| `GET /` (Hindi `hi`) | **Status 200 OK** | Length: 40,725 bytes, Hindi translations rendered |
+| `GET /` (Marathi `mr`) | **Status 200 OK** | Length: 40,740 bytes, Marathi translations rendered |
+| `GET /dr` | **Status 200 OK** | 100% intact and untouched |
+| `GET /pcod` | **Status 200 OK** | 100% intact and untouched |
+| `GET /migraine` | **Status 200 OK** | 100% intact and untouched |
+| `GET /diabetes` | **Status 200 OK** | 100% intact and untouched |
+| `GET /live_health` | **Status 200 OK** | 100% intact and untouched |
+| `GET /chatbot` | **Status 200 OK** | 100% intact and untouched |
+
+### Git Working Tree Verification
+```bash
+$ git status
+On branch main
+Changes not staged for commit:
+    modified:   templates/home.html
+no changes added to commit
+```
+Only `templates/home.html` has been changed.

@@ -221,9 +221,13 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function() {
             const submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn) {
-                submitBtn.disabled = true;
+                if (this.id !== 'drUploadForm') {
+                    submitBtn.textContent = '⏳ Processing...';
+                }
                 submitBtn.style.opacity = '0.7';
-                submitBtn.textContent = '⏳ Processing...';
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                }, 0);
             }
         });
     });

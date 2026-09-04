@@ -1,4 +1,18 @@
 # app.py
+import sys
+
+# Ensure UTF-8 stdout and stderr encoding on Windows to prevent UnicodeEncodeError with emojis/translations
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 from flask import send_file, session
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
@@ -297,19 +311,30 @@ def predict():
             "image_name": filename,
             "image_path": path,
         }
-        DR_REPORT_CACHE[analysis_id] = generate_dynamic_medical_report(
-            prediction=session["dr_prediction"],
-            request_id=analysis_id[:8],
-            strict=True,
-            lang=lang,
-            analysis_data=analysis_data,
-            image_path=path,
-        )
+        try:
+            DR_REPORT_CACHE[analysis_id] = generate_dynamic_medical_report(
+                prediction=session["dr_prediction"],
+                request_id=analysis_id[:8],
+                strict=True,
+                lang=lang,
+                analysis_data=analysis_data,
+                image_path=path,
+            )
+        except Exception as report_err:
+            print(f"[DR_PREDICT] Dynamic report note: {report_err}")
+            DR_REPORT_CACHE[analysis_id] = get_severity_report_fallback(
+                prediction=session["dr_prediction"],
+                confidence=confidence,
+                risk_level=risk_level,
+            )
         session["dr_analysis_id"] = analysis_id
         print(f"[DR_PREDICT] Stored prediction: {session.get('dr_prediction')}")
         print(f"[DR_PREDICT] Stored image name: {session.get('dr_image_name')}")
         print(f"[DR_PREDICT] Stored confidence: {session.get('dr_confidence')}")
-        print(f"[DR_PREDICT] Stored risk level: {session.get('dr_risk_level')}")
+        try:
+            print(f"[DR_PREDICT] Stored risk level: {session.get('dr_risk_level')}")
+        except Exception:
+            pass
 
         return redirect(url_for("dr_result"))
 

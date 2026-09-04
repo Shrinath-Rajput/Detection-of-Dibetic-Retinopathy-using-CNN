@@ -14,11 +14,14 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 from src.services.sensor_service import sensor_data, start_sensor_thread
-from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report
+from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report, get_severity_report_fallback
 from src.i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, get_language_label, get_translation
 
 app = Flask(__name__)
 app.secret_key = "clinsense_ai_secret"
+
+# Keep the full AI report out of Flask's client-side cookie session.
+DR_REPORT_CACHE = {}
 
 @app.before_request
 def ensure_language():
@@ -252,6 +255,7 @@ def dr_page():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        import uuid
         file = request.files.get("image")
         if not file or file.filename == "":
             return redirect(url_for("dr_page"))
@@ -285,6 +289,23 @@ def predict():
         session["dr_image_name"] = filename
         session["dr_confidence"] = confidence
         session["dr_risk_level"] = risk_level
+        analysis_id = str(uuid.uuid4())
+        analysis_data = {
+            "prediction": session["dr_prediction"],
+            "confidence": confidence,
+            "risk_level": risk_level,
+            "image_name": filename,
+            "image_path": path,
+        }
+        DR_REPORT_CACHE[analysis_id] = generate_dynamic_medical_report(
+            prediction=session["dr_prediction"],
+            request_id=analysis_id[:8],
+            strict=True,
+            lang=lang,
+            analysis_data=analysis_data,
+            image_path=path,
+        )
+        session["dr_analysis_id"] = analysis_id
         print(f"[DR_PREDICT] Stored prediction: {session.get('dr_prediction')}")
         print(f"[DR_PREDICT] Stored image name: {session.get('dr_image_name')}")
         print(f"[DR_PREDICT] Stored confidence: {session.get('dr_confidence')}")
@@ -299,7 +320,10 @@ def predict():
         print(e)
         traceback.print_exc()
         print("=" * 80)
-        return redirect(url_for("dr_page"))
+        return render_template(
+            "index.html",
+            processing_error=get_translation("common.internal_server_error", session.get("lang", DEFAULT_LANGUAGE)),
+        ), 500
 
 
 @app.route("/dr_result")
@@ -333,6 +357,7 @@ def download_dr_pdf():
     import traceback
     try:
         import io
+        import re
         import uuid
         from datetime import datetime
         from reportlab.lib.pagesizes import letter
@@ -341,6 +366,7 @@ def download_dr_pdf():
         from reportlab.lib.colors import HexColor, white, black
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from xml.sax.saxutils import escape
 
         lang = session.get("lang", DEFAULT_LANGUAGE)
         trans = lambda key: get_translation(key, lang)
@@ -357,43 +383,146 @@ def download_dr_pdf():
         print(f"[DOWNLOAD_DR_PDF] Session image name: {image_name}")
         print(f"[DOWNLOAD_DR_PDF] Session image path: {image_path}")
         print(f"[DOWNLOAD_DR_PDF] Session image exists: {os.path.exists(image_path) if image_path else False}")
-        print(f"[DOWNLOAD_DR_PDF] Starting report generation for prediction: {prediction}")
-        try:
-            print(f"[DOWNLOAD_DR_PDF] Calling generate_dynamic_medical_report with prediction: {prediction}")
+        report_content = None
+        report_id = session.get("dr_analysis_id")
+        if report_id:
+            report_content = DR_REPORT_CACHE.get(report_id)
+        if report_content is None:
+            report_content = session.get("dr_analysis")
+
+        print(f"[DOWNLOAD_DR_PDF] Reusing stored report: {bool(report_content)}")
+        if not report_content:
+            print(f"[DOWNLOAD_DR_PDF] Generating dynamic report for {prediction}...")
             report_content = generate_dynamic_medical_report(
                 prediction=prediction,
-                request_id=str(uuid.uuid4())[:8],
-                strict=True,
                 lang=lang,
+                analysis_data={
+                    "prediction": prediction,
+                    "confidence": session.get("dr_confidence"),
+                    "risk_level": session.get("dr_risk_level"),
+                    "image_name": image_name,
+                    "image_path": image_path,
+                },
+                image_path=image_path,
             )
-        except RuntimeError as exc:
-            import traceback
-            print("=" * 80)
-            print("DOWNLOAD PDF GEMINI ERROR")
-            print(exc)
-            traceback.print_exc()
-            print("=" * 80)
-            raise
+            if report_id:
+                DR_REPORT_CACHE[report_id] = report_content
 
-        print(f"[DOWNLOAD_DR_PDF] Report content type: {type(report_content).__name__}")
-        print(f"[DOWNLOAD_DR_PDF] Report content keys: {list(report_content.keys()) if isinstance(report_content, dict) else report_content}")
+        target_lang = "English" if lang == "en" else ("Marathi" if lang == "mr" else "Hindi")
+        fallback_data = get_severity_report_fallback(
+            prediction=prediction,
+            confidence=session.get("dr_confidence"),
+            risk_level=session.get("dr_risk_level"),
+        )
 
-        if not report_content:
-            raise RuntimeError("Gemini did not return a usable medical report for the uploaded image.")
+        key_alias_map = {
+            "Risk Level": ["risk level", "risklevel", "risk"],
+            "Clinical Interpretation": ["clinical interpretation", "clinicalinterpretation"],
+            "Disease Summary": ["disease summary", "diseasesummary", "summary"],
+            "Possible Medical Concerns": ["possible medical concerns", "possiblemedicalconcerns", "medical concerns", "medicalconcerns"],
+            "Treatment Guidance": ["treatment guidance", "treatmentguidance", "recommended next steps", "recommendednextsteps"],
+            "Lifestyle Recommendations": ["lifestyle recommendations", "lifestylerecommendations", "lifestyle"],
+            "Follow-up Advice": ["follow up advice", "followupadvice", "follow up", "followup"],
+            "Medical Disclaimer": ["medical disclaimer", "medicaldisclaimer", "disclaimer"],
+            "Notes": ["notes", "additional notes", "additionalnotes"],
+        }
 
-        def clean_value(val):
-            if not val or not isinstance(val, str):
-                return val
-            val = val.strip()
-            if val.startswith('{') or val.startswith('['):
-                return "Based on the analysis, please consult with your healthcare provider."
-            if val.startswith('"'):
-                val = val.strip('"')
-            val = val.replace('\"', '"').replace('\\n', ' ').replace('\\r', ' ')
-            return val.strip()
+        def _find_section_value(data_dict, canonical_name):
+            if not isinstance(data_dict, dict):
+                return None
+            if canonical_name in data_dict and data_dict[canonical_name]:
+                return data_dict[canonical_name]
+            aliases = key_alias_map.get(canonical_name, [])
+            norm_canonical = canonical_name.replace(" ", "").replace("_", "").replace("-", "").lower()
+            for k, v in data_dict.items():
+                norm_k = str(k).replace(" ", "").replace("_", "").replace("-", "").lower()
+                if norm_k == norm_canonical or any(a.replace(" ", "").lower() == norm_k for a in aliases):
+                    if v:
+                        return v
+            return None
 
-        report_content = {k: clean_value(v) for k, v in report_content.items()}
-        print(f"[DOWNLOAD_DR_PDF] Cleaned report content keys: {list(report_content.keys())}")
+        def _extract_language_items(val, target_language, fb_items):
+            items = []
+            if isinstance(val, dict):
+                # 1. Target language
+                for lk, lv in val.items():
+                    if str(lk).strip().lower() == target_language.lower():
+                        if isinstance(lv, list):
+                            items = [str(x).strip() for x in lv if str(x).strip()]
+                        elif isinstance(lv, str) and lv.strip():
+                            items = [lv.strip()]
+                        break
+                # 2. English fallback if target empty
+                if not items:
+                    for lk, lv in val.items():
+                        if str(lk).strip().lower() == "english":
+                            if isinstance(lv, list):
+                                items = [str(x).strip() for x in lv if str(x).strip()]
+                            elif isinstance(lv, str) and lv.strip():
+                                items = [lv.strip()]
+                            break
+                # 3. Any non-empty language
+                if not items:
+                    for lk, lv in val.items():
+                        if isinstance(lv, list) and any(str(x).strip() for x in lv):
+                            items = [str(x).strip() for x in lv if str(x).strip()]
+                            break
+                        elif isinstance(lv, str) and lv.strip():
+                            items = [lv.strip()]
+                            break
+            elif isinstance(val, list):
+                items = [str(x).strip() for x in val if str(x).strip()]
+            elif isinstance(val, str) and val.strip():
+                items = [val.strip()]
+
+            # 4. Fallback if still empty
+            if not items and fb_items:
+                if isinstance(fb_items, dict):
+                    fb_list = fb_items.get(target_language) or fb_items.get("English") or []
+                    items = [str(x).strip() for x in fb_list if str(x).strip()]
+                elif isinstance(fb_items, list):
+                    items = [str(x).strip() for x in fb_items if str(x).strip()]
+
+            return items
+
+        # 8 required sections
+        sections = [
+            ("Clinical Interpretation", trans('pdf.dr.clinical_interpretation'), "clinical_interpretation"),
+            ("Disease Summary", trans('pdf.dr.disease_summary'), "disease_summary"),
+            ("Possible Medical Concerns", trans('pdf.dr.possible_medical_concerns'), "possible_medical_concerns"),
+            ("Treatment Guidance", trans('pdf.dr.treatment_guidance'), "treatment_guidance"),
+            ("Lifestyle Recommendations", trans('pdf.dr.lifestyle_recommendations'), "lifestyle_recommendations"),
+            ("Follow-up Advice", trans('pdf.dr.follow_up_advice'), "follow_up_advice"),
+            ("Medical Disclaimer", trans('pdf.dr.medical_disclaimer'), "medical_disclaimer"),
+            ("Notes", trans('pdf.dr.notes') if trans('pdf.dr.notes') != 'pdf.dr.notes' else ('टीपा' if lang == 'mr' else ('टिप्पणियाँ' if lang == 'hi' else 'Notes')), "notes"),
+        ]
+
+        # Extract items for each section in the active language
+        report_data = {}
+        for canonical_name, title, field_name in sections:
+            raw_val = _find_section_value(report_content, canonical_name)
+            fb_val = fallback_data.get(canonical_name, {})
+            items = _extract_language_items(raw_val, target_lang, fb_val)
+            report_data[field_name] = items
+
+        # Verify all 8 fields are NON-EMPTY before building PDF
+        print("=" * 80)
+        print(f"[PDF_PRE_VERIFICATION] Language: {lang} ({target_lang}) | Prediction: {prediction}")
+        all_fields_valid = True
+        for canonical_name, title, field_name in sections:
+            item_count = len(report_data.get(field_name, []))
+            first_preview = (report_data[field_name][0][:55] + "...") if item_count > 0 else "EMPTY!"
+            status_tag = "[OK]" if item_count > 0 else "[FAIL]"
+            print(f"  {status_tag} {field_name} ({canonical_name}): {item_count} items -> \"{first_preview}\"")
+            if item_count == 0:
+                all_fields_valid = False
+        print(f"[PDF_PRE_VERIFICATION] All 8 sections verified non-empty: {all_fields_valid}")
+        print("=" * 80)
+
+        # Extract Risk Level
+        risk_raw = _find_section_value(report_content, "Risk Level")
+        risk_items = _extract_language_items(risk_raw, target_lang, fallback_data.get("Risk Level", {}))
+        risk_text = " • ".join(risk_items) if risk_items else str(session.get("dr_risk_level", prediction))
 
         report_date = datetime.now().strftime("%d-%m-%Y")
         report_time = datetime.now().strftime("%H:%M:%S")
@@ -413,9 +542,9 @@ def download_dr_pdf():
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
-            fontSize=24,
+            fontSize=22,
             textColor=HexColor('#1a3d5c'),
-            spaceAfter=12,
+            spaceAfter=8,
             alignment=TA_CENTER,
             fontName=font_name
         )
@@ -423,30 +552,40 @@ def download_dr_pdf():
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading2'],
-            fontSize=14,
+            fontSize=13,
             textColor=HexColor('#2c5aa0'),
             spaceAfter=8,
-            spaceBefore=8,
+            spaceBefore=6,
             fontName=font_name
         )
 
         section_header_style = ParagraphStyle(
             'SectionHeader',
             parent=styles['Heading3'],
-            fontSize=12,
+            fontSize=11,
             textColor=HexColor('#1e40af'),
-            spaceAfter=6,
+            spaceAfter=4,
             spaceBefore=6,
+            fontName=font_name,
+        )
+
+        risk_style = ParagraphStyle(
+            'RiskStyle',
+            parent=styles['Heading3'],
+            fontSize=11,
+            textColor=HexColor('#b91c1c') if any(x in risk_text.lower() for x in ['high', 'तीव्र', 'उच्च']) else (HexColor('#d97706') if any(x in risk_text.lower() for x in ['mod', 'मध्यम']) else HexColor('#15803d')),
+            spaceAfter=6,
+            spaceBefore=4,
             fontName=font_name,
         )
 
         normal_style = ParagraphStyle(
             'CustomNormal',
             parent=styles['Normal'],
-            fontSize=10,
+            fontSize=9.5,
             textColor=HexColor('#333333'),
-            spaceAfter=8,
-            leading=14,
+            spaceAfter=4,
+            leading=13.5,
             alignment=TA_LEFT,
             fontName=font_name,
         )
@@ -454,18 +593,18 @@ def download_dr_pdf():
         footer_style = ParagraphStyle(
             'Footer',
             parent=styles['Normal'],
-            fontSize=9,
+            fontSize=8.5,
             textColor=HexColor('#666666'),
-            spaceAfter=4,
+            spaceAfter=3,
             alignment=TA_CENTER,
             fontName=font_name,
         )
 
         story = []
         story.append(Paragraph(trans('pdf.dr.title'), title_style))
-        story.append(Spacer(1, 8))
+        story.append(Spacer(1, 4))
         story.append(Paragraph(trans('pdf.dr.subtitle'), heading_style))
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 8))
 
         meta_data = [
             [trans('pdf.dr.report_date'), report_date, trans('pdf.dr.report_id'), report_id],
@@ -478,88 +617,47 @@ def download_dr_pdf():
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, -1), font_name),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
             ('GRID', (0, 0), (-1, -1), 1, HexColor('#cccccc')),
         ]))
         story.append(meta_table)
-        story.append(Spacer(1, 12))
-        story.append(Paragraph('_' * 80, normal_style))
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 10))
 
         if image_path and os.path.exists(image_path):
             try:
                 img = Image(image_path)
-                img._restrictSize(5.5 * inch, 4.0 * inch)
+                img._restrictSize(4.5 * inch, 3.2 * inch)
                 story.append(img)
-                story.append(Spacer(1, 12))
-            except Exception as img_e:
-                print("=" * 80)
-                print("DOWNLOAD PDF IMAGE EMBED ERROR")
-                print(img_e)
-                traceback.print_exc()
-                print("=" * 80)
-                story.append(Paragraph(trans('pdf.dr.image_error'), normal_style))
                 story.append(Spacer(1, 8))
+            except Exception as img_e:
+                print(f"[DOWNLOAD_DR_PDF] Image embed notice: {img_e}")
+                story.append(Paragraph(trans('pdf.dr.image_error'), normal_style))
+                story.append(Spacer(1, 6))
 
-        story.append(Spacer(1, 8))
+        if risk_text:
+            story.append(Paragraph(f"{trans('risk.level') if trans('risk.level') != 'risk.level' else 'Risk Level'}: {escape(risk_text)}", risk_style))
+            story.append(Spacer(1, 4))
 
-        def _split_items(s):
-            if not s or not isinstance(s, str):
-                return []
-            s = s.strip()
-            if s.startswith('{') or s.startswith('[') or '\\' in s:
-                return [s] if len(s) > 5 else []
-            if '\n' in s:
-                parts = [p.strip() for p in s.splitlines() if p.strip() and len(p.strip()) > 3]
-                return parts if parts else [s]
-            if '•' in s:
-                parts = [p.strip() for p in s.split('•') if p.strip() and len(p.strip()) > 3]
-                return parts if parts else [s]
-            if ';' in s and s.count(';') >= 2:
-                parts = [p.strip() for p in s.split(';') if p.strip() and len(p.strip()) > 3]
-                return parts if parts else [s]
-            if ',' in s and s.count(',') >= 2:
-                parts = [p.strip() for p in s.split(',') if p.strip() and len(p.strip()) > 3]
-                return parts if parts else [s]
-            return [s] if len(s) > 3 else []
-
-        # Use the exact report keys produced by Gemini and fallback content.
-        sections = [
-            ("Clinical Interpretation", trans('pdf.dr.clinical_interpretation')),
-            ("Disease Summary", trans('pdf.dr.disease_summary')),
-            ("Possible Medical Concerns", trans('pdf.dr.possible_medical_concerns')),
-            ("Treatment Guidance", trans('pdf.dr.treatment_guidance')),
-            ("Lifestyle Recommendations", trans('pdf.dr.lifestyle_recommendations')),
-            ("Follow-up Advice", trans('pdf.dr.follow_up_advice')),
-            ("Medical Disclaimer", trans('pdf.dr.medical_disclaimer')),
-            ("Notes", trans('pdf.dr.notes') if trans('pdf.dr.notes') != 'pdf.dr.notes' else 'Notes'),
-        ]
-
-        print(f"[DOWNLOAD_DR_PDF] report_content keys: {list(report_content.keys()) if isinstance(report_content, dict) else report_content}")
-
-        for key, title in sections:
-            value = report_content.get(key, '')
+        # Render all 8 sections with actual content
+        for canonical_name, title, field_name in sections:
+            items = report_data.get(field_name, [])
             story.append(Paragraph(title, section_header_style))
+            story.append(Spacer(1, 3))
+            for item in items:
+                story.append(Paragraph(f'• {escape(item)}', normal_style))
             story.append(Spacer(1, 6))
-            items = _split_items(value)
-            if items:
-                for item in items:
-                    story.append(Paragraph(f'• {item}', normal_style))
-            else:
-                story.append(Paragraph(value if value else trans('pdf.dr.no_information'), normal_style))
-            story.append(Spacer(1, 8))
 
+        story.append(Spacer(1, 6))
         story.append(Paragraph(trans('pdf.dr.generated_by'), footer_style))
         story.append(Paragraph(trans('pdf.dr.report_label'), footer_style))
         story.append(Paragraph(trans('pdf.dr.version'), footer_style))
 
-        print("[DOWNLOAD_DR_PDF] Building PDF document")
+        print("[DOWNLOAD_DR_PDF] Building PDF document...")
         doc.build(story)
         buffer.seek(0)
         print(f"[DOWNLOAD_DR_PDF] PDF built successfully, size: {buffer.getbuffer().nbytes} bytes")
 
-        print("[DOWNLOAD_DR_PDF] Calling send_file()")
         return send_file(
             buffer,
             as_attachment=True,

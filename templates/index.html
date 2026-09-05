@@ -109,21 +109,91 @@
     }
 
     /* ---------------------------------------------------------
-       2. HERO SECTION
+       2. FULL-WIDTH DIABETIC RETINOPATHY HERO SECTION (FULL BANNER)
        --------------------------------------------------------- */
     .dr-hero-section {
         position: relative;
-        max-width: 1240px;
+        width: 100% !important;
+        min-height: 620px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background-color: #080d1d;
+        background-image: 
+            linear-gradient(
+                90deg, 
+                #080d1d 0%, 
+                rgba(8, 13, 29, 0.96) 28%, 
+                rgba(8, 13, 29, 0.82) 48%, 
+                rgba(8, 13, 29, 0.3) 72%, 
+                rgba(8, 13, 29, 0.05) 100%
+            ),
+            url('/static/images/hero/hero_ai_retina_scan.jpg');
+        background-size: cover;
+        background-position: right center;
+        background-repeat: no-repeat;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Full Background Image Layer covering complete area from left to right */
+    .dr-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .dr-hero-bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: right center;
+        display: block;
+    }
+
+    /* Dark Navy/Blue Gradient Overlay on the Left Side */
+    .dr-hero-gradient-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            #080d1d 0%,
+            rgba(8, 13, 29, 0.96) 28%,
+            rgba(8, 13, 29, 0.82) 48%,
+            rgba(8, 13, 29, 0.3) 72%,
+            rgba(8, 13, 29, 0.05) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Hero Content Layered Directly ON TOP of the Background Image */
+    .dr-hero-content-wrapper {
+        position: relative;
+        z-index: 4;
+        max-width: 1340px;
+        width: 100%;
         margin: 0 auto;
-        padding: 46px 24px 38px 24px;
-        display: grid;
-        grid-template-columns: 1.12fr 0.88fr;
-        gap: 36px;
+        padding: 60px 48px;
+        display: flex;
         align-items: center;
     }
 
     .dr-hero-left {
-        max-width: 630px;
+        max-width: 600px;
+        padding: 0;
     }
 
     /* Top Badge */
@@ -131,42 +201,63 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: #e0f2fe;
-        color: #0284c7;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 6px 14px;
+        background: rgba(18, 28, 56, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-radius: 50px;
-        margin-bottom: 20px;
-        border: 1px solid rgba(2, 132, 199, 0.2);
+        padding: 6px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 22px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     .dr-hero-badge svg {
         width: 15px;
         height: 15px;
-        fill: #0284c7;
+        fill: #38bdf8;
     }
 
     /* Hero Heading */
     .dr-hero-title {
-        font-size: 46px;
-        line-height: 1.14;
+        font-size: 52px;
+        line-height: 1.12;
         font-weight: 850;
         letter-spacing: -0.8px;
-        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 45%, #0ea5e9 100%);
+        color: #ffffff;
+        margin: 0 0 18px 0;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .dr-hero-title .text-cyan-accent {
+        color: #00d9ff;
+        font-weight: 850;
+        background: linear-gradient(135deg, #00d9ff 0%, #38bdf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin: 0 0 18px 0;
+    }
+
+    .dr-hero-title .text-purple-accent {
+        color: #8b5cf6;
+        font-weight: 850;
+        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     /* Description */
     .dr-hero-desc {
-        font-size: 15px;
+        font-size: 15.5px;
         line-height: 1.65;
-        color: #475569;
+        color: #cbd5e1;
         margin: 0 0 28px 0;
         font-weight: 450;
+        max-width: 550px;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
     }
 
     /* 3 Benefits Row */
@@ -175,41 +266,43 @@
         align-items: center;
         gap: 24px;
         flex-wrap: wrap;
+        margin-bottom: 34px;
     }
 
     .dr-benefit-item {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
     .dr-benefit-icon-box {
-        width: 38px;
-        height: 38px;
-        border-radius: 11px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 18px;
         flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     .dr-benefit-icon-box.cyan {
-        background: #e0f2fe;
-        color: #0284c7;
-        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+        background: rgba(14, 116, 144, 0.35);
+        color: #38bdf8;
+        border: 1.5px solid rgba(56, 189, 248, 0.45);
     }
 
     .dr-benefit-icon-box.purple {
-        background: #ede9fe;
-        color: #7c3aed;
-        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+        background: rgba(109, 40, 217, 0.35);
+        color: #c084fc;
+        border: 1.5px solid rgba(168, 85, 247, 0.45);
     }
 
     .dr-benefit-icon-box.pink {
-        background: #fce7f3;
-        color: #db2777;
-        box-shadow: 0 2px 8px rgba(219, 39, 119, 0.15);
+        background: rgba(190, 24, 93, 0.35);
+        color: #f472b6;
+        border: 1.5px solid rgba(244, 114, 182, 0.45);
     }
 
     .dr-benefit-text {
@@ -218,83 +311,154 @@
     }
 
     .dr-benefit-title {
-        font-size: 13.5px;
+        font-size: 14px;
         font-weight: 750;
-        color: #0f172a;
+        color: #ffffff;
         line-height: 1.25;
+        letter-spacing: -0.2px;
     }
 
     .dr-benefit-sub {
         font-size: 12px;
-        color: #64748b;
+        color: #94a3b8;
+        line-height: 1.3;
         font-weight: 500;
     }
 
-    /* ---------------------------------------------------------
-       HERO RIGHT: COMPLETE CLINICAL AI EYE & RETINA SCAN VISUAL
-       --------------------------------------------------------- */
-    .dr-hero-right {
-        position: relative;
+    /* Action Buttons Row */
+    .dr-hero-btn-row {
         display: flex;
-        justify-content: center;
         align-items: center;
-        width: 100%;
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    .dr-eye-visual-card {
-        position: relative;
-        width: 100%;
-        max-width: 540px;
-        aspect-ratio: 1200 / 896;
-        border-radius: 24px;
-        overflow: hidden;
-        border: 2px solid rgba(0, 217, 255, 0.5);
-        box-shadow: 0 20px 50px rgba(2, 132, 199, 0.22), 0 0 35px rgba(0, 217, 255, 0.25);
-        background: #070e24;
-    }
-
-    .dr-eye-visual-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        display: block;
-        transition: transform 0.4s ease;
-    }
-
-    .dr-eye-visual-card:hover .dr-eye-visual-img {
-        transform: scale(1.02);
-    }
-
-    /* Floating "AI Analysis for Healthier Eyes" label matching reference */
-    .dr-eye-ai-tag {
-        position: absolute;
-        bottom: 22px;
-        left: 28px;
-        z-index: 4;
-        pointer-events: none;
-        background: rgba(7, 14, 36, 0.72);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(56, 189, 248, 0.35);
+    .btn-dr-hero-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #0284c7;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 28px;
         border-radius: 12px;
-        padding: 6px 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        text-decoration: none;
+        border: none;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+        transition: all 0.25s ease;
+        cursor: pointer;
     }
 
-    .dr-eye-ai-tag-title {
-        font-size: 14.5px;
-        font-weight: 800;
-        color: #38bdf8;
-        letter-spacing: -0.2px;
-        line-height: 1.2;
+    .btn-dr-hero-primary:hover {
+        background: #0369a1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(2, 132, 199, 0.5);
     }
 
-    .dr-eye-ai-tag-sub {
-        font-size: 12.5px;
-        font-weight: 600;
-        color: #e0f2fe;
-        line-height: 1.25;
+    .btn-dr-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #ffffff;
+        color: #0284c7 !important;
+        border: 1.5px solid rgba(2, 132, 199, 0.25);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 26px;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-dr-hero-secondary:hover {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        transform: translateY(-2px);
+    }
+
+    #drUploadSection {
+        scroll-margin-top: 100px;
+    }
+
+    /* Responsive Design for DR Hero */
+    @media (max-width: 1024px) {
+        .dr-hero-section {
+            min-height: 580px;
+        }
+
+        .dr-hero-content-wrapper {
+            padding: 50px 32px;
+        }
+
+        .dr-hero-title {
+            font-size: 42px;
+        }
+
+        .dr-hero-gradient-overlay {
+            background: linear-gradient(
+                90deg,
+                #080d1d 0%,
+                rgba(8, 13, 29, 0.95) 55%,
+                rgba(8, 13, 29, 0.7) 100%
+            );
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dr-hero-section {
+            min-height: auto;
+            padding: 40px 0;
+        }
+
+        .dr-hero-bg-img {
+            object-position: 75% center;
+        }
+
+        .dr-hero-gradient-overlay {
+            background: rgba(8, 13, 29, 0.92);
+        }
+
+        .dr-hero-content-wrapper {
+            padding: 0 20px;
+        }
+
+        .dr-hero-left {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .dr-hero-title {
+            font-size: 32px;
+        }
+
+        .dr-hero-desc {
+            font-size: 15px;
+            margin-bottom: 22px;
+        }
+
+        .dr-benefits-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .dr-hero-btn-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .btn-dr-hero-primary,
+        .btn-dr-hero-secondary {
+            justify-content: center;
+            width: 100%;
+        }
     }
 
     /* ---------------------------------------------------------
@@ -808,21 +972,19 @@
        --------------------------------------------------------- */
     @media (max-width: 1024px) {
         .dr-hero-section {
-            grid-template-columns: 1fr;
-            gap: 30px;
-            padding: 30px 20px 20px 20px;
+            min-height: 560px;
+        }
+
+        .dr-hero-content-wrapper {
+            padding: 40px 30px;
+        }
+
+        .dr-hero-title {
+            font-size: 42px;
         }
 
         .dr-hero-left {
             max-width: 100%;
-        }
-
-        .dr-hero-right {
-            justify-content: center;
-        }
-
-        .dr-eye-visual-card {
-            max-width: 500px;
         }
 
         .dr-workflow-flow {
@@ -850,8 +1012,25 @@
             padding: 12px 20px !important;
         }
 
+        .dr-hero-section {
+            min-height: auto;
+            padding: 40px 0 36px;
+        }
+
+        .dr-hero-content-wrapper {
+            padding: 0 20px;
+        }
+
+        .dr-hero-bg-img {
+            object-position: 70% center;
+        }
+
+        .dr-hero-gradient-overlay {
+            background: rgba(8, 13, 29, 0.94);
+        }
+
         .dr-hero-title {
-            font-size: 34px;
+            font-size: 32px;
         }
 
         .dr-benefits-row {
@@ -860,8 +1039,15 @@
             gap: 14px;
         }
 
-        .dr-eye-visual-card {
-            max-width: 100%;
+        .dr-hero-btn-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-dr-hero-primary,
+        .btn-dr-hero-secondary {
+            width: 100%;
+            justify-content: center;
         }
 
         .dr-upload-grid {
@@ -890,103 +1076,123 @@
 </style>
 
 <!-- =========================================================
-     HERO SECTION
+     HERO SECTION (FULL-WIDTH BANNER)
      ========================================================= -->
 <section class="dr-hero-section animate" id="drHero">
-    <div class="dr-hero-left">
-        <!-- Badge -->
-        <div class="dr-hero-badge">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z" />
-            </svg>
-            <span>
-                {% if current_lang == 'hi' %}
-                एआई संचालित नेत्र देखभाल
-                {% elif current_lang == 'mr' %}
-                एआय संचलित नेत्र काळजी
-                {% else %}
-                AI-Powered Eye Care
-                {% endif %}
-            </span>
-        </div>
-
-        <!-- Main Heading -->
-        <h1 class="dr-hero-title">
-            {% if current_lang == 'hi' %}
-            डायबिटिक रेटिनोपैथी<br>पहचान
-            {% elif current_lang == 'mr' %}
-            डायबेटिक रेटिनोपॅथी<br>तपासणी
-            {% else %}
-            Diabetic Retinopathy<br>Detection
-            {% endif %}
-        </h1>
-
-        <!-- Subtitle / Supporting description -->
-        <p class="dr-hero-desc">
-            {% if current_lang == 'hi' %}
-            रेटिनल फंडस छवि अपलोड करें और डायबिटिक रेटिनोपैथी की प्रारंभिक पहचान के लिए सटीक एआई-संचालित विश्लेषण प्राप्त करें। उन्नत डीप लर्निंग तकनीक से दृष्टि हानि को रोकें।
-            {% elif current_lang == 'mr' %}
-            रेटिनल फंडस इमेज अपलोड करा आणि डायबेटिक रेटिनोपॅथीच्या लवकर आजार निदानासाठी अचूक एआय-संचलित विश्लेषण मिळवा. प्रगत डीप लर्निंग तंत्रज्ञानासह दृष्टीचे रक्षण करा.
-            {% else %}
-            Upload a retinal fundus image and get accurate AI-powered analysis for early detection of diabetic retinopathy. Help prevent vision loss with advanced deep learning technology.
-            {% endif %}
-        </p>
-
-        <!-- 3 Benefit Highlights -->
-        <div class="dr-benefits-row">
-            <!-- 1. Early Detection -->
-            <div class="dr-benefit-item">
-                <div class="dr-benefit-icon-box cyan">🛡️</div>
-                <div class="dr-benefit-text">
-                    <span class="dr-benefit-title">
-                        {% if current_lang == 'hi' %}प्रारंभिक पहचान{% elif current_lang == 'mr' %}लवकर निदान{% else %}Early Detection{% endif %}
-                    </span>
-                    <span class="dr-benefit-sub">
-                        {% if current_lang == 'hi' %}दृष्टि हानि से बचाव{% elif current_lang == 'mr' %}दृष्टी रक्षण{% else %}Prevent vision loss{% endif %}
-                    </span>
-                </div>
-            </div>
-
-            <!-- 2. AI Accuracy -->
-            <div class="dr-benefit-item">
-                <div class="dr-benefit-icon-box purple">🎯</div>
-                <div class="dr-benefit-text">
-                    <span class="dr-benefit-title">
-                        {% if current_lang == 'hi' %}एआई सटीकता{% elif current_lang == 'mr' %}एआय अचूकता{% else %}AI Accuracy{% endif %}
-                    </span>
-                    <span class="dr-benefit-sub">
-                        {% if current_lang == 'hi' %}विश्वसनीय विश्लेषण{% elif current_lang == 'mr' %}विश्वासार्ह विश्लेषण{% else %}Reliable analysis{% endif %}
-                    </span>
-                </div>
-            </div>
-
-            <!-- 3. Fast Results -->
-            <div class="dr-benefit-item">
-                <div class="dr-benefit-icon-box pink">⚡</div>
-                <div class="dr-benefit-text">
-                    <span class="dr-benefit-title">
-                        {% if current_lang == 'hi' %}त्वरित परिणाम{% elif current_lang == 'mr' %}जलद निकाल{% else %}Fast Results{% endif %}
-                    </span>
-                    <span class="dr-benefit-sub">
-                        {% if current_lang == 'hi' %}सेकंडों में{% elif current_lang == 'mr' %}सेकंदांमध्ये{% else %}In seconds{% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
+    <!-- Full-Width Background Image covering entire hero area -->
+    <div class="dr-hero-bg">
+        <img src="{{ url_for('static', filename='images/hero/hero_ai_retina_scan.jpg') }}" 
+             alt="Diabetic Retinopathy AI Retinal Fundus Scan Dashboard" 
+             class="dr-hero-bg-img"
+             loading="eager" />
     </div>
 
-    <!-- Right Side Visual Container: Complete Clinical AI Eye & Retina Scan Visual -->
-    <div class="dr-hero-right">
-        <div class="dr-eye-visual-card">
-            <!-- Complete Eye + Retinal Scan Visual with Holographic HUD -->
-            <img src="{{ url_for('static', filename='images/hero/hero_ai_retina_scan.jpg') }}" 
-                 alt="Diabetic Retinopathy AI Retinal Fundus Scan Dashboard" 
-                 class="dr-eye-visual-img" />
+    <!-- Dark Navy / Blue Gradient Overlay on the Left Side -->
+    <div class="dr-hero-gradient-overlay"></div>
 
-            <!-- Clean floating label integrated naturally under the glowing fundus scan -->
-            <div class="dr-eye-ai-tag">
-                <div class="dr-eye-ai-tag-title">AI Analysis</div>
-                <div class="dr-eye-ai-tag-sub">for Healthier Eyes</div>
+    <!-- Content Directly ON TOP OF the Background Image -->
+    <div class="dr-hero-content-wrapper">
+        <div class="dr-hero-left">
+            <!-- Badge -->
+            <div class="dr-hero-badge">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z" />
+                </svg>
+                <span>
+                    {% if current_lang == 'hi' %}
+                    एआई संचालित नेत्र देखभाल
+                    {% elif current_lang == 'mr' %}
+                    एआय संचलित नेत्र काळजी
+                    {% else %}
+                    AI-Powered Eye Care
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="dr-hero-title">
+                {% if current_lang == 'hi' %}
+                डायबिटिक रेटिनोपैथी<br><span class="text-cyan-accent">पहचान</span>
+                {% elif current_lang == 'mr' %}
+                डायबेटिक रेटिनोपॅथी<br><span class="text-cyan-accent">तपासणी</span>
+                {% else %}
+                Diabetic Retinopathy<br><span class="text-cyan-accent">Detection</span>
+                {% endif %}
+            </h1>
+
+            <!-- Subtitle / Supporting description -->
+            <p class="dr-hero-desc">
+                {% if current_lang == 'hi' %}
+                रेटिनल फंडस छवि अपलोड करें और डायबिटिक रेटिनोपैथी की प्रारंभिक पहचान के लिए सटीक एआई-संचालित विश्लेषण प्राप्त करें। उन्नत डीप लर्निंग तकनीक से दृष्टि हानि को रोकें।
+                {% elif current_lang == 'mr' %}
+                रेटिनल फंडस इमेज अपलोड करा आणि डायबेटिक रेटिनोपॅथीच्या लवकर आजार निदानासाठी अचूक एआय-संचलित विश्लेषण मिळवा. प्रगत डीप लर्निंग तंत्रज्ञानासह दृष्टीचे रक्षण करा.
+                {% else %}
+                Upload a retinal fundus image and get accurate AI-powered analysis for early detection of diabetic retinopathy. Help prevent vision loss with advanced deep learning technology.
+                {% endif %}
+            </p>
+
+            <!-- 3 Benefit Highlights -->
+            <div class="dr-benefits-row">
+                <!-- 1. Early Detection -->
+                <div class="dr-benefit-item">
+                    <div class="dr-benefit-icon-box cyan">🛡️</div>
+                    <div class="dr-benefit-text">
+                        <span class="dr-benefit-title">
+                            {% if current_lang == 'hi' %}प्रारंभिक पहचान{% elif current_lang == 'mr' %}लवकर निदान{% else %}Early Detection{% endif %}
+                        </span>
+                        <span class="dr-benefit-sub">
+                            {% if current_lang == 'hi' %}दृष्टि हानि से बचाव{% elif current_lang == 'mr' %}दृष्टी रक्षण{% else %}Prevent vision loss{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 2. AI Accuracy -->
+                <div class="dr-benefit-item">
+                    <div class="dr-benefit-icon-box purple">🎯</div>
+                    <div class="dr-benefit-text">
+                        <span class="dr-benefit-title">
+                            {% if current_lang == 'hi' %}एआई सटीकता{% elif current_lang == 'mr' %}एआय अचूकता{% else %}AI Accuracy{% endif %}
+                        </span>
+                        <span class="dr-benefit-sub">
+                            {% if current_lang == 'hi' %}विश्वसनीय विश्लेषण{% elif current_lang == 'mr' %}विश्वासार्ह विश्लेषण{% else %}Reliable analysis{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 3. Fast Results -->
+                <div class="dr-benefit-item">
+                    <div class="dr-benefit-icon-box pink">⚡</div>
+                    <div class="dr-benefit-text">
+                        <span class="dr-benefit-title">
+                            {% if current_lang == 'hi' %}त्वरित परिणाम{% elif current_lang == 'mr' %}जलद निकाल{% else %}Fast Results{% endif %}
+                        </span>
+                        <span class="dr-benefit-sub">
+                            {% if current_lang == 'hi' %}सेकंडों में{% elif current_lang == 'mr' %}सेकंदांमध्ये{% else %}In seconds{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Row -->
+            <div class="dr-hero-btn-row">
+                <a href="#drUploadSection" class="btn-dr-hero-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>
+                        {% if current_lang == 'hi' %}रेटिना विश्लेषण शुरू करें{% elif current_lang == 'mr' %}रेटिना विश्लेषण सुरू करा{% else %}Start Retina Analysis{% endif %}
+                    </span>
+                </a>
+                <a href="/live_health" class="btn-dr-hero-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    <span>
+                        {% if current_lang == 'hi' %}लाइव मरीज सेंसर{% elif current_lang == 'mr' %}लाइव्ह रुग्ण सेन्सर{% else %}Live Patient Sensor{% endif %}
+                    </span>
+                </a>
             </div>
         </div>
     </div>

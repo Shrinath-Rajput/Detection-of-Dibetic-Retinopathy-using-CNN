@@ -3,7 +3,7 @@
 
 <style>
     /* =========================================================
-       CARESENSE PCOD RISK ASSESSMENT PAGE — EXACT THEME STYLES
+       CARESENSE PCOD RISK ASSESSMENT PAGE — THEME & HERO STYLES
        ========================================================= */
 
     html {
@@ -21,7 +21,7 @@
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    /* Full-width container override */
+    /* Container override for full width layout */
     .container {
         max-width: 100% !important;
         width: 100% !important;
@@ -109,316 +109,354 @@
         transform: none !important;
     }
 
+    /* Remove and block any old purple rectangular hero banner */
+    .hero {
+        display: none !important;
+    }
+
     /* ---------------------------------------------------------
-       2. HERO SECTION (REFERENCE MATCHED DESIGN)
+       2. FULL-WIDTH PCOD AI MEDICAL HERO SECTION (FULL BANNER)
        --------------------------------------------------------- */
-    .pcod-hero-section {
+    .pcod-cinematic-hero {
         position: relative;
-        max-width: 1260px;
+        width: 100% !important;
+        min-height: 620px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background-color: #080d1d;
+        background-image: 
+            linear-gradient(
+                90deg, 
+                #080d1d 0%, 
+                rgba(8, 13, 29, 0.96) 28%, 
+                rgba(8, 13, 29, 0.82) 48%, 
+                rgba(8, 13, 29, 0.3) 72%, 
+                rgba(8, 13, 29, 0.05) 100%
+            ),
+            url('/static/images/hero/pcod_ai_hero_bg.jpg');
+        background-size: cover;
+        background-position: right center;
+        background-repeat: no-repeat;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Full Background Image Layer covering complete area from left to right */
+    .pcod-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .pcod-hero-bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: right center;
+        display: block;
+    }
+
+    /* Dark Navy/Blue Gradient Overlay on the Left Side */
+    .hero-gradient-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            #080d1d 0%,
+            rgba(8, 13, 29, 0.96) 28%,
+            rgba(8, 13, 29, 0.82) 48%,
+            rgba(8, 13, 29, 0.3) 72%,
+            rgba(8, 13, 29, 0.05) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Hero Content Layered Directly ON TOP of the Background Image */
+    .hero-content-wrapper {
+        position: relative;
+        z-index: 4;
+        max-width: 1340px;
+        width: 100%;
         margin: 0 auto;
-        padding: 52px 28px 42px 28px;
-        display: grid;
-        grid-template-columns: 1.08fr 0.92fr;
-        gap: 48px;
+        padding: 60px 48px;
+        display: flex;
         align-items: center;
     }
 
-    .pcod-hero-left {
-        max-width: 630px;
+    .hero-text-block {
+        max-width: 580px;
+        padding: 40px 0;
     }
 
-    /* Badge */
-    .pcod-hero-badge {
+    /* Small Badge: "AI-Powered Women's Health" */
+    .hero-badge {
         display: inline-flex;
         align-items: center;
-        gap: 9px;
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
-        color: #7c3aed;
-        font-size: 13.5px;
-        font-weight: 750;
-        padding: 7px 18px;
+        gap: 8px;
+        background: rgba(18, 28, 56, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-radius: 50px;
+        padding: 6px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
         margin-bottom: 22px;
-        border: 1px solid rgba(124, 58, 237, 0.28);
-        box-shadow: 0 2px 10px rgba(124, 58, 237, 0.08);
-        letter-spacing: 0.2px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .pcod-hero-badge svg {
-        width: 16px;
-        height: 16px;
-        fill: #7c3aed;
-        filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.3));
+    .hero-badge .badge-icon {
+        font-size: 14px;
+        color: #38bdf8;
     }
 
-    /* Hero Heading: Large bold gradient typography using purple -> blue/cyan */
-    .pcod-hero-title {
+    /* Main Heading: White text with Cyan Accent */
+    .hero-title {
         font-size: 50px;
         line-height: 1.14;
+        font-weight: 800;
+        letter-spacing: -0.8px;
+        color: #ffffff;
+        margin: 0 0 18px 0;
+    }
+
+    .hero-title .text-cyan-accent {
+        color: #00d9ff;
         font-weight: 850;
-        letter-spacing: -1px;
-        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 48%, #06b6d4 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0 0 20px 0;
     }
 
-    /* Description */
-    .pcod-hero-desc {
-        font-size: 16px;
-        line-height: 1.7;
-        color: #475569;
-        margin: 0 0 32px 0;
+    .hero-title .text-purple-accent {
+        color: #8b5cf6;
+        font-weight: 850;
+    }
+
+    /* Existing PCOD Description */
+    .hero-description {
+        font-size: 15.5px;
+        line-height: 1.65;
+        color: #e2e8f0;
+        margin: 0 0 28px 0;
         font-weight: 450;
-        max-width: 580px;
     }
 
-    /* 3 Benefits Row */
-    .pcod-benefits-row {
+    /* Existing 3 Feature Items */
+    .hero-features-row {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        flex-wrap: wrap;
+        margin-bottom: 34px;
+    }
+
+    .hero-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .hero-feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+    }
+
+    .hero-feature-icon.blue {
+        background: rgba(30, 58, 138, 0.75);
+        color: #38bdf8;
+        border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .hero-feature-icon.purple {
+        background: rgba(88, 28, 135, 0.75);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .hero-feature-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-feature-heading {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.25;
+    }
+
+    .hero-feature-subtext {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.3;
+    }
+
+    /* Action Buttons */
+    .hero-btn-row {
         display: flex;
         align-items: center;
         gap: 16px;
         flex-wrap: wrap;
     }
 
-    .pcod-benefit-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: #ffffff;
-        padding: 12px 18px;
-        border-radius: 16px;
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-        transition: all 0.25s ease;
-    }
-
-    .pcod-benefit-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 22px rgba(37, 99, 235, 0.08);
-        border-color: rgba(56, 189, 248, 0.5);
-    }
-
-    .pcod-benefit-icon-box {
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
-        display: flex;
+    .btn-hero-primary {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 19px;
-        flex-shrink: 0;
-    }
-
-    .pcod-benefit-icon-box.cyan {
-        background: #e0f2fe;
-        color: #0284c7;
-        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
-    }
-
-    .pcod-benefit-icon-box.purple {
-        background: #ede9fe;
-        color: #7c3aed;
-        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
-    }
-
-    .pcod-benefit-icon-box.pink {
-        background: #fce7f3;
-        color: #db2777;
-        box-shadow: 0 2px 8px rgba(219, 39, 119, 0.15);
-    }
-
-    .pcod-benefit-text {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .pcod-benefit-title {
-        font-size: 13.5px;
-        font-weight: 750;
-        color: #0f172a;
-        line-height: 1.25;
-    }
-
-    .pcod-benefit-sub {
-        font-size: 11.5px;
-        color: #64748b;
-        font-weight: 500;
-        margin-top: 1px;
-    }
-
-    /* ---------------------------------------------------------
-       HERO RIGHT: LARGE PREMIUM PCOD/PCOS AI MEDICAL VISUAL
-       Rounded card + Soft blue/cyan glow
-       --------------------------------------------------------- */
-    .pcod-hero-right {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-    }
-
-    /* Ambient blue/cyan futuristic medical glow */
-    .pcod-hero-right::before {
-        content: '';
-        position: absolute;
-        width: 106%;
-        height: 106%;
-        top: -3%;
-        left: -3%;
-        background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, rgba(37, 99, 235, 0.15) 45%, transparent 70%);
-        filter: blur(35px);
-        z-index: 0;
-        pointer-events: none;
-        border-radius: 32px;
-    }
-
-    .pcod-visual-card {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 560px;
-        aspect-ratio: 16 / 9;
-        border-radius: 26px;
-        overflow: hidden;
-        border: 2px solid rgba(56, 189, 248, 0.45);
-        box-shadow: 0 20px 50px rgba(14, 165, 233, 0.22), 0 0 35px rgba(6, 182, 212, 0.25), 0 0 70px rgba(124, 58, 237, 0.12);
-        background: #070e24;
-    }
-
-    .pcod-visual-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        display: block;
-        transition: transform 0.45s ease;
-    }
-
-    .pcod-visual-card:hover .pcod-visual-img {
-        transform: scale(1.025);
-    }
-
-    /* Floating HUD label */
-    .pcod-ai-hud-tag {
-        position: absolute;
-        bottom: 18px;
-        left: 20px;
-        z-index: 4;
-        pointer-events: none;
-        background: rgba(7, 14, 36, 0.78);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(56, 189, 248, 0.45);
+        gap: 10px;
+        background: #0284c7;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 28px;
         border-radius: 12px;
-        padding: 8px 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+        text-decoration: none;
+        border: none;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+        transition: all 0.25s ease;
+        cursor: pointer;
     }
 
-    .pcod-ai-hud-tag-title {
-        font-size: 13.5px;
-        font-weight: 800;
-        color: #38bdf8;
-        letter-spacing: -0.2px;
-        line-height: 1.2;
+    .btn-hero-primary:hover {
+        background: #0369a1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(2, 132, 199, 0.45);
     }
 
-    .pcod-ai-hud-tag-sub {
-        font-size: 11.5px;
-        font-weight: 600;
-        color: #e2e8f0;
-        line-height: 1.25;
-        margin-top: 1px;
+    .btn-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #ffffff;
+        color: #0284c7 !important;
+        border: 1.5px solid rgba(2, 132, 199, 0.25);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 26px;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-hero-secondary:hover {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        transform: translateY(-2px);
+    }
+
+    #assessment-form {
+        scroll-margin-top: 100px;
     }
 
     /* ---------------------------------------------------------
-       3. PCOD ASSESSMENT FORM SECTION
+       3. EXISTING PAGE SECTIONS (PRESERVED)
        --------------------------------------------------------- */
-    .pcod-form-container {
+    .section {
         max-width: 1100px;
-        margin: 10px auto 55px auto;
+        margin: 40px auto;
         padding: 0 24px;
     }
 
-    .pcod-form-card {
-        background: #ffffff;
-        border-radius: 24px;
-        padding: 40px 48px;
-        box-shadow: 0 16px 45px rgba(15, 23, 42, 0.07);
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        position: relative;
-    }
-
-    .pcod-form-header {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .pcod-form-header-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-    }
-
-    .pcod-form-header-text h3 {
-        margin: 0;
-        font-size: 22px;
+    .section h2 {
+        text-align: center;
+        font-size: 28px;
         font-weight: 800;
         color: #0f172a;
-        letter-spacing: -0.3px;
+        margin-bottom: 24px;
+        letter-spacing: -0.4px;
     }
 
-    .pcod-form-header-text p {
-        margin: 4px 0 0 0;
-        font-size: 14px;
-        color: #64748b;
+    .form-info {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto 40px;
+        font-size: 16.5px;
+        color: #475569;
+        line-height: 1.8;
         font-weight: 450;
     }
 
-    /* Form Grid */
-    .pcod-form-grid {
+    .form-info strong {
+        color: #8B5CF6;
+        font-weight: 800;
+    }
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 20px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px 18px;
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        text-align: center;
+        transition: all 0.25s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .card h3 {
+        font-size: 16px;
+        font-weight: 750;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .card p {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.45;
+        margin: 0;
+    }
+
+    .form-box {
+        max-width: 650px !important;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 38px 44px;
+        box-shadow: 0 16px 45px rgba(15, 23, 42, 0.07);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .form-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 22px;
-        margin-bottom: 30px;
+        gap: 18px;
+        margin-bottom: 24px;
     }
 
-    .pcod-input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .pcod-input-label {
-        font-size: 13.5px;
-        font-weight: 650;
-        color: #334155;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .pcod-input-label span.req {
-        color: #ef4444;
-        font-weight: 700;
-    }
-
-    .pcod-form-card input,
-    .pcod-form-card select {
+    .form-grid input,
+    .form-grid select {
         width: 100% !important;
         height: 48px;
         padding: 0 16px !important;
@@ -428,363 +466,88 @@
         color: #0f172a !important;
         font-size: 14.5px !important;
         font-family: inherit !important;
-        transition: all 0.2s ease !important;
         box-sizing: border-box !important;
-        margin: 0 !important;
+        margin-bottom: 0 !important;
+        transition: all 0.2s ease !important;
     }
 
-    .pcod-form-card input:focus,
-    .pcod-form-card select:focus {
+    .form-grid input:focus,
+    .form-grid select:focus {
         outline: none !important;
         border-color: #2563eb !important;
         background: #ffffff !important;
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
     }
 
-    .pcod-form-card select {
+    .form-grid select {
         cursor: pointer;
         appearance: none;
         -webkit-appearance: none;
         background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
         background-repeat: no-repeat !important;
         background-position: right 14px center !important;
-        background-size: 16px !important;
-        padding-right: 40px !important;
+        padding-right: 36px !important;
     }
 
-    /* Submit Predict Button */
-    .pcod-submit-wrap {
-        display: flex;
-        justify-content: center;
-        margin-top: 10px;
-    }
-
-    .pcod-btn-predict {
+    button[type="submit"] {
         width: 100%;
-        max-width: 420px;
-        height: 52px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+        height: 50px;
+        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
         color: #ffffff !important;
-        font-size: 16px !important;
-        font-weight: 750 !important;
         border: none !important;
         border-radius: 14px !important;
-        cursor: pointer;
+        font-size: 16px !important;
+        font-weight: 750 !important;
+        cursor: pointer !important;
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.28) !important;
         transition: all 0.25s ease !important;
-        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35) !important;
+        letter-spacing: 0.2px;
     }
 
-    .pcod-btn-predict:hover {
+    button[type="submit"]:hover {
         transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(124, 58, 237, 0.45) !important;
-        filter: brightness(1.05);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.38) !important;
     }
 
-    .pcod-btn-predict:active {
-        transform: translateY(0);
-    }
-
-    .pcod-btn-spinner {
-        display: none;
-        width: 18px;
-        height: 18px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: #ffffff;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* Disclaimer Card */
-    .pcod-disclaimer-card {
-        margin-top: 28px;
-        padding: 16px 20px;
-        border-radius: 14px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        font-size: 13px;
-        color: #64748b;
-        line-height: 1.5;
-    }
-
-    .pcod-disclaimer-icon {
-        font-size: 18px;
-        flex-shrink: 0;
-        margin-top: 1px;
-    }
-
-    /* ---------------------------------------------------------
-       4. HOW AI ANALYSIS WORKS (5-STEP PROCESS)
-       --------------------------------------------------------- */
-    .pcod-process-section {
-        max-width: 1100px;
-        margin: 0 auto 60px auto;
-        padding: 0 24px;
-    }
-
-    .pcod-section-header {
-        text-align: center;
-        margin-bottom: 36px;
-    }
-
-    .pcod-section-tag {
-        display: inline-block;
-        font-size: 12.5px;
-        font-weight: 750;
-        color: #0284c7;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
-
-    .pcod-section-header h2 {
-        font-size: 30px;
-        font-weight: 850;
-        color: #0f172a;
-        letter-spacing: -0.5px;
-        margin: 0 0 10px 0;
-    }
-
-    .pcod-section-header p {
-        font-size: 14.5px;
-        color: #64748b;
-        margin: 0 auto;
-        max-width: 600px;
-    }
-
-    .pcod-steps-track {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 16px;
-        position: relative;
-    }
-
-    .pcod-step-card {
+    .note {
+        max-width: 860px;
+        margin: 20px auto 60px auto;
+        padding: 18px 24px;
         background: #ffffff;
-        border-radius: 18px;
-        padding: 24px 18px;
-        border: 1px solid rgba(226, 232, 240, 0.85);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 16px;
         box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        position: relative;
-        transition: all 0.25s ease;
-    }
-
-    .pcod-step-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(124, 58, 237, 0.12);
-        border-color: rgba(124, 58, 237, 0.3);
-    }
-
-    .pcod-step-num-badge {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 14px;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
-    }
-
-    .pcod-step-icon {
-        font-size: 24px;
-        margin-bottom: 12px;
-    }
-
-    .pcod-step-title {
-        font-size: 13.5px;
-        font-weight: 750;
-        color: #0f172a;
-        margin-bottom: 6px;
-        line-height: 1.3;
-    }
-
-    .pcod-step-desc {
-        font-size: 11.5px;
-        color: #64748b;
-        line-height: 1.4;
-    }
-
-    /* ---------------------------------------------------------
-       5. COMMON INDICATORS SECTION
-       --------------------------------------------------------- */
-    .pcod-indicators-section {
-        max-width: 1100px;
-        margin: 0 auto 60px auto;
-        padding: 0 24px;
-    }
-
-    .pcod-indicators-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 22px;
-    }
-
-    .pcod-indicator-card {
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 26px 24px;
-        border: 1px solid rgba(226, 232, 240, 0.85);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-        transition: all 0.25s ease;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .pcod-indicator-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-        border-color: rgba(56, 189, 248, 0.4);
-    }
-
-    .pcod-indicator-top {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 12px;
-    }
-
-    .pcod-indicator-icon-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .pcod-indicator-icon-box.c1 { background: #e0f2fe; color: #0284c7; }
-    .pcod-indicator-icon-box.c2 { background: #ede9fe; color: #7c3aed; }
-    .pcod-indicator-icon-box.c3 { background: #fce7f3; color: #db2777; }
-    .pcod-indicator-icon-box.c4 { background: #fee2e2; color: #dc2626; }
-    .pcod-indicator-icon-box.c5 { background: #dcfce7; color: #16a34a; }
-    .pcod-indicator-icon-box.c6 { background: #fef3c7; color: #d97706; }
-
-    .pcod-indicator-title {
-        font-size: 16px;
-        font-weight: 750;
-        color: #0f172a;
-        margin: 0;
-    }
-
-    .pcod-indicator-desc {
         font-size: 13.5px;
         color: #64748b;
-        line-height: 1.5;
-        margin: 0;
-    }
-
-    /* ---------------------------------------------------------
-       6. WHY CHOOSE AI ASSESSMENT
-       --------------------------------------------------------- */
-    .pcod-why-section {
-        max-width: 1100px;
-        margin: 0 auto 70px auto;
-        padding: 0 24px;
-    }
-
-    .pcod-why-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
-
-    .pcod-why-card {
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 26px 20px;
-        border: 1px solid rgba(226, 232, 240, 0.85);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        line-height: 1.6;
         text-align: center;
-        transition: all 0.25s ease;
-    }
-
-    .pcod-why-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.1);
-        border-color: rgba(37, 99, 235, 0.3);
-    }
-
-    .pcod-why-icon-wrap {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        background: #eff6ff;
-        color: #2563eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        margin: 0 auto 16px auto;
-    }
-
-    .pcod-why-title {
-        font-size: 15px;
-        font-weight: 750;
-        color: #0f172a;
-        margin-bottom: 8px;
-    }
-
-    .pcod-why-desc {
-        font-size: 12.5px;
-        color: #64748b;
-        line-height: 1.5;
     }
 
     /* ---------------------------------------------------------
-       7. RESPONSIVE BREAKPOINTS
+       4. RESPONSIVE BREAKPOINTS
        --------------------------------------------------------- */
-    @media (max-width: 992px) {
-        .pcod-hero-section {
-            grid-template-columns: 1fr;
-            gap: 36px;
-            padding: 34px 20px;
-            text-align: center;
+    @media (max-width: 1024px) {
+        .pcod-cinematic-hero {
+            height: auto;
+            min-height: 600px;
+            padding: 50px 0;
         }
 
-        .pcod-hero-left {
-            max-width: 100%;
-            margin: 0 auto;
+        .hero-content-wrapper {
+            padding: 0 30px;
         }
 
-        .pcod-hero-title {
-            font-size: 38px;
+        .hero-title {
+            font-size: 42px;
         }
 
-        .pcod-hero-desc {
-            margin: 0 auto 28px auto;
-        }
-
-        .pcod-benefits-row {
-            justify-content: center;
-        }
-
-        .pcod-steps-track {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .pcod-why-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .hero-gradient-overlay {
+            background: linear-gradient(
+                90deg,
+                #090e1f 0%,
+                rgba(9, 14, 31, 0.94) 55%,
+                rgba(9, 14, 31, 0.7) 100%
+            );
         }
     }
 
@@ -793,424 +556,281 @@
             padding: 14px 20px !important;
         }
 
-        .pcod-form-card {
+        .pcod-cinematic-hero {
+            height: auto;
+            min-height: auto;
+            padding: 40px 0 36px;
+        }
+
+        .pcod-hero-bg-img {
+            object-position: 70% center;
+        }
+
+        .hero-gradient-overlay {
+            background: rgba(9, 14, 31, 0.94);
+        }
+
+        .hero-content-wrapper {
+            padding: 0 20px;
+        }
+
+        .hero-text-block {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .hero-description {
+            font-size: 15px;
+            margin-bottom: 22px;
+        }
+
+        .hero-features-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .hero-btn-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .btn-hero-primary,
+        .btn-hero-secondary {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .form-box {
             padding: 26px 20px;
             border-radius: 18px;
         }
 
-        .pcod-form-grid {
+        .form-grid {
             grid-template-columns: 1fr;
             gap: 16px;
         }
 
-        .pcod-steps-track {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .pcod-indicators-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .pcod-why-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .pcod-btn-predict {
-            max-width: 100%;
-        }
-
-        .pcod-hero-title {
-            font-size: 32px;
-        }
-
-        .pcod-benefits-row {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .pcod-benefit-item {
-            justify-content: flex-start;
+        .cards {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 </style>
 
 <!-- =========================================================
-     1. HERO SECTION
+     1. PCOD HERO SECTION (FULL-WIDTH DIABETIC RETINOPATHY STYLE)
      ========================================================= -->
-<div class="pcod-hero-section">
-    <!-- Hero Left Column -->
-    <div class="pcod-hero-left">
-        <div class="pcod-hero-badge">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-            {{ t('pcod.hero_badge') }}
-        </div>
-
-        <h1 class="pcod-hero-title">
-            {{ t('pcod.hero_heading_main') }}
-        </h1>
-
-        <p class="pcod-hero-desc">
-            {{ t('pcod.subtitle') }}
-        </p>
-
-        <!-- 3 Feature Highlights -->
-        <div class="pcod-benefits-row">
-            <div class="pcod-benefit-item">
-                <div class="pcod-benefit-icon-box cyan">🛡️</div>
-                <div class="pcod-benefit-text">
-                    <span class="pcod-benefit-title">{{ t('pcod.feature_1_title') }}</span>
-                    <span class="pcod-benefit-sub">{{ t('pcod.feature_1_desc') }}</span>
-                </div>
-            </div>
-
-            <div class="pcod-benefit-item">
-                <div class="pcod-benefit-icon-box purple">⚡</div>
-                <div class="pcod-benefit-text">
-                    <span class="pcod-benefit-title">{{ t('pcod.feature_2_title') }}</span>
-                    <span class="pcod-benefit-sub">{{ t('pcod.feature_2_desc') }}</span>
-                </div>
-            </div>
-
-            <div class="pcod-benefit-item">
-                <div class="pcod-benefit-icon-box pink">⏱️</div>
-                <div class="pcod-benefit-text">
-                    <span class="pcod-benefit-title">{{ t('pcod.feature_3_title') }}</span>
-                    <span class="pcod-benefit-sub">{{ t('pcod.feature_3_desc') }}</span>
-                </div>
-            </div>
-        </div>
+<div class="pcod-cinematic-hero">
+    <!-- Full-Width Background Image covering entire hero area -->
+    <div class="pcod-hero-bg">
+        <img src="{{ url_for('static', filename='images/hero/pcod_ai_hero_bg.jpg') }}" 
+             alt="PCOD PCOS AI Healthcare Diagnostic Workstation" 
+             class="pcod-hero-bg-img"
+             loading="eager" />
     </div>
 
-    <!-- Hero Right Column: AI Visual -->
-    <div class="pcod-hero-right">
-        <div class="pcod-visual-card">
-            <img src="{{ url_for('static', filename='images/hero/pcod_hero_ai.jpg') }}" 
-                 alt="PCOD AI Healthcare Analysis" 
-                 class="pcod-visual-img">
+    <!-- Dark Navy / Blue Gradient Overlay on the Left Side -->
+    <div class="hero-gradient-overlay"></div>
 
-            <div class="pcod-ai-hud-tag">
-                <div class="pcod-ai-hud-tag-title">{{ t('pcod.tag_hero_title') }}</div>
-                <div class="pcod-ai-hud-tag-sub">{{ t('pcod.tag_hero_sub') }}</div>
+    <!-- Content Directly ON TOP OF the Background Image -->
+    <div class="hero-content-wrapper">
+        <div class="hero-text-block">
+
+            <!-- Small Badge: "AI-Powered Women's Health" -->
+            <div class="hero-badge">
+                <span class="badge-icon">❤️</span>
+                <span>{{ t('pcod.hero_badge') | safe }}</span>
             </div>
+
+            <!-- Main Heading: White Text with Cyan and Purple Accent matching Reference -->
+            <h1 class="hero-title">
+                {% if current_lang == 'hi' %}
+                    पीसीओडी <span class="text-cyan-accent">जोखिम</span><br>
+                    <span class="text-cyan-accent">मूल्यांकन</span>
+                {% elif current_lang == 'mr' %}
+                    पीसीओडी <span class="text-cyan-accent">धोका</span><br>
+                    <span class="text-cyan-accent">मूल्यांकन</span>
+                {% else %}
+                    PCOD <span class="text-cyan-accent">Risk</span><br>
+                    <span class="text-purple-accent">A</span><span class="text-cyan-accent">ssessment</span>
+                {% endif %}
+            </h1>
+
+            <!-- Existing PCOD Description -->
+            <p class="hero-description">
+                {{ t('pcod.subtitle') }}
+            </p>
+
+            <!-- Existing 3 Feature Items -->
+            <div class="hero-features-row">
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon blue">🛡️</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">{{ t('pcod.feature_1_title') }}</span>
+                        <span class="hero-feature-subtext">{{ t('pcod.feature_1_desc') }}</span>
+                    </div>
+                </div>
+
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon blue">⚡</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">{{ t('pcod.feature_2_title') }}</span>
+                        <span class="hero-feature-subtext">{{ t('pcod.feature_2_desc') }}</span>
+                    </div>
+                </div>
+
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon purple">⏱️</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">{{ t('pcod.feature_3_title') }}</span>
+                        <span class="hero-feature-subtext">{{ t('pcod.feature_3_desc') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Working Buttons -->
+            <div class="hero-btn-row">
+                <a href="#assessment-form" class="btn-hero-primary" id="btnStartPcodHero">
+                    <span style="font-size: 17px;">👁</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            पीसीओडी मूल्यांकन शुरू करें
+                        {% elif current_lang == 'mr' %}
+                            पीसीओडी मूल्यांकन सुरू करा
+                        {% else %}
+                            Start PCOD Assessment
+                        {% endif %}
+                    </span>
+                </a>
+
+                <a href="/live_health" class="btn-hero-secondary" id="btnLiveSensorHero">
+                    <span style="font-size: 16px; font-weight: 800; color: #0284c7;">((•))</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            लाइव पेशेंट सेंसर
+                        {% elif current_lang == 'mr' %}
+                            लाइव्ह पेशंट सेन्सर
+                        {% else %}
+                            Live Patient Sensor
+                        {% endif %}
+                    </span>
+                </a>
+            </div>
+
         </div>
     </div>
 </div>
 
 <!-- =========================================================
-     2. PCOD ASSESSMENT FORM
+     2. WHAT IS PCOD SECTION
      ========================================================= -->
-<div class="pcod-form-container">
-    <div class="pcod-form-card">
-        <div class="pcod-form-header">
-            <div class="pcod-form-header-icon">🌸</div>
-            <div class="pcod-form-header-text">
-                <h3>{{ t('pcod.card_title') }}</h3>
-                <p>{{ t('pcod.card_subtitle') }}</p>
-            </div>
+<div class="section animate">
+    <h2 style="color: #5850ec; font-weight: 800; font-size: 34px; text-align: center; margin-bottom: 6px; letter-spacing: -0.5px;">{{ t('pcod.about.title') }}</h2>
+    <div style="width: 64px; height: 4px; background: linear-gradient(90deg, #5850ec 0%, #38bdf8 100%); margin: 0 auto 24px auto; border-radius: 4px;"></div>
+    <p class="form-info">{{ t('pcod.about.text') }}</p>
+</div>
+
+<!-- =========================================================
+     3. SYMPTOMS / COMMON INDICATORS SECTION
+     ========================================================= -->
+<div class="section">
+    <h2 class="animate">{{ t('pcod.indicators_title') }}</h2>
+
+    <div class="cards">
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">⚖️</div>
+            <h3>{{ t('pcod.indicator_weight') }}</h3>
+            <p>{{ t('pcod.indicator_weight_text') }}</p>
         </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
+            <h3>{{ t('pcod.indicator_fatigue') }}</h3>
+            <p>{{ t('pcod.indicator_fatigue_text') }}</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">😣</div>
+            <h3>{{ t('pcod.indicator_stress') }}</h3>
+            <p>{{ t('pcod.indicator_stress_text') }}</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">🩸</div>
+            <h3>{{ t('pcod.indicator_periods') }}</h3>
+            <p>{{ t('pcod.indicator_periods_text') }}</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">🥗</div>
+            <h3>{{ t('pcod.indicator_diet') }}</h3>
+            <p>{{ t('pcod.indicator_diet_text') }}</p>
+        </div>
+        <div class="card animate">
+            <div style="font-size: 24px; margin-bottom: 10px;">👩‍👧</div>
+            <h3>{{ t('pcod.indicator_family') }}</h3>
+            <p>{{ t('pcod.indicator_family_text') }}</p>
+        </div>
+    </div>
+</div>
 
-        <form action="/pcod_predict" method="POST" id="pcodPredictForm">
-            <div class="pcod-form-grid">
-                <!-- 1. Age -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_age">
-                        {{ t('pcod.field_age') }} <span class="req">*</span>
-                    </label>
-                    <input type="number" 
-                           name="age" 
-                           id="pcod_age" 
-                           placeholder="{{ t('pcod.age_placeholder') }}" 
-                           required 
-                           min="1" 
-                           max="120">
-                </div>
+<!-- =========================================================
+     4. PCOD ASSESSMENT FORM
+     ========================================================= -->
+<div class="section animate" id="assessment-form">
+    <h2>{{ t('pcod.form_title') }}</h2>
 
-                <!-- 2. Gender -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_gender">
-                        {{ t('pcod.field_gender') }} <span class="req">*</span>
-                    </label>
-                    <select name="gender" id="pcod_gender" required>
-                        <option value="">{{ t('pcod.gender_select') }}</option>
-                        <option value="{{ t('pcod.gender_female') }}">{{ t('pcod.gender_female') }}</option>
-                    </select>
-                </div>
+    <div class="form-box animate">
+        <form action="/pcod_predict" method="POST">
 
-                <!-- 3. BMI -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_bmi">
-                        {{ t('pcod.field_bmi') }} <span class="req">*</span>
-                    </label>
-                    <input type="number" 
-                           step="0.1" 
-                           name="bmi" 
-                           id="pcod_bmi" 
-                           placeholder="{{ t('pcod.bmi_placeholder') }}" 
-                           required 
-                           min="10" 
-                           max="60">
-                </div>
+            <div class="form-grid">
+                <input type="number" name="age" placeholder="{{ t('pcod.age_placeholder') }}" required min="1" max="120">
 
-                <!-- 4. Fatigue -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_fatigue">
-                        {{ t('pcod.field_fatigue') }}
-                    </label>
-                    <input type="number" 
-                           name="fatigue" 
-                           id="pcod_fatigue" 
-                           placeholder="{{ t('pcod.fatigue_placeholder') }}" 
-                           min="1" 
-                           max="10">
-                </div>
+                <select name="gender" required>
+                    <option value="">{{ t('pcod.gender_select') }}</option>
+                    <option>{{ t('pcod.gender_female') }}</option>
+                </select>
 
-                <!-- 5. Sleep -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_sleep">
-                        {{ t('pcod.field_sleep') }}
-                    </label>
-                    <input type="number" 
-                           name="sleep" 
-                           id="pcod_sleep" 
-                           placeholder="{{ t('pcod.sleep_placeholder') }}" 
-                           min="1" 
-                           max="10">
-                </div>
+                <input type="number" step="0.1" name="bmi" placeholder="{{ t('pcod.bmi_placeholder') }}" required min="10" max="60">
 
-                <!-- 6. Stress -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_stress">
-                        {{ t('pcod.field_stress') }}
-                    </label>
-                    <input type="number" 
-                           name="stress" 
-                           id="pcod_stress" 
-                           placeholder="{{ t('pcod.stress_placeholder') }}" 
-                           min="1" 
-                           max="10">
-                </div>
+                <input type="number" name="fatigue" placeholder="{{ t('pcod.fatigue_placeholder') }}" min="1" max="10">
+                <input type="number" name="sleep" placeholder="{{ t('pcod.sleep_placeholder') }}" min="1" max="10">
+                <input type="number" name="stress" placeholder="{{ t('pcod.stress_placeholder') }}" min="1" max="10">
 
-                <!-- 7. Activity -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_activity">
-                        {{ t('pcod.field_activity') }}
-                    </label>
-                    <select name="activity" id="pcod_activity">
-                        <option value="">{{ t('pcod.activity_select') }}</option>
-                        <option value="low">{{ t('pcod.activity_low') }}</option>
-                        <option value="moderate">{{ t('pcod.activity_moderate') }}</option>
-                        <option value="high">{{ t('pcod.activity_high') }}</option>
-                    </select>
-                </div>
+                <select name="activity">
+                    <option value="">{{ t('pcod.activity_select') }}</option>
+                    <option value="low">{{ t('pcod.activity_low') }}</option>
+                    <option value="moderate">{{ t('pcod.activity_moderate') }}</option>
+                    <option value="high">{{ t('pcod.activity_high') }}</option>
+                </select>
 
-                <!-- 8. Diet -->
-                <div class="pcod-input-group">
-                    <label class="pcod-input-label" for="pcod_diet">
-                        {{ t('pcod.field_diet') }}
-                    </label>
-                    <select name="diet" id="pcod_diet">
-                        <option value="">{{ t('pcod.diet_select') }}</option>
-                        <option value="balanced">{{ t('pcod.diet_balanced') }}</option>
-                        <option value="junk">{{ t('pcod.diet_junk') }}</option>
-                    </select>
-                </div>
+                <select name="diet">
+                    <option value="">{{ t('pcod.diet_select') }}</option>
+                    <option value="balanced">{{ t('pcod.diet_balanced') }}</option>
+                    <option value="junk">{{ t('pcod.diet_junk') }}</option>
+                </select>
 
-                <!-- 9. Family History -->
-                <div class="pcod-input-group" style="grid-column: span 2;">
-                    <label class="pcod-input-label" for="pcod_family_history">
-                        {{ t('pcod.field_family') }} <span class="req">*</span>
-                    </label>
-                    <select name="family_history" id="pcod_family_history" required>
-                        <option value="">{{ t('pcod.family_history_select') }}</option>
-                        <option value="yes">{{ t('pcod.family_history_yes') }}</option>
-                        <option value="no">{{ t('pcod.family_history_no') }}</option>
-                    </select>
-                </div>
+                <select name="family_history" required>
+                    <option value="">{{ t('pcod.family_history_select') }}</option>
+                    <option value="yes">{{ t('pcod.family_history_yes') }}</option>
+                    <option value="no">{{ t('pcod.family_history_no') }}</option>
+                </select>
             </div>
 
-            <!-- Submit Button -->
-            <div class="pcod-submit-wrap">
-                <button type="submit" class="pcod-btn-predict" id="pcodSubmitBtn">
-                    <span class="pcod-btn-spinner" id="pcodBtnSpinner"></span>
-                    <span id="pcodBtnText">{{ t('pcod.assess_button') }}</span>
-                </button>
-            </div>
+            <button type="submit">{{ t('pcod.assess_button') }}</button>
         </form>
-
-        <!-- Disclaimer -->
-        <div class="pcod-disclaimer-card">
-            <span class="pcod-disclaimer-icon">ℹ️</span>
-            <div>{{ t('pcod.disclaimer') }}</div>
-        </div>
     </div>
 </div>
 
 <!-- =========================================================
-     3. HOW AI ANALYSIS WORKS (5-STEP PROCESS)
+     5. NOTE / DISCLAIMER
      ========================================================= -->
-<div class="pcod-process-section">
-    <div class="pcod-section-header">
-        <span class="pcod-section-tag">Clinical Workflow</span>
-        <h2>{{ t('pcod.process_title') }}</h2>
-        <p>{{ t('pcod.process_subtitle') }}</p>
-    </div>
-
-    <div class="pcod-steps-track">
-        <div class="pcod-step-card">
-            <div class="pcod-step-num-badge">1</div>
-            <div class="pcod-step-icon">📋</div>
-            <div class="pcod-step-title">{{ t('pcod.step_1_title') }}</div>
-            <div class="pcod-step-desc">{{ t('pcod.step_1_desc') }}</div>
-        </div>
-
-        <div class="pcod-step-card">
-            <div class="pcod-step-num-badge">2</div>
-            <div class="pcod-step-icon">🔬</div>
-            <div class="pcod-step-title">{{ t('pcod.step_2_title') }}</div>
-            <div class="pcod-step-desc">{{ t('pcod.step_2_desc') }}</div>
-        </div>
-
-        <div class="pcod-step-card">
-            <div class="pcod-step-num-badge">3</div>
-            <div class="pcod-step-icon">🤖</div>
-            <div class="pcod-step-title">{{ t('pcod.step_3_title') }}</div>
-            <div class="pcod-step-desc">{{ t('pcod.step_3_desc') }}</div>
-        </div>
-
-        <div class="pcod-step-card">
-            <div class="pcod-step-num-badge">4</div>
-            <div class="pcod-step-icon">📊</div>
-            <div class="pcod-step-title">{{ t('pcod.step_4_title') }}</div>
-            <div class="pcod-step-desc">{{ t('pcod.step_4_desc') }}</div>
-        </div>
-
-        <div class="pcod-step-card">
-            <div class="pcod-step-num-badge">5</div>
-            <div class="pcod-step-icon">📄</div>
-            <div class="pcod-step-title">{{ t('pcod.step_5_title') }}</div>
-            <div class="pcod-step-desc">{{ t('pcod.step_5_desc') }}</div>
-        </div>
+<div class="section animate">
+    <div class="note">
+        {{ t('pcod.disclaimer') }}
     </div>
 </div>
-
-<!-- =========================================================
-     4. COMMON HEALTH INDICATORS SECTION
-     ========================================================= -->
-<div class="pcod-indicators-section">
-    <div class="pcod-section-header">
-        <span class="pcod-section-tag">Clinical Indicators</span>
-        <h2>{{ t('pcod.indicators_title') }}</h2>
-        <p>{{ t('pcod.about.text') }}</p>
-    </div>
-
-    <div class="pcod-indicators-grid">
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c1">⚖️</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_weight') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_weight_text') }}</p>
-        </div>
-
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c2">😴</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_fatigue') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_fatigue_text') }}</p>
-        </div>
-
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c3">😣</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_stress') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_stress_text') }}</p>
-        </div>
-
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c4">🩸</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_periods') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_periods_text') }}</p>
-        </div>
-
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c5">🥗</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_diet') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_diet_text') }}</p>
-        </div>
-
-        <div class="pcod-indicator-card">
-            <div class="pcod-indicator-top">
-                <div class="pcod-indicator-icon-box c6">🧬</div>
-                <h4 class="pcod-indicator-title">{{ t('pcod.indicator_family') }}</h4>
-            </div>
-            <p class="pcod-indicator-desc">{{ t('pcod.indicator_family_text') }}</p>
-        </div>
-    </div>
-</div>
-
-<!-- =========================================================
-     5. WHY USE AI PCOD ASSESSMENT SECTION
-     ========================================================= -->
-<div class="pcod-why-section">
-    <div class="pcod-section-header">
-        <span class="pcod-section-tag">Empowering Healthcare</span>
-        <h2>{{ t('pcod.why_title') }}</h2>
-        <p>{{ t('pcod.why_subtitle') }}</p>
-    </div>
-
-    <div class="pcod-why-grid">
-        <div class="pcod-why-card">
-            <div class="pcod-why-icon-wrap">💡</div>
-            <div class="pcod-why-title">{{ t('pcod.why_1_title') }}</div>
-            <div class="pcod-why-desc">{{ t('pcod.why_1_desc') }}</div>
-        </div>
-
-        <div class="pcod-why-card">
-            <div class="pcod-why-icon-wrap">🤖</div>
-            <div class="pcod-why-title">{{ t('pcod.why_2_title') }}</div>
-            <div class="pcod-why-desc">{{ t('pcod.why_2_desc') }}</div>
-        </div>
-
-        <div class="pcod-why-card">
-            <div class="pcod-why-icon-wrap">⚡</div>
-            <div class="pcod-why-title">{{ t('pcod.why_3_title') }}</div>
-            <div class="pcod-why-desc">{{ t('pcod.why_3_desc') }}</div>
-        </div>
-
-        <div class="pcod-why-card">
-            <div class="pcod-why-icon-wrap">📑</div>
-            <div class="pcod-why-title">{{ t('pcod.why_4_title') }}</div>
-            <div class="pcod-why-desc">{{ t('pcod.why_4_desc') }}</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("pcodPredictForm");
-        const submitBtn = document.getElementById("pcodSubmitBtn");
-        const spinner = document.getElementById("pcodBtnSpinner");
-        const btnText = document.getElementById("pcodBtnText");
-
-        if (form && submitBtn) {
-            form.addEventListener("submit", function () {
-                if (spinner && btnText) {
-                    spinner.style.display = "inline-block";
-                    submitBtn.style.opacity = "0.85";
-                    submitBtn.style.pointerEvents = "none";
-                }
-            });
-        }
-    });
-</script>
 
 {% endblock %}

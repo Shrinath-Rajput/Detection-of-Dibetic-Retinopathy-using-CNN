@@ -2,31 +2,746 @@
 {% block content %}
 
 <style>
-    .form-info {
-        text-align: center;
-        max-width: 900px;
-        margin: 0 auto 50px;
-        font-size: 17px;
-        color: var(--text-secondary);
-        line-height: 2;
+    /* =========================================================
+       CARESENSE DIABETES RISK PREDICTION PAGE — HERO & THEME STYLES
+       ========================================================= */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background: radial-gradient(circle at 85% 12%, rgba(56, 189, 248, 0.06) 0%, transparent 40%),
+                    radial-gradient(circle at 12% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 45%),
+                    #f1f6fd !important;
+        color: #0f172a !important;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Container override for full-width layout */
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ---------------------------------------------------------
+       1. NAVBAR OVERRIDES (DARK NAVY THEME)
+       --------------------------------------------------------- */
+    .navbar {
+        background: #090e1f !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 14px 44px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        transition: none !important;
+    }
+
+    .navbar h2 {
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.3px !important;
+        font-size: 22px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .navbar .nav-links a {
+        background: #121c38 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px !important;
+        padding: 8px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        color: #e2e8f0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        transition: all 0.2s ease !important;
+        margin: 0 4px !important;
+    }
+
+    .navbar .nav-links a:hover {
+        background: #1c2a52 !important;
+        color: #38bdf8 !important;
+        border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+
+    .navbar .nav-links a::after {
+        display: none !important;
+    }
+
+    /* Active Highlight for Diabetes */
+    .navbar .dropdown-wrapper:has(a[href="/diabetes"]) > a,
+    .navbar .dropdown-menu a[href="/diabetes"] {
+        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: 1px solid #0284c7 !important;
+        box-shadow: 0 2px 14px rgba(2, 132, 199, 0.45) !important;
+    }
+
+    .navbar .dropdown-menu {
+        background: #0c142b !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .navbar .dropdown-menu a {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: #cbd5e1 !important;
+        padding: 10px 16px !important;
+        margin: 2px 0 !important;
+    }
+
+    .navbar .dropdown-menu a:hover {
+        background: #1e293b !important;
+        color: #38bdf8 !important;
+        transform: none !important;
+    }
+
+    /* Remove and block old centered blue rectangular banner */
+    .hero {
+        display: none !important;
+    }
+
+    /* ---------------------------------------------------------
+       2. FULL-WIDTH DIABETES AI MEDICAL HERO SECTION (FULL BANNER)
+       --------------------------------------------------------- */
+    .diabetes-cinematic-hero {
+        position: relative;
+        width: 100% !important;
+        min-height: 620px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background-color: #080d1d;
+        background-image: 
+            linear-gradient(
+                90deg, 
+                #080d1d 0%, 
+                rgba(8, 13, 29, 0.96) 28%, 
+                rgba(8, 13, 29, 0.82) 48%, 
+                rgba(8, 13, 29, 0.3) 72%, 
+                rgba(8, 13, 29, 0.05) 100%
+            ),
+            url('/static/images/hero/diabetes_ai_hero_bg.jpg');
+        background-size: cover;
+        background-position: right center;
+        background-repeat: no-repeat;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Full Background Image Layer covering complete area from left to right */
+    .diabetes-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .diabetes-hero-bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: right center;
+        display: block;
+    }
+
+    /* Dark Navy/Blue Gradient Overlay on the Left Side */
+    .hero-gradient-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            #080d1d 0%,
+            rgba(8, 13, 29, 0.96) 28%,
+            rgba(8, 13, 29, 0.82) 48%,
+            rgba(8, 13, 29, 0.3) 72%,
+            rgba(8, 13, 29, 0.05) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Hero Content Layered Directly ON TOP of the Background Image */
+    .hero-content-wrapper {
+        position: relative;
+        z-index: 4;
+        max-width: 1340px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 60px 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-text-block {
+        max-width: 600px;
+        padding: 0;
+    }
+
+    /* Small Badge: "AI-Powered Metabolic Health" */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(18, 28, 56, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50px;
+        padding: 6px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 22px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero-badge .badge-icon {
+        font-size: 14px;
+        color: #38bdf8;
+    }
+
+    /* Main Heading: White text with Cyan and Purple Accent */
+    .hero-title {
+        font-size: 52px;
+        line-height: 1.12;
+        font-weight: 850;
+        letter-spacing: -0.8px;
+        color: #ffffff;
+        margin: 0 0 18px 0;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .hero-title .text-cyan-accent {
+        color: #00d9ff;
+        font-weight: 850;
+        background: linear-gradient(135deg, #00d9ff 0%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-title .text-purple-accent {
+        color: #8b5cf6;
+        font-weight: 850;
+        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Subtitle / Description */
+    .hero-description {
+        font-size: 15.5px;
+        line-height: 1.65;
+        color: #cbd5e1;
+        margin: 0 0 28px 0;
+        font-weight: 450;
+        max-width: 550px;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 3 Feature Highlights */
+    .hero-features-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-bottom: 34px;
+    }
+
+    .hero-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .hero-feature-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero-feature-icon.blue {
+        background: rgba(14, 116, 144, 0.35);
+        color: #38bdf8;
+        border: 1.5px solid rgba(56, 189, 248, 0.45);
+    }
+
+    .hero-feature-icon.purple {
+        background: rgba(109, 40, 217, 0.35);
+        color: #c084fc;
+        border: 1.5px solid rgba(168, 85, 247, 0.45);
+    }
+
+    .hero-feature-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-feature-heading {
+        font-size: 14px;
+        font-weight: 750;
+        color: #ffffff;
+        line-height: 1.25;
+        letter-spacing: -0.2px;
+    }
+
+    .hero-feature-subtext {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.3;
         font-weight: 500;
     }
 
-    .form-info strong {
-        color: #00D9FF;
-        font-weight: 800;
-        text-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+    /* Action Buttons */
+    .hero-btn-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    .hero {
-        background: linear-gradient(135deg, rgba(0, 82, 163, 0.98) 0%, rgba(0, 153, 255, 0.95) 40%, rgba(0, 217, 255, 0.9) 100%) !important;
+    .btn-hero-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #0284c7;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: none;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-hero-primary:hover {
+        background: #0369a1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(2, 132, 199, 0.5);
+    }
+
+    .btn-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #ffffff;
+        color: #0284c7 !important;
+        border: 1.5px solid rgba(2, 132, 199, 0.25);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 26px;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .btn-hero-secondary:hover {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        transform: translateY(-2px);
+    }
+
+    #assessment-form {
+        scroll-margin-top: 100px;
+    }
+
+    /* ---------------------------------------------------------
+       3. EXISTING PAGE SECTIONS (PRESERVED)
+       --------------------------------------------------------- */
+    .section {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .section h2 {
+        text-align: center;
+        font-size: 28px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 24px;
+        letter-spacing: -0.4px;
+    }
+
+    .form-info {
+        text-align: center;
+        max-width: 900px;
+        margin: 0 auto 40px;
+        font-size: 16.5px;
+        color: #475569;
+        line-height: 1.8;
+        font-weight: 450;
+    }
+
+    .form-info strong {
+        color: #8B5CF6;
+        font-weight: 800;
+    }
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 20px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px 18px;
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        text-align: center;
+        transition: all 0.25s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .card h3 {
+        font-size: 16px;
+        font-weight: 750;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .card p {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.45;
+        margin: 0;
+    }
+
+    .form-box {
+        max-width: 650px !important;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 38px 44px;
+        box-shadow: 0 16px 45px rgba(15, 23, 42, 0.07);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .form-grid input,
+    .form-grid select {
+        width: 100% !important;
+        height: 48px;
+        padding: 0 16px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        font-size: 14.5px !important;
+        font-family: inherit !important;
+        transition: all 0.2s ease;
+    }
+
+    .form-grid input:focus,
+    .form-grid select:focus {
+        outline: none !important;
+        border-color: #0284c7 !important;
+        background: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        height: 52px;
+        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        font-size: 16px;
+        font-weight: 750;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+        transition: all 0.25s ease;
+    }
+
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(2, 132, 199, 0.45);
+    }
+
+    .note {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #0284c7;
+        border-radius: 12px;
+        padding: 16px 20px;
+        font-size: 13.5px;
+        color: #64748b;
+        line-height: 1.6;
+        margin: 20px auto 40px;
+        max-width: 900px;
+    }
+
+    /* ---------------------------------------------------------
+       RESPONSIVE DESIGN (TABLETS & PHONES)
+       --------------------------------------------------------- */
+    @media (max-width: 1024px) {
+        .diabetes-cinematic-hero {
+            min-height: 580px;
+        }
+
+        .hero-content-wrapper {
+            padding: 50px 32px;
+        }
+
+        .hero-title {
+            font-size: 42px;
+        }
+
+        .hero-gradient-overlay {
+            background: linear-gradient(
+                90deg,
+                #080d1d 0%,
+                rgba(8, 13, 29, 0.95) 55%,
+                rgba(8, 13, 29, 0.7) 100%
+            );
+        }
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            padding: 14px 20px !important;
+        }
+
+        .diabetes-cinematic-hero {
+            min-height: auto;
+            padding: 40px 0;
+        }
+
+        .diabetes-hero-bg-img {
+            object-position: 75% center;
+        }
+
+        .hero-gradient-overlay {
+            background: rgba(8, 13, 29, 0.92);
+        }
+
+        .hero-content-wrapper {
+            padding: 0 20px;
+        }
+
+        .hero-text-block {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .hero-description {
+            font-size: 15px;
+            margin-bottom: 22px;
+        }
+
+        .hero-features-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .hero-btn-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .btn-hero-primary,
+        .btn-hero-secondary {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .form-box {
+            padding: 26px 20px;
+            border-radius: 18px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 </style>
 
-<!-- HERO -->
-<div class="hero animate">
-    <h1>{{ t('diabetes.title') }}</h1>
-    <p>{{ t('diabetes.subtitle') }}</p>
+<!-- =========================================================
+     1. DIABETES HERO SECTION (FULL-WIDTH PCOD/MIGRAINE STYLE BANNER)
+     ========================================================= -->
+<div class="diabetes-cinematic-hero">
+    <!-- Full-Width Background Image Layer covering entire hero area from left to right -->
+    <div class="diabetes-hero-bg">
+        <img src="{{ url_for('static', filename='images/hero/diabetes_ai_hero_bg.jpg') }}" 
+             alt="Diabetes AI Metabolic Diagnostic Workstation" 
+             class="diabetes-hero-bg-img"
+             loading="eager" />
+    </div>
+
+    <!-- Dark Navy / Blue Gradient Overlay on the Left Side -->
+    <div class="hero-gradient-overlay"></div>
+
+    <!-- Content Directly ON TOP OF the Background Image -->
+    <div class="hero-content-wrapper">
+        <div class="hero-text-block">
+
+            <!-- Small Badge: "AI-Powered Metabolic Health" -->
+            <div class="hero-badge">
+                <span class="badge-icon">🩺</span>
+                <span>
+                    {% if current_lang == 'hi' %}
+                        एआई-संचालित मेटाबॉलिक स्वास्थ्य
+                    {% elif current_lang == 'mr' %}
+                        एआय-संचलित मेटाबॉलिक आरोग्य
+                    {% else %}
+                        AI-Powered Metabolic Health
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Main Heading: White Text with Cyan and Purple Accent matching PCOD Style -->
+            <h1 class="hero-title">
+                {% if current_lang == 'hi' %}
+                    डायबिटीज <span class="text-cyan-accent">जोखिम</span><br>
+                    <span class="text-purple-accent">पूर्वानुमान</span>
+                {% elif current_lang == 'mr' %}
+                    मधुमेह <span class="text-cyan-accent">धोका</span><br>
+                    <span class="text-purple-accent">अंदाज</span>
+                {% else %}
+                    Diabetes <span class="text-cyan-accent">Risk</span><br>
+                    <span class="text-purple-accent">P</span><span class="text-cyan-accent">rediction</span>
+                {% endif %}
+            </h1>
+
+            <!-- Existing Diabetes Description -->
+            <p class="hero-description">
+                {{ t('diabetes.subtitle') }}
+            </p>
+
+            <!-- 3 Feature Items -->
+            <div class="hero-features-row">
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon blue">🛡️</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}प्रारंभिक पहचान{% elif current_lang == 'mr' %}लवकर निदान{% else %}Early Risk Detection{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}जटिलताओं से बचाव{% elif current_lang == 'mr' %}गुंतागुंत टाळा{% else %}Prevent complications{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon blue">⚡</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}एआई-संचालित विश्लेषण{% elif current_lang == 'mr' %}एआय-संचलित विश्लेषण{% else %}AI-Powered Analysis{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}सटीक बायोमेट्रिक अंतर्दृष्टि{% elif current_lang == 'mr' %}अचूक बायोमेट्रिक माहिती{% else %}Reliable insights{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="hero-feature-item">
+                    <div class="hero-feature-icon purple">⏱️</div>
+                    <div class="hero-feature-text">
+                        <span class="hero-feature-heading">
+                            {% if current_lang == 'hi' %}त्वरित परिणाम{% elif current_lang == 'mr' %}जलद निकाल{% else %}Fast Results{% endif %}
+                        </span>
+                        <span class="hero-feature-subtext">
+                            {% if current_lang == 'hi' %}सेकंडों में{% elif current_lang == 'mr' %}सेकंदांमध्ये{% else %}In seconds{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="hero-btn-row">
+                <a href="#assessment-form" class="btn-hero-primary" id="btnStartDiabetesHero">
+                    <span style="font-size: 17px;">🩺</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            डायबिटीज मूल्यांकन शुरू करें
+                        {% elif current_lang == 'mr' %}
+                            मधुमेह मूल्यांकन सुरू करा
+                        {% else %}
+                            Start Diabetes Assessment
+                        {% endif %}
+                    </span>
+                </a>
+
+                <a href="/live_health" class="btn-hero-secondary" id="btnLiveSensorHero">
+                    <span style="font-size: 16px; font-weight: 800; color: #0284c7;">((•))</span>
+                    <span>
+                        {% if current_lang == 'hi' %}
+                            लाइव पेशेंट सेंसर
+                        {% elif current_lang == 'mr' %}
+                            लाइव्ह पेशंट सेन्सर
+                        {% else %}
+                            Live Patient Sensor
+                        {% endif %}
+                    </span>
+                </a>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <!-- ABOUT -->
@@ -74,7 +789,7 @@
 </div>
 
 <!-- FORM -->
-<div class="section animate">
+<div class="section animate" id="assessment-form">
     <h2>{{ t('diabetes.form_title') }}</h2>
 
     <div class="form-box animate">

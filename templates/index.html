@@ -3,7 +3,7 @@
 
 <style>
     /* =========================================================
-       CARESENSE DIABETIC RETINOPATHY PAGE — EXACT REFERENCE THEME
+       CARESENSE DIABETIC RETINOPATHY PAGE — EXACT THEME STYLES
        ========================================================= */
 
     html {
@@ -11,7 +11,9 @@
     }
 
     body {
-        background: #f1f6fd !important;
+        background: radial-gradient(circle at 85% 12%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 12% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 45%),
+                    #f1f6fd !important;
         color: #0f172a !important;
         overflow-x: hidden;
         margin: 0;
@@ -28,7 +30,7 @@
     }
 
     /* ---------------------------------------------------------
-       1. NAVBAR OVERRIDES (MATCHING REFERENCE DESIGN)
+       1. NAVBAR OVERRIDES (DARK NAVY CARE SENSE THEME)
        --------------------------------------------------------- */
     .navbar {
         background: #090e1f !important;
@@ -111,17 +113,17 @@
        --------------------------------------------------------- */
     .dr-hero-section {
         position: relative;
-        max-width: 1220px;
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 44px 24px 36px 24px;
+        padding: 46px 24px 38px 24px;
         display: grid;
-        grid-template-columns: 1.18fr 0.82fr;
+        grid-template-columns: 1.12fr 0.88fr;
         gap: 36px;
         align-items: center;
     }
 
     .dr-hero-left {
-        max-width: 620px;
+        max-width: 630px;
     }
 
     /* Top Badge */
@@ -145,13 +147,13 @@
         fill: #0284c7;
     }
 
-    /* Title */
+    /* Hero Heading */
     .dr-hero-title {
-        font-size: 48px;
-        line-height: 1.12;
+        font-size: 46px;
+        line-height: 1.14;
         font-weight: 850;
         letter-spacing: -0.8px;
-        background: linear-gradient(135deg, #5b5bd6 0%, #2563eb 50%, #0284c7 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 45%, #0ea5e9 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -182,9 +184,9 @@
     }
 
     .dr-benefit-icon-box {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -195,16 +197,19 @@
     .dr-benefit-icon-box.cyan {
         background: #e0f2fe;
         color: #0284c7;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
     }
 
     .dr-benefit-icon-box.purple {
         background: #ede9fe;
         color: #7c3aed;
+        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
     }
 
     .dr-benefit-icon-box.pink {
         background: #fce7f3;
         color: #db2777;
+        box-shadow: 0 2px 8px rgba(219, 39, 119, 0.15);
     }
 
     .dr-benefit-text {
@@ -225,103 +230,71 @@
         font-weight: 500;
     }
 
-    /* Hero Right Visual */
+    /* ---------------------------------------------------------
+       HERO RIGHT: COMPLETE CLINICAL AI EYE & RETINA SCAN VISUAL
+       --------------------------------------------------------- */
     .dr-hero-right {
         position: relative;
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100%;
     }
 
-    .dr-visual-container {
+    .dr-eye-visual-card {
         position: relative;
         width: 100%;
-        max-width: 460px;
-        height: 290px;
+        max-width: 540px;
+        aspect-ratio: 1200 / 896;
         border-radius: 24px;
         overflow: hidden;
-        box-shadow: 0 16px 40px rgba(2, 132, 199, 0.12);
-        background: #0c142b;
+        border: 2px solid rgba(0, 217, 255, 0.5);
+        box-shadow: 0 20px 50px rgba(2, 132, 199, 0.22), 0 0 35px rgba(0, 217, 255, 0.25);
+        background: #070e24;
     }
 
-    .dr-eye-bg-img {
+    .dr-eye-visual-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center right;
+        object-position: center;
         display: block;
+        transition: transform 0.4s ease;
     }
 
-    /* Left Gradient Blend over Eye Image */
-    .dr-eye-overlay {
+    .dr-eye-visual-card:hover .dr-eye-visual-img {
+        transform: scale(1.02);
+    }
+
+    /* Floating "AI Analysis for Healthier Eyes" label matching reference */
+    .dr-eye-ai-tag {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            90deg,
-            rgba(12, 20, 43, 0.92) 0%,
-            rgba(12, 20, 43, 0.6) 42%,
-            rgba(12, 20, 43, 0.05) 85%
-        );
-        z-index: 2;
-    }
-
-    /* Floating Retinal Scan Card */
-    .dr-floating-scan-card {
-        position: absolute;
-        left: 24px;
-        top: 24px;
-        bottom: 24px;
-        z-index: 3;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .dr-scan-frame {
-        width: 140px;
-        height: 140px;
-        border-radius: 18px;
-        border: 2px solid rgba(56, 189, 248, 0.85);
-        box-shadow: 0 0 25px rgba(14, 165, 233, 0.45);
-        overflow: hidden;
-        position: relative;
-        background: #000000;
-    }
-
-    .dr-scan-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .dr-scan-reticle {
-        position: absolute;
-        inset: 0;
-        border: 1px dashed rgba(255, 255, 255, 0.4);
-        border-radius: 14px;
-        margin: 6px;
+        bottom: 22px;
+        left: 28px;
+        z-index: 4;
         pointer-events: none;
+        background: rgba(7, 14, 36, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 12px;
+        padding: 6px 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
 
-    .dr-scan-caption {
-        color: #ffffff;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-        margin-top: 10px;
-    }
-
-    .dr-scan-caption h4 {
-        margin: 0;
-        font-size: 16px;
+    .dr-eye-ai-tag-title {
+        font-size: 14.5px;
         font-weight: 800;
-        color: #ffffff;
+        color: #38bdf8;
+        letter-spacing: -0.2px;
+        line-height: 1.2;
     }
 
-    .dr-scan-caption p {
-        margin: 2px 0 0 0;
-        font-size: 13px;
-        color: #bae6fd;
-        font-weight: 500;
+    .dr-eye-ai-tag-sub {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #e0f2fe;
+        line-height: 1.25;
     }
 
     /* ---------------------------------------------------------
@@ -336,7 +309,7 @@
     .dr-upload-card {
         background: #ffffff;
         border-radius: 24px;
-        padding: 34px 38px;
+        padding: 36px 40px;
         box-shadow: 0 16px 45px rgba(15, 23, 42, 0.07);
         border: 1px solid rgba(226, 232, 240, 0.9);
         position: relative;
@@ -350,24 +323,25 @@
     }
 
     .dr-upload-header-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
         background: #0284c7;
         color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 22px;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
     }
 
     .dr-upload-header-text h3 {
         margin: 0;
-        font-size: 20px;
+        font-size: 21px;
         font-weight: 800;
         color: #0f172a;
+        letter-spacing: -0.2px;
     }
 
     .dr-upload-header-text p {
@@ -381,8 +355,8 @@
     .dr-upload-grid {
         display: grid;
         grid-template-columns: 1.35fr 0.95fr;
-        gap: 22px;
-        margin-bottom: 22px;
+        gap: 24px;
+        margin-bottom: 24px;
     }
 
     /* Left Dropzone / Preview Area */
@@ -398,18 +372,19 @@
         transition: all 0.25s ease;
     }
 
-    .dr-dropzone-box:hover {
+    .dr-dropzone-box:hover,
+    .dr-dropzone-box.drag-active {
         border-color: #0284c7;
         background: #f0f7ff;
     }
 
     .dr-preview-wrapper {
         width: 175px;
-        height: 130px;
-        border-radius: 12px;
+        height: 135px;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.08);
         background: #000000;
         flex-shrink: 0;
         position: relative;
@@ -430,11 +405,21 @@
         text-align: center;
     }
 
-    .dr-choose-icon {
-        width: 32px;
-        height: 32px;
+    .dr-choose-icon-wrap {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0f2fe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         margin-bottom: 8px;
-        opacity: 0.85;
+    }
+
+    .dr-choose-icon {
+        width: 20px;
+        height: 20px;
+        stroke: #0284c7;
     }
 
     .dr-choose-text {
@@ -471,14 +456,14 @@
         margin-top: 10px;
         word-break: break-all;
         font-weight: 500;
-        max-width: 200px;
+        max-width: 220px;
     }
 
     /* Right: Supported Formats Panel */
     .dr-formats-panel {
         background: #f0f7ff;
         border-radius: 18px;
-        padding: 22px 24px;
+        padding: 24px;
         border: 1px solid rgba(186, 230, 253, 0.6);
         display: flex;
         flex-direction: column;
@@ -489,8 +474,8 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 14px;
-        font-size: 14.5px;
+        margin-bottom: 16px;
+        font-size: 15px;
         font-weight: 800;
         color: #0f172a;
     }
@@ -515,13 +500,13 @@
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 11px;
     }
 
     .dr-formats-list li {
         display: flex;
         align-items: flex-start;
-        gap: 9px;
+        gap: 10px;
         font-size: 13px;
         color: #334155;
         font-weight: 550;
@@ -531,7 +516,7 @@
     /* Full-width Analyze Button */
     .dr-btn-analyze {
         width: 100%;
-        padding: 15px 24px;
+        padding: 16px 24px;
         border-radius: 14px;
         background: linear-gradient(90deg, #6366f1 0%, #3b82f6 50%, #0ea5e9 100%);
         color: #ffffff;
@@ -588,7 +573,7 @@
         font-size: 28px;
         font-weight: 850;
         letter-spacing: -0.5px;
-        background: linear-gradient(135deg, #5b5bd6 0%, #2563eb 60%, #0284c7 100%);
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #0284c7 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -608,7 +593,7 @@
     /* 6 Horizontal Workflow Cards */
     .dr-workflow-flow {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: space-between;
         gap: 8px;
     }
@@ -668,7 +653,7 @@
         margin: 0 0 6px 0;
         font-size: 13.5px;
         font-weight: 750;
-        color: #5b5bd6;
+        color: #1e3a8a;
         line-height: 1.3;
     }
 
@@ -695,22 +680,15 @@
        --------------------------------------------------------- */
     .dr-why-outer-container {
         max-width: 1220px;
-        margin: 0 auto 45px auto;
+        margin: 0 auto 50px auto;
         padding: 0 24px;
     }
 
-    .dr-why-wrapper {
-        background: #edf5fe;
-        border-radius: 24px;
-        padding: 38px 34px;
-        border: 1px solid rgba(219, 234, 254, 0.8);
-    }
-
     .dr-why-title {
-        font-size: 26px;
+        font-size: 28px;
         font-weight: 850;
         letter-spacing: -0.4px;
-        background: linear-gradient(135deg, #6366f1 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -730,10 +708,10 @@
     .dr-why-card {
         background: #ffffff;
         border-radius: 18px;
-        padding: 24px 18px;
+        padding: 26px 20px;
         text-align: center;
-        border: 1px solid rgba(226, 232, 240, 0.7);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -742,7 +720,7 @@
 
     .dr-why-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
         border-color: #bfdbfe;
     }
 
@@ -757,9 +735,20 @@
         margin-bottom: 16px;
     }
 
-    .dr-why-icon-circle.c-blue { background: #e0f2fe; color: #0284c7; }
-    .dr-why-icon-circle.c-purple { background: #fae8ff; color: #a855f7; }
-    .dr-why-icon-circle.c-teal { background: #ccfbf1; color: #0d9488; }
+    .dr-why-icon-circle.c-blue {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .dr-why-icon-circle.c-purple {
+        background: #fae8ff;
+        color: #a855f7;
+    }
+
+    .dr-why-icon-circle.c-teal {
+        background: #ccfbf1;
+        color: #0d9488;
+    }
 
     .dr-why-card h4 {
         margin: 0 0 8px 0;
@@ -790,7 +779,7 @@
         background: #ffffff;
         border: 1px solid rgba(226, 232, 240, 0.9);
         border-radius: 16px;
-        padding: 16px 26px;
+        padding: 18px 26px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
         display: flex;
         align-items: center;
@@ -832,9 +821,8 @@
             justify-content: center;
         }
 
-        .dr-visual-container {
+        .dr-eye-visual-card {
             max-width: 500px;
-            height: 270px;
         }
 
         .dr-workflow-flow {
@@ -872,6 +860,10 @@
             gap: 14px;
         }
 
+        .dr-eye-visual-card {
+            max-width: 100%;
+        }
+
         .dr-upload-grid {
             grid-template-columns: 1fr;
         }
@@ -905,16 +897,15 @@
         <!-- Badge -->
         <div class="dr-hero-badge">
             <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" style="display:none;"/>
-                <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/>
+                <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z" />
             </svg>
             <span>
                 {% if current_lang == 'hi' %}
-                    एआई संचालित नेत्र देखभाल
+                एआई संचालित नेत्र देखभाल
                 {% elif current_lang == 'mr' %}
-                    एआय संचलित नेत्र काळजी
+                एआय संचलित नेत्र काळजी
                 {% else %}
-                    AI-Powered Eye Care
+                AI-Powered Eye Care
                 {% endif %}
             </span>
         </div>
@@ -922,22 +913,22 @@
         <!-- Main Heading -->
         <h1 class="dr-hero-title">
             {% if current_lang == 'hi' %}
-                डायबिटिक रेटिनोपैथी<br>पहचान
+            डायबिटिक रेटिनोपैथी<br>पहचान
             {% elif current_lang == 'mr' %}
-                डायबेटिक रेटिनोपॅथी<br>तपासणी
+            डायबेटिक रेटिनोपॅथी<br>तपासणी
             {% else %}
-                Diabetic Retinopathy<br>Detection
+            Diabetic Retinopathy<br>Detection
             {% endif %}
         </h1>
 
         <!-- Subtitle / Supporting description -->
         <p class="dr-hero-desc">
             {% if current_lang == 'hi' %}
-                रेटिनल फंडस छवि अपलोड करें और डायबिटिक रेटिनोपैथी की प्रारंभिक पहचान के लिए सटीक एआई-संचालित विश्लेषण प्राप्त करें। उन्नत डीप लर्निंग तकनीक से दृष्टि हानि को रोकें।
+            रेटिनल फंडस छवि अपलोड करें और डायबिटिक रेटिनोपैथी की प्रारंभिक पहचान के लिए सटीक एआई-संचालित विश्लेषण प्राप्त करें। उन्नत डीप लर्निंग तकनीक से दृष्टि हानि को रोकें।
             {% elif current_lang == 'mr' %}
-                रेटिनल फंडस इमेज अपलोड करा आणि डायबेटिक रेटिनोपॅथीच्या लवकर आजार निदानासाठी अचूक एआय-संचलित विश्लेषण मिळवा. प्रगत डीप लर्निंग तंत्रज्ञानासह दृष्टीचे रक्षण करा.
+            रेटिनल फंडस इमेज अपलोड करा आणि डायबेटिक रेटिनोपॅथीच्या लवकर आजार निदानासाठी अचूक एआय-संचलित विश्लेषण मिळवा. प्रगत डीप लर्निंग तंत्रज्ञानासह दृष्टीचे रक्षण करा.
             {% else %}
-                Upload a retinal fundus image and get accurate AI-powered analysis for early detection of diabetic retinopathy. Help prevent vision loss with advanced deep learning technology.
+            Upload a retinal fundus image and get accurate AI-powered analysis for early detection of diabetic retinopathy. Help prevent vision loss with advanced deep learning technology.
             {% endif %}
         </p>
 
@@ -984,25 +975,18 @@
         </div>
     </div>
 
-    <!-- Right Side Visual Container -->
+    <!-- Right Side Visual Container: Complete Clinical AI Eye & Retina Scan Visual -->
     <div class="dr-hero-right">
-        <div class="dr-visual-container">
-            <!-- Eye Photo Background -->
-            <img src="{{ url_for('static', filename='images/hero/image.png') }}" alt="Clinical Ophthalmology Retinal Scan AI Analysis" class="dr-eye-bg-img" />
-            
-            <!-- Left Gradient Blend -->
-            <div class="dr-eye-overlay"></div>
+        <div class="dr-eye-visual-card">
+            <!-- Complete Eye + Retinal Scan Visual with Holographic HUD -->
+            <img src="{{ url_for('static', filename='images/hero/hero_ai_retina_scan.jpg') }}" 
+                 alt="Diabetic Retinopathy AI Retinal Fundus Scan Dashboard" 
+                 class="dr-eye-visual-img" />
 
-            <!-- Floating Retinal Scan Card -->
-            <div class="dr-floating-scan-card">
-                <div class="dr-scan-frame">
-                    <img src="{{ url_for('static', filename='uploads/retina.jpg') }}" alt="Retinal Fundus OCT Scan" class="dr-scan-img" />
-                    <div class="dr-scan-reticle"></div>
-                </div>
-                <div class="dr-scan-caption">
-                    <h4>AI Analysis</h4>
-                    <p>for Healthier Eyes</p>
-                </div>
+            <!-- Clean floating label integrated naturally under the glowing fundus scan -->
+            <div class="dr-eye-ai-tag">
+                <div class="dr-eye-ai-tag-title">AI Analysis</div>
+                <div class="dr-eye-ai-tag-sub">for Healthier Eyes</div>
             </div>
         </div>
     </div>
@@ -1013,7 +997,7 @@
      ========================================================= -->
 <section class="dr-upload-container animate" id="drUploadSection">
     <div class="dr-upload-card">
-        
+
         {% if processing_error %}
         <div class="dr-error-alert">
             {{ processing_error }}
@@ -1023,7 +1007,8 @@
         <!-- Header -->
         <div class="dr-upload-header">
             <div class="dr-upload-header-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -1032,20 +1017,20 @@
             <div class="dr-upload-header-text">
                 <h3>
                     {% if current_lang == 'hi' %}
-                        रेटिनल इमेज अपलोड करें
+                    रेटिनल इमेज अपलोड करें
                     {% elif current_lang == 'mr' %}
-                        रेटिनल इमेज अपलोड करा
+                    रेटिनल इमेज अपलोड करा
                     {% else %}
-                        Upload Retinal Image
+                    Upload Retinal Image
                     {% endif %}
                 </h3>
                 <p>
                     {% if current_lang == 'hi' %}
-                        विश्लेषण के लिए एक स्पष्ट रेटिनल फंडस छवि (JPG, PNG) चुनें
+                    विश्लेषण के लिए एक स्पष्ट रेटिनल फंडस छवि (JPG, PNG) चुनें
                     {% elif current_lang == 'mr' %}
-                        विश्लेषणासाठी स्पष्ट रेटिनल फंडस प्रतिमा (JPG, PNG) निवडा
+                    विश्लेषणासाठी स्पष्ट रेटिनल फंडस प्रतिमा (JPG, PNG) निवडा
                     {% else %}
-                        Select a clear retinal fundus image (JPG, PNG) to analyze
+                    Select a clear retinal fundus image (JPG, PNG) to analyze
                     {% endif %}
                 </p>
             </div>
@@ -1054,29 +1039,33 @@
         <!-- Real Form Submitting to /predict -->
         <form action="/predict" method="POST" enctype="multipart/form-data" id="drUploadForm">
             <div class="dr-upload-grid">
-                
+
                 <!-- Left: Dropzone / Preview -->
-                <div class="dr-dropzone-box">
+                <div class="dr-dropzone-box" id="dropzoneBox">
                     <!-- Retinal Preview Image Thumbnail -->
-                    <div class="dr-preview-wrapper">
-                        <img id="retinaPreview" src="{{ url_for('static', filename='uploads/retina.jpg') }}" alt="Uploaded Retinal Image Preview" />
+                    <div class="dr-preview-wrapper" id="previewWrapper">
+                        <img id="retinaPreview" src="{{ url_for('static', filename='uploads/retina.jpg') }}"
+                            alt="Uploaded Retinal Image Preview" />
                     </div>
 
                     <!-- File Chooser Controls -->
                     <div class="dr-dropzone-controls">
-                        <svg class="dr-choose-icon" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
+                        <div class="dr-choose-icon-wrap">
+                            <svg class="dr-choose-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                        </div>
 
                         <div class="dr-choose-text">
                             {% if current_lang == 'hi' %}
-                                छवि फ़ाइल चुनें
+                            छवि फ़ाइल चुनें
                             {% elif current_lang == 'mr' %}
-                                प्रतिमा फाइल निवडा
+                            प्रतिमा फाइल निवडा
                             {% else %}
-                                Choose an image file
+                            Choose an image file
                             {% endif %}
                         </div>
 
@@ -1087,7 +1076,15 @@
                             {{ t('dr.upload_section.choose_file') }}
                         </label>
 
-                        <div class="dr-filename-text" id="fileName">{{ t('dr.upload_section.no_file_selected') }}</div>
+                        <div class="dr-filename-text" id="fileName">
+                            {% if current_lang == 'hi' %}
+                            कोई फ़ाइल नहीं चुनी गई
+                            {% elif current_lang == 'mr' %}
+                            कोणतीही फाईल निवडलेली नाही
+                            {% else %}
+                            No file selected
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -1097,11 +1094,11 @@
                         <span class="dr-check-badge">✔</span>
                         <span>
                             {% if current_lang == 'hi' %}
-                                समर्थित छवि प्रारूप
+                            समर्थित छवि प्रारूप
                             {% elif current_lang == 'mr' %}
-                                समर्थित प्रतिमा स्वरूप
+                            समर्थित प्रतिमा स्वरूप
                             {% else %}
-                                Supported Image Format
+                            Supported Image Format
                             {% endif %}
                         </span>
                     </div>
@@ -1130,7 +1127,8 @@
 
             <!-- Analyze Retina Button -->
             <button type="submit" class="dr-btn-analyze" id="analyzeRetinaBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
@@ -1150,28 +1148,28 @@
             <span>⚙️</span>
             <span>
                 {% if current_lang == 'hi' %}
-                    एआई विश्लेषण कैसे काम करता है
+                एआई विश्लेषण कैसे काम करता है
                 {% elif current_lang == 'mr' %}
-                    एआय विश्लेषण कसे कार्य करते
+                एआय विश्लेषण कसे कार्य करते
                 {% else %}
-                    How AI Analysis Works
+                How AI Analysis Works
                 {% endif %}
             </span>
         </h2>
         <p class="dr-section-subtitle">
             {% if current_lang == 'hi' %}
-                छवि अपलोड से लेकर विस्तृत विश्लेषण तक — उन्नत डीप लर्निंग द्वारा संचालित
+            छवि अपलोड से लेकर विस्तृत विश्लेषण तक — उन्नत डीप लर्निंग द्वारा संचालित
             {% elif current_lang == 'mr' %}
-                प्रतिमा अपलोडपासून तपशीलवार विश्लेषणापर्यंत — प्रगत डीप लर्निंगद्वारे समर्थित
+            प्रतिमा अपलोडपासून तपशीलवार विश्लेषणापर्यंत — प्रगत डीप लर्निंगद्वारे समर्थित
             {% else %}
-                From image upload to detailed analysis — powered by advanced deep learning
+            From image upload to detailed analysis — powered by advanced deep learning
             {% endif %}
         </p>
     </div>
 
     <!-- 6 Connected Cards -->
     <div class="dr-workflow-flow">
-        
+
         <!-- Step 1 -->
         <div class="dr-step-card">
             <span class="dr-step-number-badge b-1">1</span>
@@ -1261,123 +1259,121 @@
      WHY USE AI DETECTION SECTION
      ========================================================= -->
 <section class="dr-why-outer-container animate" id="drWhySection">
-    <div class="dr-why-wrapper">
-        <div class="dr-section-title-wrap">
-            <h2 class="dr-why-title">
-                <span>💜</span>
-                <span>
-                    {% if current_lang == 'hi' %}
-                        एआई पहचान क्यों उपयोग करें?
-                    {% elif current_lang == 'mr' %}
-                        एआय तपासणी का वापरावी?
-                    {% else %}
-                        Why Use AI Detection?
-                    {% endif %}
-                </span>
-            </h2>
-            <p class="dr-section-subtitle">
+    <div class="dr-section-title-wrap">
+        <h2 class="dr-why-title">
+            <span>💜</span>
+            <span>
                 {% if current_lang == 'hi' %}
-                    बेहतर नेत्र देखभाल और स्वस्थ भविष्य के लिए उन्नत एआई
+                एआई पहचान क्यों उपयोग करें?
                 {% elif current_lang == 'mr' %}
-                    अधिक चांगल्या नेत्र काळजी आणि निरोगी भविष्यासाठी प्रगत एआय
+                एआय तपासणी का वापरावी?
                 {% else %}
-                    Advanced AI for better eye care and a healthier future
+                Why Use AI Detection?
+                {% endif %}
+            </span>
+        </h2>
+        <p class="dr-section-subtitle">
+            {% if current_lang == 'hi' %}
+            बेहतर नेत्र देखभाल और स्वस्थ भविष्य के लिए उन्नत एआई
+            {% elif current_lang == 'mr' %}
+            अधिक चांगल्या नेत्र काळजी आणि निरोगी भविष्यासाठी प्रगत एआय
+            {% else %}
+            Advanced AI for better eye care and a healthier future
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="dr-why-grid">
+        <!-- Card 1 -->
+        <div class="dr-why-card">
+            <div class="dr-why-icon-circle c-blue">👁️</div>
+            <h4>
+                {% if current_lang == 'hi' %}
+                शीघ्र पहचान से स्थायी दृष्टि क्षति रोकी जा सकती है
+                {% elif current_lang == 'mr' %}
+                लवकर निदानामुळे कायमस्वरूपी दृष्टीदोष टाळता येतो
+                {% else %}
+                Early detection prevents permanent vision loss
+                {% endif %}
+            </h4>
+            <p>
+                {% if current_lang == 'hi' %}
+                प्रारंभिक अवस्था में लक्षणों को पहचानें
+                {% elif current_lang == 'mr' %}
+                सुरुवातीच्या टप्प्यावर लक्षणे ओळखा
+                {% else %}
+                Identify signs at an early stage
                 {% endif %}
             </p>
         </div>
 
-        <div class="dr-why-grid">
-            <!-- Card 1 -->
-            <div class="dr-why-card">
-                <div class="dr-why-icon-circle c-blue">👁️</div>
-                <h4>
-                    {% if current_lang == 'hi' %}
-                        शीघ्र पहचान से स्थायी दृष्टि क्षति रोकी जा सकती है
-                    {% elif current_lang == 'mr' %}
-                        लवकर निदानामुळे कायमस्वरूपी दृष्टीदोष टाळता येतो
-                    {% else %}
-                        Early detection prevents permanent vision loss
-                    {% endif %}
-                </h4>
-                <p>
-                    {% if current_lang == 'hi' %}
-                        प्रारंभिक अवस्था में लक्षणों को पहचानें
-                    {% elif current_lang == 'mr' %}
-                        सुरुवातीच्या टप्प्यावर लक्षणे ओळखा
-                    {% else %}
-                        Identify signs at an early stage
-                    {% endif %}
-                </p>
-            </div>
+        <!-- Card 2 -->
+        <div class="dr-why-card">
+            <div class="dr-why-icon-circle c-purple">🎯</div>
+            <h4>
+                {% if current_lang == 'hi' %}
+                एआई लक्षणों के दिखने से पहले सूक्ष्म संकेत पकड़ता है
+                {% elif current_lang == 'mr' %}
+                लक्षणे दिसण्यापूर्वी एआय सूक्ष्म चिन्हे ओळखते
+                {% else %}
+                AI catches subtle signs before symptoms appear
+                {% endif %}
+            </h4>
+            <p>
+                {% if current_lang == 'hi' %}
+                मैनुअल स्क्रीनिंग से अधिक सटीक
+                {% elif current_lang == 'mr' %}
+                मॅन्युअल तपासणीपेक्षा अधिक अचूक
+                {% else %}
+                More accurate than manual screening
+                {% endif %}
+            </p>
+        </div>
 
-            <!-- Card 2 -->
-            <div class="dr-why-card">
-                <div class="dr-why-icon-circle c-purple">🎯</div>
-                <h4>
-                    {% if current_lang == 'hi' %}
-                        एआई लक्षणों के दिखने से पहले सूक्ष्म संकेत पकड़ता है
-                    {% elif current_lang == 'mr' %}
-                        लक्षणे दिसण्यापूर्वी एआय सूक्ष्म चिन्हे ओळखते
-                    {% else %}
-                        AI catches subtle signs before symptoms appear
-                    {% endif %}
-                </h4>
-                <p>
-                    {% if current_lang == 'hi' %}
-                        मैनुअल स्क्रीनिंग से अधिक सटीक
-                    {% elif current_lang == 'mr' %}
-                        मॅन्युअल तपासणीपेक्षा अधिक अचूक
-                    {% else %}
-                        More accurate than manual screening
-                    {% endif %}
-                </p>
-            </div>
+        <!-- Card 3 -->
+        <div class="dr-why-card">
+            <div class="dr-why-icon-circle c-blue">👥</div>
+            <h4>
+                {% if current_lang == 'hi' %}
+                सभी के लिए किफायती स्क्रीनिंग
+                {% elif current_lang == 'mr' %}
+                सर्वांसाठी परवडणारी तपासणी
+                {% else %}
+                Affordable screening for everyone
+                {% endif %}
+            </h4>
+            <p>
+                {% if current_lang == 'hi' %}
+                सुलभ और स्केलेबल स्वास्थ्य सेवा
+                {% elif current_lang == 'mr' %}
+                सुलभ आणि स्केलेबल आरोग्य सेवा
+                {% else %}
+                Accessible and scalable healthcare
+                {% endif %}
+            </p>
+        </div>
 
-            <!-- Card 3 -->
-            <div class="dr-why-card">
-                <div class="dr-why-icon-circle c-blue">👥</div>
-                <h4>
-                    {% if current_lang == 'hi' %}
-                        सभी के लिए किफायती स्क्रीनिंग
-                    {% elif current_lang == 'mr' %}
-                        सर्वांसाठी परवडणारी तपासणी
-                    {% else %}
-                        Affordable screening for everyone
-                    {% endif %}
-                </h4>
-                <p>
-                    {% if current_lang == 'hi' %}
-                        सुलभ और स्केलेबल स्वास्थ्य सेवा
-                    {% elif current_lang == 'mr' %}
-                        सुलभ आणि स्केलेबल आरोग्य सेवा
-                    {% else %}
-                        Accessible and scalable healthcare
-                    {% endif %}
-                </p>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="dr-why-card">
-                <div class="dr-why-icon-circle c-teal">🛡️</div>
-                <h4>
-                    {% if current_lang == 'hi' %}
-                        विस्तृत जानकारी के साथ चिकित्सकों का समर्थन
-                    {% elif current_lang == 'mr' %}
-                        तपशीलवार अंतर्दृष्टीसह डॉक्टरांना मदत
-                    {% else %}
-                        Supports clinicians with detailed insights
-                    {% endif %}
-                </h4>
-                <p>
-                    {% if current_lang == 'hi' %}
-                        बेहतर उपचार निर्णयों में सहायक
-                    {% elif current_lang == 'mr' %}
-                        उपचाराचे योग्य निर्णय घेण्यास मदत करते
-                    {% else %}
-                        Helps in better treatment decisions
-                    {% endif %}
-                </p>
-            </div>
+        <!-- Card 4 -->
+        <div class="dr-why-card">
+            <div class="dr-why-icon-circle c-teal">🛡️</div>
+            <h4>
+                {% if current_lang == 'hi' %}
+                विस्तृत जानकारी के साथ चिकित्सकों का समर्थन
+                {% elif current_lang == 'mr' %}
+                तपशीलवार अंतर्दृष्टीसह डॉक्टरांना मदत
+                {% else %}
+                Supports clinicians with detailed insights
+                {% endif %}
+            </h4>
+            <p>
+                {% if current_lang == 'hi' %}
+                बेहतर उपचार निर्णयों में सहायक
+                {% elif current_lang == 'mr' %}
+                उपचाराचे योग्य निर्णय घेण्यास मदत करते
+                {% else %}
+                Helps in better treatment decisions
+                {% endif %}
+            </p>
         </div>
     </div>
 </section>
@@ -1389,13 +1385,13 @@
     <div class="dr-disclaimer-card">
         <span class="dr-disclaimer-icon">⚠️</span>
         <p class="dr-disclaimer-text">
-            <strong>Medical Disclaimer:</strong> 
+            <strong>Medical Disclaimer:</strong>
             {% if current_lang == 'hi' %}
-                यह प्रणाली केवल सूचनात्मक जागरूकता के लिए है। पेशेवर निदान और उपचार अनुशंसाओं के लिए हमेशा योग्य नेत्र रोग विशेषज्ञ से परामर्श लें।
+            यह प्रणाली केवल सूचनात्मक जागरूकता के लिए है। पेशेवर निदान और उपचार अनुशंसाओं के लिए हमेशा योग्य नेत्र रोग विशेषज्ञ से परामर्श लें।
             {% elif current_lang == 'mr' %}
-                ही प्रणाली केवळ माहितीपूर्ण जनजागृतीसाठी आहे. व्यावसायिक निदान आणि उपचारांच्या शिफारसींसाठी नेहमी पात्र नेत्ररोग तज्ञांचा सल्ला घ्या.
+            ही प्रणाली केवळ माहितीपूर्ण जनजागृतीसाठी आहे. व्यावसायिक निदान आणि उपचारांच्या शिफारसींसाठी नेहमी पात्र नेत्ररोग तज्ञांचा सल्ला घ्या.
             {% else %}
-                This system is for informational awareness only. Always consult with a qualified ophthalmologist for professional diagnosis and treatment recommendations.
+            This system is for informational awareness only. Always consult with a qualified ophthalmologist for professional diagnosis and treatment recommendations.
             {% endif %}
         </p>
     </div>
@@ -1405,15 +1401,17 @@
      IMAGE PREVIEW & UPLOAD SCRIPT (PRESERVES EXACT FUNCTIONALITY)
      ========================================================= -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('image');
         const fileNameDisplay = document.getElementById('fileName');
         const retinaPreview = document.getElementById('retinaPreview');
         const uploadForm = document.getElementById('drUploadForm');
         const analyzeBtn = document.getElementById('analyzeRetinaBtn');
+        const dropzoneBox = document.getElementById('dropzoneBox');
 
+        // File selection handling
         if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
+            fileInput.addEventListener('change', function (e) {
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
 
@@ -1424,7 +1422,7 @@
 
                     // 2. Real image preview using FileReader
                     const reader = new FileReader();
-                    reader.onload = function(event) {
+                    reader.onload = function (event) {
                         if (retinaPreview) {
                             retinaPreview.src = event.target.result;
                         }
@@ -1434,9 +1432,38 @@
             });
         }
 
+        // Drag & Drop enhancement
+        if (dropzoneBox && fileInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzoneBox.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzoneBox.classList.add('drag-active');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzoneBox.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzoneBox.classList.remove('drag-active');
+                }, false);
+            });
+
+            dropzoneBox.addEventListener('drop', function (e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files && files.length > 0) {
+                    fileInput.files = files;
+                    const event = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        }
+
         // Add subtle loading state on submit without blocking the form POST
         if (uploadForm && analyzeBtn) {
-            uploadForm.addEventListener('submit', function() {
+            uploadForm.addEventListener('submit', function () {
                 analyzeBtn.innerHTML = `
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="dr-spin-icon">
                         <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"></circle>
@@ -1452,9 +1479,14 @@
 
 <style>
     @keyframes drSpin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
+
     .dr-spin-icon {
         animation: drSpin 1s linear infinite;
     }

@@ -2,176 +2,456 @@
 {% block content %}
 
 <style>
-    .result-container {
-        max-width: 800px;
-        margin: 30px auto;
+    /* =========================================================
+       CARESENSE PCOD RESULT DASHBOARD — PREMIUM STYLES
+       ========================================================= */
+
+    html {
+        scroll-behavior: smooth;
     }
 
-    .result-header {
+    body {
+        background: radial-gradient(circle at 85% 12%, rgba(236, 72, 153, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 12% 40%, rgba(99, 102, 241, 0.06) 0%, transparent 45%),
+                    #f1f6fd !important;
+        color: #0f172a !important;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Container override */
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ---------------------------------------------------------
+       NAVBAR OVERRIDES (DARK NAVY THEME)
+       --------------------------------------------------------- */
+    .navbar {
+        background: #090e1f !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 14px 44px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        transition: none !important;
+    }
+
+    .navbar h2 {
+        background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.3px !important;
+        font-size: 22px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .navbar .nav-links a {
+        background: #121c38 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px !important;
+        padding: 8px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        color: #e2e8f0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        transition: all 0.2s ease !important;
+        margin: 0 4px !important;
+    }
+
+    .navbar .nav-links a:hover {
+        background: #1c2a52 !important;
+        color: #38bdf8 !important;
+        border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+
+    .navbar .nav-links a::after {
+        display: none !important;
+    }
+
+    .navbar .dropdown-wrapper:has(a[href="/pcod"]) > a,
+    .navbar .dropdown-menu a[href="/pcod"] {
+        background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: 1px solid #0284c7 !important;
+        box-shadow: 0 2px 14px rgba(2, 132, 199, 0.45) !important;
+    }
+
+    .navbar .dropdown-menu {
+        background: #0c142b !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .navbar .dropdown-menu a {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: #cbd5e1 !important;
+        padding: 10px 16px !important;
+        margin: 2px 0 !important;
+    }
+
+    .navbar .dropdown-menu a:hover {
+        background: #1e293b !important;
+        color: #38bdf8 !important;
+        transform: none !important;
+    }
+
+    /* ---------------------------------------------------------
+       RESULT DASHBOARD LAYOUT
+       --------------------------------------------------------- */
+    .pcod-result-wrapper {
+        max-width: 900px;
+        margin: 40px auto 70px auto;
+        padding: 0 24px;
+    }
+
+    .pcod-result-top {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 34px;
     }
 
-    .result-header h1 {
-        font-size: 32px;
-        color: #003366;
-        font-weight: 700;
+    .pcod-result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #ede9fe 0%, #e0f2fe 100%);
+        color: #6366f1;
+        font-size: 13px;
+        font-weight: 750;
+        padding: 6px 16px;
+        border-radius: 50px;
+        margin-bottom: 14px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
-    /* CARD */
-    .result-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: 30px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 32px rgba(0, 51, 102, 0.1);
-        margin-bottom: 25px;
-        transition: all 0.4s ease;
+    .pcod-result-top h1 {
+        font-size: 36px;
+        font-weight: 850;
+        letter-spacing: -0.6px;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
     }
 
-    .result-card:hover {
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 20px 60px rgba(0, 51, 102, 0.15);
+    /* Primary Result Card */
+    .pcod-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 34px 38px;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 16px 45px rgba(15, 23, 42, 0.06);
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
     }
 
-    .result-card h2 {
-        color: #003366;
-        font-size: 20px;
-        font-weight: 700;
-        margin-top: 0;
+    .pcod-card:hover {
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .pcod-card-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
         margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
     }
 
-    /* RISK BADGE */
-    .danger {
-        color: #dc2626;
+    .pcod-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .pcod-card-icon.purple {
+        background: #ede9fe;
+        color: #7c3aed;
+    }
+
+    .pcod-card-icon.amber {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .pcod-card-icon.emerald {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .pcod-card-header h2 {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    /* Pulsing Risk Level Banner */
+    .pcod-risk-banner {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(244, 63, 94, 0.08) 100%);
+        border: 1.5px solid rgba(239, 68, 68, 0.3);
+        border-left: 6px solid #ef4444;
+        border-radius: 16px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 20px 0;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.08);
+        animation: subtlePulse 2s infinite alternate;
+    }
+
+    @keyframes subtlePulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.01); box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15); }
+    }
+
+    .pcod-risk-banner-label {
+        font-size: 13px;
         font-weight: 700;
-        font-size: 22px;
-        animation: pulse 1.2s infinite alternate;
-        margin: 15px 0;
-        padding: 15px;
-        background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(248, 113, 113, 0.08));
-        border-radius: 10px;
-        border-left: 4px solid #dc2626;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    @keyframes pulse {
-        from { transform: scale(1); }
-        to { transform: scale(1.05); }
+    .pcod-risk-banner-val {
+        font-size: 24px;
+        font-weight: 850;
+        color: #dc2626;
+        margin-top: 4px;
     }
 
-    /* LIST */
-    ul {
+    .pcod-risk-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #ef4444;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 750;
+        padding: 8px 18px;
+        border-radius: 50px;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .pcod-summary-text {
+        font-size: 14.5px;
+        color: #475569;
+        line-height: 1.65;
+        margin: 16px 0 0 0;
+    }
+
+    /* Custom Checkmark Lists */
+    .pcod-list {
         list-style: none;
         padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
-    li {
-        margin: 12px 0 12px 30px;
-        position: relative;
-        animation: fadeItem 0.5s ease;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(0, 51, 102, 0.08);
+    .pcod-list-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        background: #f8fafc;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: 1px solid #f1f5f9;
+        font-size: 14.5px;
+        color: #334155;
+        line-height: 1.5;
+        transition: all 0.2s ease;
     }
 
-    li:last-child {
-        border-bottom: none;
+    .pcod-list-item:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
     }
 
-    li::before {
-        content: '✓';
-        position: absolute;
-        left: 0;
-        color: #16a34a;
-        font-weight: 800;
+    .pcod-list-icon {
         font-size: 16px;
+        margin-top: 2px;
+        flex-shrink: 0;
     }
 
-    @keyframes fadeItem {
-        from {
-            opacity: 0;
-            transform: translateX(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
+    /* Action Buttons */
+    .pcod-actions-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        margin-top: 36px;
     }
 
-    /* BUTTON */
-    .btn {
-        display: inline-block;
-        background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
-        color: white;
-        padding: 14px 28px;
-        border-radius: 10px;
+    .pcod-btn-pdf {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        color: #ffffff;
+        padding: 16px 36px;
+        border-radius: 14px;
         text-decoration: none;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.2);
-    }
-
-    .btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 40px rgba(0, 51, 102, 0.3);
-    }
-
-    .button-container {
+        font-weight: 750;
+        font-size: 15.5px;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        transition: all 0.25s ease;
+        width: 100%;
+        max-width: 420px;
         text-align: center;
-        margin-top: 30px;
+    }
+
+    .pcod-btn-pdf:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(124, 58, 237, 0.4);
+        filter: brightness(1.05);
+    }
+
+    .pcod-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #ffffff;
+        color: #334155;
+        padding: 13px 32px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 650;
+        font-size: 14.5px;
+        border: 1.5px solid #cbd5e1;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+        transition: all 0.25s ease;
+        width: 100%;
+        max-width: 420px;
+        text-align: center;
+    }
+
+    .pcod-btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+        .pcod-card {
+            padding: 24px 20px;
+        }
+
+        .pcod-risk-banner {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .pcod-result-top h1 {
+            font-size: 28px;
+        }
     }
 </style>
 
-<div class="result-container">
-
-    <div class="result-header animate">
+<div class="pcod-result-wrapper">
+    <!-- Top Header -->
+    <div class="pcod-result-top">
+        <div class="pcod-result-badge">
+            <span>✨</span> CareSense AI Clinical Assessment
+        </div>
         <h1>{{ t('pcod_result.title') }}</h1>
     </div>
 
-    <!-- RESULT -->
-    <div class="result-card animate">
-        <h2>{{ t('pcod_result.heading') }}</h2>
-        <p class="danger animate">{{ t('result.risk_level_label') }} {{ risk }}</p>
-        <p style="color: #4a5568; margin-top: 15px;">
+    <!-- Main Risk Card -->
+    <div class="pcod-card">
+        <div class="pcod-card-header">
+            <div class="pcod-card-icon purple">🌸</div>
+            <h2>{{ t('pcod_result.heading') }}</h2>
+        </div>
+
+        <div class="pcod-risk-banner">
+            <div>
+                <div class="pcod-risk-banner-label">{{ t('result.risk_level_label') }}</div>
+                <div class="pcod-risk-banner-val">{{ risk }}</div>
+            </div>
+            <div class="pcod-risk-badge-pill">
+                <span>⚠️</span> {{ risk }}
+            </div>
+        </div>
+
+        <p class="pcod-summary-text">
             {{ t('pcod_result.summary_text') }}
         </p>
     </div>
 
-    <!-- CONCERNS -->
-    <div class="result-card animate">
-        <h2>{{ t('pcod_result.possible_concerns') }}</h2>
-        <ul>
-            <li class="animate">{{ t('pcod_result.concern_hormonal') }}</li>
-            <li class="animate">{{ t('pcod_result.concern_metabolic') }}</li>
-            <li class="animate">{{ t('pcod_result.concern_stress') }}</li>
-        </ul>
+    <!-- Possible Health Concerns -->
+    <div class="pcod-card">
+        <div class="pcod-card-header">
+            <div class="pcod-card-icon amber">⚠️</div>
+            <h2>{{ t('pcod_result.possible_concerns') }}</h2>
+        </div>
+
+        <div class="pcod-list">
+            <div class="pcod-list-item">
+                <span class="pcod-list-icon">🔬</span>
+                <span>{{ t('pcod_result.concern_hormonal') }}</span>
+            </div>
+            <div class="pcod-list-item">
+                <span class="pcod-list-icon">⚖️</span>
+                <span>{{ t('pcod_result.concern_metabolic') }}</span>
+            </div>
+            <div class="pcod-list-item">
+                <span class="pcod-list-icon">🧠</span>
+                <span>{{ t('pcod_result.concern_stress') }}</span>
+            </div>
+        </div>
     </div>
 
-    <!-- ADVICE -->
-    <div class="result-card animate">
-        <h2>{{ t('pcod_result.recommendations') }}</h2>
-        <ul>
+    <!-- Personalized Recommendations -->
+    <div class="pcod-card">
+        <div class="pcod-card-header">
+            <div class="pcod-card-icon emerald">✅</div>
+            <h2>{{ t('pcod_result.recommendations') }}</h2>
+        </div>
+
+        <div class="pcod-list">
             {% for a in advice %}
-            <li class="animate">{{ a }}</li>
+            <div class="pcod-list-item">
+                <span class="pcod-list-icon" style="color: #16a34a; font-weight: bold;">✓</span>
+                <span>{{ a }}</span>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
     </div>
 
-    <!-- BUTTON -->
-    <div class="button-container animate">
+    <!-- Action Buttons -->
+    <div class="pcod-actions-wrap">
+        <a href="/download_pcod_pdf" class="pcod-btn-pdf" id="btnDownloadPcodPdf">
+            <span>📄</span> {{ t('pcod_result.download_pdf') }}
+        </a>
 
-    <a href="/download_pcod_pdf" class="btn animate">
-        {{ t('pcod_result.download_pdf') }}
-    </a>
-
-    <br><br>
-
-    <a href="/pcod" class="btn animate">
-        {{ t('pcod_result.another_assessment') }}
-    </a>
-
+        <a href="/pcod" class="pcod-btn-secondary" id="btnAnotherPcodAssessment">
+            <span>🔁</span> {{ t('pcod_result.another_assessment') }}
+        </a>
+    </div>
 </div>
 
 {% endblock %}

@@ -27,7 +27,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, R
 from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
-from src.services.sensor_service import sensor_data, start_sensor_thread
+from src.services.sensor_service import sensor_data, start_sensor_thread, reset_finger_timeout
 from src.chatbot.bot import chatbot_response, generate_dynamic_medical_report, get_severity_report_fallback
 from src.i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, get_language_label, get_translation
 
@@ -212,42 +212,103 @@ def analyze_health(hr, spo2, lang=DEFAULT_LANGUAGE):
         print("=" * 80)
         spo2 = None
 
-    if hr is not None:
-        if hr < 60:
-            hr_status = "LOW"
-            risk.append(trans('health.low_heart_rate'))
-        elif hr > 100:
-            hr_status = "HIGH"
-            risk.append(trans('health.high_heart_rate'))
+    if hr is not None or spo2 is not None:
+        # Determine individual vital status
+        if hr is not None:
+            if hr < 60:
+                hr_status = "LOW"
+            elif hr > 100:
+                hr_status = "HIGH"
+            else:
+                hr_status = "NORMAL"
         else:
-            hr_status = "NORMAL"
+            hr_status = "WAITING"
+
+        if spo2 is not None:
+            if spo2 < 95:
+                spo2_status = "LOW"
+            else:
+                spo2_status = "NORMAL"
+        else:
+            spo2_status = "WAITING"
+
+        # Categorize risk level according to clinical thresholds
+        is_high_risk = (spo2 is not None and spo2 < 90) or (hr is not None and (hr < 50 or hr > 125))
+        is_mod_risk = (not is_high_risk) and ((spo2 is not None and spo2 <= 92) or (hr is not None and (hr < 55 or hr > 110)))
+        is_low_risk = (not is_high_risk) and (not is_mod_risk) and ((spo2 is not None and spo2 <= 94) or (hr is not None and (hr < 60 or hr > 100)))
+
+        if is_high_risk:
+            risk.append("🔴 HIGH RISK: Critical vital reading detected.")
+            if spo2 is not None and spo2 < 90:
+                risk.append(f"Abnormal Reading: SpO2 is {spo2}% (below configured safe threshold of 95%).")
+                risk.append("Possible concern: Severe low blood oxygen saturation (hypoxemia).")
+            if hr is not None and hr < 50:
+                risk.append(f"Abnormal Reading: Heart Rate is {hr} BPM (severely low bradycardia, normal range: 60-100 BPM).")
+                risk.append("Possible concern: Significantly decreased pulse rate may impair adequate circulation.")
+            elif hr is not None and hr > 125:
+                risk.append(f"Abnormal Reading: Heart Rate is {hr} BPM (marked tachycardia, normal range: 60-100 BPM).")
+                risk.append("Possible concern: Abnormally high resting heart rate increases cardiac strain.")
+            risk.append("⚠️ Notice: This is a real-time screening/monitoring indication, NOT a formal medical diagnosis.")
+
+            advice = [
+                "What to do immediately: Sit upright, rest, and avoid any unnecessary physical exertion.",
+                "Diaphragmatic breathing: Take slow, deep breaths in a well-ventilated space with fresh air.",
+                "Recheck measurement: Ensure the finger is positioned correctly, warm, and steady on the MAX30102 sensor.",
+                "Basic precautions: Loosen tight clothing around neck and chest; stay calm and hydrate with a sip of water.",
+                "🚨 Medical Attention: If abnormal readings persist, or if you experience chest pain, shortness of breath, dizziness, or confusion, seek immediate medical attention."
+            ]
+
+        elif is_mod_risk:
+            risk.append("🟡 MODERATE RISK: Noticeable deviation from standard healthy range.")
+            if spo2 is not None and spo2 <= 92:
+                risk.append(f"Abnormal Reading: SpO2 is {spo2}% (below normal range: 95-100%).")
+                risk.append("Possible concern: Mild to moderate oxygen desaturation.")
+            if hr is not None and hr < 55:
+                risk.append(f"Abnormal Reading: Heart Rate is {hr} BPM (below normal range: 60-100 BPM).")
+                risk.append("Possible concern: Borderline low pulse rate.")
+            elif hr is not None and hr > 110:
+                risk.append(f"Abnormal Reading: Heart Rate is {hr} BPM (above normal range: 60-100 BPM).")
+                risk.append("Possible concern: Elevated pulse rate, commonly from dehydration, anxiety, or recent exertion.")
+            risk.append("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.")
+
+            advice = [
+                "What to do: Sit quietly and rest for 5-10 minutes before re-checking your vitals.",
+                "Ensure steady sensor contact: Keep your hand relaxed and finger properly aligned on the sensor.",
+                "Hydrate & relax: Drink a glass of water and practice slow, steady breathing to reduce stress.",
+                "Medical Attention: If the reading remains abnormal after repeated rest checks or if you feel unwell, consult a healthcare provider."
+            ]
+
+        elif is_low_risk:
+            risk.append("🟡 LOW RISK: Mild vital variation detected.")
+            if hr is not None and hr < 60:
+                risk.append(f"Slightly Low Pulse: {hr} BPM (standard: 60-100 BPM). Often observed in athletes or deep relaxation.")
+            elif hr is not None and hr > 100:
+                risk.append(f"Mildly Elevated Pulse: {hr} BPM (standard: 60-100 BPM). Commonly caused by recent activity, caffeine, or mild anxiety.")
+            if spo2 is not None and spo2 <= 94:
+                risk.append(f"Borderline Oxygen: {spo2}% (optimal: 95-100%). Monitor closely.")
+            risk.append("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.")
+
+            advice = [
+                "Sit comfortably and breathe normally while continuous monitoring proceeds.",
+                "Avoid caffeine, tobacco, or strenuous movement immediately before measurement.",
+                "Recheck vitals after 3-5 minutes of calm rest."
+            ]
+
+        else:
+            risk.append("🟢 LOW RISK: All measured vitals are within healthy clinical ranges.")
+            if hr is not None:
+                risk.append(f"Heart Rate: {hr} BPM (Normal range: 60-100 BPM)")
+            if spo2 is not None:
+                risk.append(f"Oxygen Saturation (SpO2): {spo2}% (Healthy range: 95-100%)")
+            risk.append("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.")
+            advice = [
+                "Vitals are stable and within healthy physiological limits.",
+                "Maintain healthy hydration, regular physical activity, and a balanced diet.",
+                "Continue routine preventive health monitoring."
+            ]
     else:
         hr_status = "WAITING"
-
-    if spo2 is not None:
-        if spo2 < 95:
-            spo2_status = "LOW"
-            risk.append(trans('health.low_oxygen'))
-        else:
-            spo2_status = "NORMAL"
-    else:
         spo2_status = "WAITING"
-
-    if not risk:
-        advice = [
-            trans('health.normal_vitals_1'),
-            trans('health.normal_vitals_2'),
-            trans('health.normal_vitals_3'),
-            trans('health.normal_vitals_4')
-        ]
-    else:
-        advice = [
-            trans('health.advice_rest'),
-            trans('health.advice_breathe'),
-            trans('health.advice_reduce_stress'),
-            trans('health.advice_hydrate'),
-            trans('health.advice_consult')
-        ]
 
     return {
         "heart_rate_status_code": hr_status,
@@ -705,10 +766,45 @@ def live_health():
 @app.route("/get_sensor_data")
 @app.route("/live_sensor")
 def get_sensor_data():
+    is_connected = bool(sensor_data.get("status") == "CONNECTED" or sensor_data.get("connected", False) or sensor_data.get("esp32_connected", False))
+    raw_hr = sensor_data.get("heart_rate")
+    raw_spo2 = sensor_data.get("spo2")
+    m_status = sensor_data.get("measurement_status", "WAITING")
+    timeout_remaining = sensor_data.get("timeout_remaining", 30)
+
+    if not is_connected:
+        hr_val = "--"
+        spo2_val = "--"
+        m_status = "DISCONNECTED"
+        msg = "ESP32/Sensor disconnected"
+    elif sensor_data.get("finger_detected", False):
+        hr_val = raw_hr if (raw_hr != "--" and raw_hr is not None) else "--"
+        spo2_val = raw_spo2 if (raw_spo2 != "--" and raw_spo2 is not None) else "--"
+        m_status = "MEASURING" if (hr_val == "--" or spo2_val == "--") else "COMPLETED"
+        msg = "Measuring..."
+    elif m_status == "TRY_AGAIN" or timeout_remaining <= 0:
+        hr_val = "--"
+        spo2_val = "--"
+        m_status = "TRY_AGAIN"
+        msg = "Try Again / Please place your finger correctly"
+    else:
+        hr_val = "--"
+        spo2_val = "--"
+        m_status = "WAITING"
+        msg = sensor_data.get("status_message", f"Waiting for finger ({timeout_remaining}s)")
+
     data = {
-        "heart_rate": sensor_data.get("heart_rate", "--"),
-        "spo2": sensor_data.get("spo2", "--"),
-        "status": sensor_data.get("status", "DISCONNECTED"),
+        "connected": is_connected,
+        "sensor_initialized": is_connected,
+        "finger_detected": bool(sensor_data.get("finger_detected", False)) if is_connected else False,
+        "heart_rate": hr_val,
+        "spo2": spo2_val,
+        "measurement_status": m_status,
+        "timeout_remaining": timeout_remaining,
+        "status": "CONNECTED" if is_connected else "DISCONNECTED",
+        "esp32_connected": bool(sensor_data.get("esp32_connected", False)),
+        "finger_status": "FINGER DETECTED" if (is_connected and sensor_data.get("finger_detected", False)) else ("TRY AGAIN" if m_status == "TRY_AGAIN" else "WAITING FOR FINGER"),
+        "status_message": msg,
         "port": sensor_data.get("port")
     }
     response = jsonify(data)
@@ -717,6 +813,15 @@ def get_sensor_data():
     response.headers['Expires'] = '0'
     response.headers['X-Accel-Expires'] = '0'
     return response
+
+@app.route("/reset_finger_timeout", methods=["POST", "GET"])
+def reset_finger_timeout_route():
+    reset_finger_timeout()
+    return jsonify({
+        "status": "ok",
+        "finger_status": sensor_data.get("finger_status", "WAITING FOR FINGER"),
+        "timeout_remaining": sensor_data.get("timeout_remaining", 30)
+    })
 
 @app.route("/health_analysis")
 def health_analysis():

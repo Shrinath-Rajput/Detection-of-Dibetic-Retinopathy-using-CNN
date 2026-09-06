@@ -2,29 +2,15 @@
  * ============================================================================
  * ESP32 + MAX30102 PULSE OXIMETER & HEART RATE SENSOR FIRMWARE
  * ============================================================================
- * 
- * PROJECT: CareSense - AI Healthcare Management System
- * COMPONENT: ESP32 Biometric Sensor Module
- * 
- * HARDWARE SETUP:
+ *
+ * HARDWARE CONNECTIONS:
  *   - ESP32 GPIO21 (SDA) -> MAX30102 SDA
  *   - ESP32 GPIO22 (SCL) -> MAX30102 SCL
- *   - ESP32 3.3V -> MAX30102 VDD
- *   - ESP32 GND -> MAX30102 GND
- * 
- * COMMUNICATION:
- *   - Serial: 115200 baud
- *   - I2C: 100 kHz
- * 
- * KEY IMPROVEMENTS FOR RELIABILITY:
- *   1. 3-second pre-initialization delay (sensor stabilization)
- *   2. 5-attempt retry logic with 500ms delays
- *   3. Detailed initialization logging for debugging
- *   4. Automatic sensor reconnection if data loss >30s
- *   5. FIFO timeout detection (1000ms per sample)
- *   6. Consecutive failure tracking
- *   7. 24/7 operation error recovery
- * 
+ *   - ESP32 3.3V or VIN  -> MAX30102 VDD/VIN
+ *   - ESP32 GND          -> MAX30102 GND
+ *
+ * SERIAL COMMUNICATION: 115200 baud
+ * I2C HARDWARE BUS: SDA=21, SCL=22, 100kHz
  * ============================================================================
  */
 
@@ -35,427 +21,261 @@
 
 MAX30105 particleSensor;
 
-// ============= I2C CONFIGURATION =============
+// Pin Definitions & I2C Address
 const uint8_t SDA_PIN = 21;
 const uint8_t SCL_PIN = 22;
-const uint32_t I2C_CLOCK_HZ = 100000L;
 
-// ============= SENSOR INITIALIZATION RETRY CONFIGURATION =============
-const uint8_t MAX_INIT_RETRIES = 5;              // Number of initialization retry attempts
-const uint16_t INIT_RETRY_DELAY_MS = 500;       // Delay between retry attempts (ms)
-const uint16_t PRE_INIT_DELAY_MS = 3000;        // Startup delay before sensor init (ms)
-const uint32_t SENSOR_REINIT_TIMEOUT_MS = 30000;  // Reconnect if no data for 30s
-
-// ============= SENSOR MONITORING VARIABLES =============
+// Sensor & Detection State
 bool sensorConnected = false;
 bool fingerDetected = false;
-uint32_t lastValidDataTime = 0;     // Timestamp of last valid sensor reading
-uint8_t consecutiveNoDataCount = 0; // Count of consecutive failed reads
+uint32_t latestIR = 0;
+const uint32_t FINGER_DETECT_THRESHOLD = 20000; // IR threshold for finger contact
 
-// ============= HEART RATE TRACKING VARIABLES =============
+// Buffer for Maxim Algorithm (100 samples)
+const int MAX_BUFFER_LENGTH = 100;
+uint32_t irBuffer[MAX_BUFFER_LENGTH];
+uint32_t redBuffer[MAX_BUFFER_LENGTH];
+int bufferIndex = 0;
+bool bufferFilled = false;
+
+// Vital Signs
+int32_t spo2 = 0;
+int8_t validSPO2 = 0;
+int32_t heartRate = 0;
+int8_t validHeartRate = 0;
+
+// Rolling Beat Detection
 const byte RATE_SIZE = 4;
 byte rates[RATE_SIZE];
 byte rateSpot = 0;
 long lastBeat = 0;
-float beatsPerMinute;
-int beatAvg;
+int beatAvg = 0;
 
-// ============= SpO2 MEASUREMENT VARIABLES =============
-uint32_t irBuffer[100];
-uint32_t redBuffer[100];
-int32_t spo2;
-int8_t validSPO2;
-int32_t heartRate;
-int8_t validHeartRate;
+// Timing Trackers
+unsigned long lastHeartbeatTime = 0;
+unsigned long lastDataPrintTime = 0;
+unsigned long lastAlgorithmTime = 0;
+unsigned long lastRetryTime = 0;
 
-// ============= FINGER DETECTION THRESHOLD =============
-const uint32_t FINGER_DETECT_THRESHOLD = 50000;  // IR signal threshold to detect finger
+// Sensor Initialization
+bool initSensor() {
+  Serial.println("[SENSOR] Initializing MAX30102...");
 
-
-// ============================================================================
-// I2C DEVICE SCANNING FUNCTION
-// ============================================================================
-/*
- * Scans the I2C bus (0x01 to 0x7E) to detect all connected devices.
- * This helps diagnose wiring issues, power problems, or address conflicts.
- * 
- * Why this helps:
- *   - Confirms I2C bus communication is working
- *   - Shows what devices are available
- *   - Helps identify I2C address conflicts
- */
-void scanI2CDevices() {
-  byte error;
-  byte address;
-
-  Serial.println("[DEBUG] Scanning I2C bus (SDA=21, SCL=22)...");
-  int deviceCount = 0;
-  
-  for (address = 1; address < 127; address++) {
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-
-    if (error == 0) {
-      Serial.printf("[DEBUG] I2C device found at 0x%02X\n", address);
-      deviceCount++;
-    } else if (error == 4) {
-      Serial.printf("[DEBUG] Unknown error at 0x%02X\n", address);
+  bool ok = false;
+  for (int attempt = 1; attempt <= 5; attempt++) {
+    if (particleSensor.begin(Wire, 100000L)) {
+      ok = true;
+      break;
     }
+    delay(150);
   }
-  
-  Serial.printf("[DEBUG] I2C scan complete. Found %d device(s)\n", deviceCount);
-  
-  if (deviceCount == 0) {
-    Serial.println("[WARNING] No I2C devices detected! Check wiring and power.");
+
+  if (!ok) {
+    Serial.println("MAX30102 initialization failed");
+    Serial.println("STATUS:CONNECTED");
+    Serial.println("FINGER:0");
+    Serial.println("HR:--");
+    Serial.println("SPO2:--");
+    return false;
   }
-}
 
+  // Setup MAX30102 parameters:
+  // power ~10.6mA (0x35), 4 sample average, mode 2 (Red + IR), 100Hz, 411us pulse width, 4096 ADC
+  particleSensor.setup(0x35, 4, 2, 100, 411, 4096);
+  particleSensor.setPulseAmplitudeRed(0x35);
+  particleSensor.setPulseAmplitudeIR(0x35);
+  particleSensor.enableFIFORollover();
+  particleSensor.clearFIFO();
 
-// ============================================================================
-// MAX30102 SENSOR INITIALIZATION FUNCTION WITH RETRY LOGIC
-// ============================================================================
-/*
- * Attempts to initialize the MAX30102 sensor with configurable retry logic.
- * 
- * Key features:
- *   - Multiple retry attempts (default: 5 times)
- *   - Configurable delay between retries (500ms)
- *   - Detailed logging of each initialization step
- *   - Complete sensor parameter configuration
- *   - FIFO and sampling rate setup
- *   - Clear troubleshooting messages
- * 
- * Why retries help:
- *   - I2C may take time to stabilize after power-up
- *   - Sensor may miss first initialization attempt
- *   - Temporary timing issues can be resolved with retry
- * 
- * Returns: true if successful, false if all retry attempts failed
- */
-bool initializeSensor() {
-  Serial.println("\n[SENSOR] Starting MAX30102 initialization...");
-  Serial.printf("[SENSOR] Max retries: %d, Retry delay: %dms\n", MAX_INIT_RETRIES, INIT_RETRY_DELAY_MS);
-  
-  for (uint8_t attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
-    Serial.printf("[SENSOR] Initialization attempt %d of %d...\n", attempt, MAX_INIT_RETRIES);
-    
-    // Try to initialize the sensor on I2C bus
-    if (particleSensor.begin(Wire, I2C_SPEED_STANDARD)) {
-      Serial.println("[SENSOR] ✅ MAX30102 detected on I2C bus!");
-      Serial.println("[SENSOR] Configuring sensor parameters...");
-      
-      // Configure sensor with appropriate settings
-      particleSensor.setup();
-      
-      // Set LED pulse amplitudes for optimal signal
-      // Higher values = brighter LEDs = stronger signal but more power consumption
-      // 0x1F = ~31mA (good balance for typical use)
-      particleSensor.setPulseAmplitudeRed(0x1F);     // Red LED: ~31mA
-      particleSensor.setPulseAmplitudeIR(0x1F);      // IR LED: ~31mA (used for heart rate)
-      particleSensor.setPulseAmplitudeGreen(0x00);   // Green LED: off (not used)
-      
-      // Configure FIFO (First In First Out buffer) behavior
-      // FIFO stores sensor readings while ESP32 is processing
-      particleSensor.setFIFOAmount(32);              // FIFO "almost full" flag at 32 samples
-      
-      // Configure sampling rate
-      // 100 Hz means 100 samples per second
-      // Lower rates = lower power, higher rates = more data points
-      particleSensor.setSampleRate(100);             // 100 samples per second = 100 Hz
-      
-      // Configure pulse width and ADC resolution
-      // These affect signal quality and power consumption
-      particleSensor.setPulseWidth(411);             // Pulse width 411 microseconds
-      particleSensor.setADCRange(2048);              // ADC range 2048 nanoamps
-      
-      // Clear any existing data in FIFO before starting
-      // This ensures clean slate and prevents stale data
-      particleSensor.clearFIFO();
-      
-      Serial.println("[SENSOR] ✅ MAX30102 initialized successfully!");
-      Serial.println("[SENSOR] LED pulse amplitudes configured");
-      Serial.println("[SENSOR] FIFO and sampling parameters set");
-      Serial.println("[SENSOR] Ready to read sensor data\n");
-      
-      // Reset timing variables for fresh operation
-      lastValidDataTime = millis();
-      consecutiveNoDataCount = 0;
-      
-      return true;  // Initialization successful
-    } else {
-      Serial.printf("[SENSOR] ❌ Attempt %d failed - Sensor not responding\n", attempt);
-      
-      if (attempt < MAX_INIT_RETRIES) {
-        Serial.printf("[SENSOR] Retrying in %dms...\n", INIT_RETRY_DELAY_MS);
-        delay(INIT_RETRY_DELAY_MS);
-      }
-    }
-  }
-  
-  // All retries exhausted - initialization failed
-  Serial.println("[SENSOR] ❌ MAX30102 initialization FAILED after all retry attempts!");
-  Serial.println("[SENSOR] ⚠️  TROUBLESHOOTING STEPS:");
-  Serial.println("[SENSOR]    1. Check SDA (GPIO 21) and SCL (GPIO 22) connections");
-  Serial.println("[SENSOR]    2. Verify sensor is powered with 3.3V (not 5V!)");
-  Serial.println("[SENSOR]    3. Check for pull-up resistors (4.7k) on I2C lines");
-  Serial.println("[SENSOR]    4. Verify MAX30102 address jumpers are set correctly");
-  Serial.println("[SENSOR]    5. Try disconnecting/reconnecting sensor");
-  Serial.println("[SENSOR] Continuing without sensor...\n");
-  
-  return false;  // Initialization failed
-}
+  // Reset buffers
+  bufferIndex = 0;
+  bufferFilled = false;
+  rateSpot = 0;
+  lastBeat = 0;
+  beatAvg = 0;
+  spo2 = 0;
+  validSPO2 = 0;
+  heartRate = 0;
+  validHeartRate = 0;
+  for (byte x = 0; x < RATE_SIZE; x++) rates[x] = 0;
 
-
-// ============================================================================
-// SENSOR RECONNECTION FUNCTION
-// ============================================================================
-/*
- * Attempts to reconnect to the sensor if it was previously connected.
- * Useful for handling temporary disconnections without full ESP32 reboot.
- * 
- * Why this helps:
- *   - Sensor may disconnect during operation (loose wire, power glitch)
- *   - Reconnection is faster than full reboot
- *   - Maintains continuous operation for 24/7 monitoring
- * 
- * Features:
- *   - Quick reconnection attempts (3 tries, 200ms apart)
- *   - FIFO clearing and timing reset
- *   - Minimal downtime reconnection
- * 
- * Returns: true if reconnection successful, false otherwise
- */
-bool attemptSensorReconnect() {
-  Serial.println("[SENSOR] Attempting to reconnect to MAX30102...");
-  
-  // Try 3 quick reconnection attempts
-  for (uint8_t attempt = 1; attempt <= 3; attempt++) {
-    if (particleSensor.begin(Wire, I2C_SPEED_STANDARD)) {
-      Serial.println("[SENSOR] ✅ Sensor reconnected successfully!");
-      particleSensor.setup();
-      particleSensor.clearFIFO();
-      lastValidDataTime = millis();
-      consecutiveNoDataCount = 0;
-      return true;
-    }
-    delay(200);  // Brief delay between reconnection attempts
-  }
-  
-  Serial.println("[SENSOR] ❌ Reconnection failed");
-  return false;
-}
-
-
-// ============================================================================
-// MAIN SENSOR DATA READING FUNCTION
-// ============================================================================
-/*
- * Reads 100 samples from the MAX30102 sensor and validates the data.
- * 
- * Features:
- *   - Timeout detection if sensor stops responding (1000ms per sample)
- *   - Automatic reconnection attempt if no data for 30+ seconds
- *   - Consecutive failure tracking
- *   - Data validation
- * 
- * Why timeouts matter:
- *   - Prevents firmware from hanging if sensor disconnects
- *   - Allows recovery without full reboot
- *   - Enables continuous 24/7 operation
- * 
- * Returns: true if all 100 samples read successfully, false otherwise
- */
-bool readSensorData() {
-  // Check if sensor needs reconnection (no valid data for 30+ seconds)
-  if (millis() - lastValidDataTime > SENSOR_REINIT_TIMEOUT_MS) {
-    Serial.println("[SENSOR] ⚠️  No valid data received for 30+ seconds");
-    if (!attemptSensorReconnect()) {
-      return false;
-    }
-  }
-  
-  // Attempt to read 100 samples from the sensor
-  for (byte i = 0; i < 100; i++) {
-    // Wait for data to be available in FIFO
-    // Timeout after 1000ms to prevent hanging if sensor disconnects
-    uint32_t startTime = millis();
-    while (particleSensor.available() == false) {
-      particleSensor.check();  // Update sensor status and check FIFO
-      
-      // Timeout check - if no data after 1 second, sensor may be disconnected
-      if (millis() - startTime > 1000) {
-        Serial.println("[SENSOR] ❌ Sensor data timeout - sensor may be disconnected");
-        consecutiveNoDataCount++;
-        
-        // If too many consecutive failures, attempt reconnection
-        if (consecutiveNoDataCount > 10) {
-          Serial.println("[SENSOR] ⚠️  Multiple consecutive read failures - attempting reconnection");
-          return attemptSensorReconnect();
-        }
-        return false;
-      }
-    }
-    
-    // Read red and IR light values from sensor
-    // Red light = oxygenated hemoglobin
-    // IR light = total hemoglobin
-    redBuffer[i] = particleSensor.getRed();
-    irBuffer[i] = particleSensor.getIR();
-    particleSensor.nextSample();  // Move to next sample in FIFO
-  }
-  
-  // Successfully read all 100 samples
-  lastValidDataTime = millis();
-  consecutiveNoDataCount = 0;
+  Serial.println("[SENSOR] MAX30102 initialized successfully");
+  Serial.println("STATUS:CONNECTED");
+  Serial.println("FINGER:0");
+  Serial.println("HR:--");
+  Serial.println("SPO2:--");
   return true;
 }
 
-
-// ============================================================================
-// ESP32 SETUP FUNCTION
-// ============================================================================
-/*
- * Executes once at power-on or reset.
- * Initializes serial, I2C, and MAX30102 sensor with retry logic.
- * 
- * Critical timing steps:
- *   1. Serial initialization (1 second settle)
- *   2. I2C initialization (500ms stabilize)
- *   3. I2C device scan (diagnostic)
- *   4. 3-second pre-init delay (CRITICAL - sensor stabilization)
- *   5. Sensor initialization with retries
- *   6. Print required startup messages
- */
 void setup() {
-  // Initialize serial communication at 115200 baud
   Serial.begin(115200);
-  
-  // Wait for serial to stabilize and give user time to open serial monitor
+  delay(1000);
+
   Serial.println("\n\n========================================");
   Serial.println("[STARTUP] ESP32 MAX30102 Sensor Module");
-  Serial.println("[STARTUP] Initializing hardware...");
   Serial.println("========================================\n");
-  
-  delay(1000);  // Let serial output settle and ESP32 stabilize
-  
-  // ============= I2C BUS INITIALIZATION =============
-  // Initialize I2C communication on GPIO21 (SDA) and GPIO22 (SCL)
-  // I2C is used to communicate with the MAX30102 sensor
-  Serial.printf("[I2C] Initializing I2C bus (SDA=GPIO21, SCL=GPIO22)...\n");
-  Serial.printf("[I2C] I2C Clock Frequency: %ldHz\n", I2C_CLOCK_HZ);
-  
-  Wire.begin(SDA_PIN, SCL_PIN);  // Initialize I2C with custom pins
-  Wire.setClock(I2C_CLOCK_HZ);    // Set I2C clock speed to 100 kHz
-  
-  delay(500);  // Stabilize I2C communication
-  
-  Serial.println("[I2C] ✅ I2C bus initialized\n");
-  
-  // ============= I2C DEVICE DISCOVERY =============
-  // Scan I2C bus to detect connected devices
-  // This helps diagnose wiring issues or device conflicts
-  scanI2CDevices();
-  delay(500);
-  
-  // ============= PRE-INITIALIZATION DELAY =============
-  // CRITICAL: Wait before attempting sensor initialization
-  // Gives the sensor time to power up and stabilize after ESP32 boot
-  // This is ONE OF THE MAIN REASONS sensor initialization fails
-  // If you skip or reduce this, sensor may not initialize reliably
-  Serial.printf("[STARTUP] Pre-initialization delay: %dms\n", PRE_INIT_DELAY_MS);
-  Serial.println("[STARTUP] Waiting for sensor hardware to stabilize...\n");
-  delay(PRE_INIT_DELAY_MS);  // Wait 3 seconds for sensor to be ready
-  
-  // ============= SENSOR INITIALIZATION WITH RETRIES =============
-  // Attempt to initialize MAX30102 with up to 5 retries
-  // Significantly improves reliability on first boot
-  sensorConnected = initializeSensor();
-  
-  // ============= STARTUP COMPLETE =============
-  if (sensorConnected) {
-    Serial.println("[STARTUP] ✅ Startup complete - Ready for data acquisition");
-    Serial.println("[SENSOR] Connected on COM4");
-    Serial.println("✅ MAX30102 initialized");
-    Serial.println("❌ No finger detected");
-    Serial.println("[SENSOR] Waiting for finger\n");
-  } else {
-    Serial.println("[STARTUP] ⚠️  Startup complete (sensor unavailable)");
-    Serial.println("[STARTUP] Operating in fallback mode\n");
-  }
+
+  Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setClock(100000L);
+  Wire.setTimeOut(50);
+  delay(200);
+
+  // Attempt sensor initialization
+  sensorConnected = initSensor();
+  lastHeartbeatTime = millis();
 }
 
-
-// ============================================================================
-// ESP32 MAIN LOOP FUNCTION
-// ============================================================================
-/*
- * Executes repeatedly after setup() completes.
- * Handles sensor data reading, heart rate/SpO2 calculation, and output.
- * 
- * Output format is compatible with Python Flask CareSense application.
- */
 void loop() {
-  if (sensorConnected) {
-    // ============= ACTUAL SENSOR MODE =============
-    // Read 100 samples from the MAX30102 sensor
-    if (!readSensorData()) {
-      // Failed to read data - sensor may be disconnected
-      Serial.println("[SENSOR] ❌ Failed to read sensor data");
-      delay(1000);
-      return;
+  unsigned long currentMillis = millis();
+
+  // 1. If sensor failed initial detection, retry every 2 seconds
+  if (!sensorConnected) {
+    if (currentMillis - lastRetryTime >= 2000) {
+      lastRetryTime = currentMillis;
+      Wire.begin(SDA_PIN, SCL_PIN);
+      Wire.setClock(100000L);
+      sensorConnected = initSensor();
     }
-    
-    // Calculate heart rate and SpO2 from the 100 samples
-    // This algorithm uses red and IR light absorption patterns
-    // Based on MAXIM Integrated's proprietary algorithm
-    maxim_heart_rate_and_oxygen_saturation(
-      irBuffer, 100, redBuffer,
-      &spo2, &validSPO2,
-      &heartRate, &validHeartRate
-    );
-    
-    // ============= FINGER DETECTION =============
-    // Check if a finger is present on the sensor
-    // Finger is detected when IR signal (irBuffer[99]) exceeds threshold
-    // Threshold of 50000 works well for typical sensor placement
-    if (irBuffer[99] < FINGER_DETECT_THRESHOLD) {
-      // No finger detected - waiting for placement
-      Serial.println("❌ No finger detected");
+    return;
+  }
+
+  // 2. Continuous sample acquisition
+  particleSensor.check();
+
+  while (particleSensor.available()) {
+    uint32_t currentIR = particleSensor.getFIFOIR();
+    uint32_t currentRed = particleSensor.getFIFORed();
+    particleSensor.nextSample();
+
+    latestIR = currentIR;
+
+    if (currentIR >= FINGER_DETECT_THRESHOLD) {
+      // Real-time beat detection
+      if (checkForBeat(currentIR)) {
+        long delta = currentMillis - lastBeat;
+        lastBeat = currentMillis;
+        float bpm = 60.0 / (delta / 1000.0);
+        if (bpm >= 45.0 && bpm <= 200.0) {
+          rates[rateSpot++] = (byte)bpm;
+          rateSpot %= RATE_SIZE;
+          int sum = 0, count = 0;
+          for (byte x = 0; x < RATE_SIZE; x++) {
+            if (rates[x] > 0) {
+              sum += rates[x];
+              count++;
+            }
+          }
+          if (count > 0) {
+            beatAvg = sum / count;
+          }
+        }
+      }
+
+      // Collect for SpO2 calculation
+      redBuffer[bufferIndex] = currentRed;
+      irBuffer[bufferIndex] = currentIR;
+      bufferIndex++;
+      if (bufferIndex >= MAX_BUFFER_LENGTH) {
+        bufferIndex = 0;
+        bufferFilled = true;
+      }
+    }
+  }
+
+  // 3. Finger Presence & Status Reporting
+  // ONCE SENSOR IS INITIALIZED, STATUS REMAINS CONNECTED!
+  if (latestIR < FINGER_DETECT_THRESHOLD) {
+    // -------------------------------------------------------------
+    // NO FINGER PLACED:
+    // Status stays CONNECTED! Heart Rate = --, SpO2 = --
+    // -------------------------------------------------------------
+    fingerDetected = false;
+    bufferIndex = 0;
+    bufferFilled = false;
+    rateSpot = 0;
+    lastBeat = 0;
+    beatAvg = 0;
+    spo2 = 0;
+    validSPO2 = 0;
+    heartRate = 0;
+    validHeartRate = 0;
+    for (byte x = 0; x < RATE_SIZE; x++) rates[x] = 0;
+
+    // Heartbeat every 1 second
+    if (currentMillis - lastHeartbeatTime >= 1000) {
+      lastHeartbeatTime = currentMillis;
+      Serial.println("STATUS:CONNECTED");
+      Serial.println("FINGER:0");
+      Serial.println("HR:--");
+      Serial.println("SPO2:--");
       Serial.println("[SENSOR] Waiting for finger");
-    } else {
-      // ============= FINGER DETECTED - OUTPUT HEART RATE & SpO2 =============
-      // Finger is present - print current readings
-      Serial.print("Heart Rate: ");
-      if (validHeartRate) {
-        Serial.print(heartRate);  // Valid heart rate value (BPM)
+    }
+  } else {
+    // -------------------------------------------------------------
+    // FINGER DETECTED:
+    // Status stays CONNECTED! Read REAL MAX30102 data
+    // -------------------------------------------------------------
+    fingerDetected = true;
+
+    // Run Maxim SpO2 algorithm once buffer is ready
+    if (bufferFilled && (currentMillis - lastAlgorithmTime >= 1000)) {
+      lastAlgorithmTime = currentMillis;
+      maxim_heart_rate_and_oxygen_saturation(
+        irBuffer, MAX_BUFFER_LENGTH, redBuffer,
+        &spo2, &validSPO2,
+        &heartRate, &validHeartRate
+      );
+    }
+
+    // Output live readings every 800ms
+    if (currentMillis - lastDataPrintTime >= 800) {
+      lastDataPrintTime = currentMillis;
+      lastHeartbeatTime = currentMillis;
+
+      Serial.println("[SENSOR] Finger detected");
+      Serial.println("STATUS:CONNECTED");
+      Serial.println("FINGER:1");
+
+      int displayHR = 0;
+      if (validHeartRate && heartRate >= 45 && heartRate <= 200) {
+        displayHR = heartRate;
+      } else if (beatAvg >= 45 && beatAvg <= 200) {
+        displayHR = beatAvg;
+      }
+
+      int displaySpO2 = 0;
+      if (validSPO2 && spo2 >= 70 && spo2 <= 100) {
+        displaySpO2 = spo2;
+      }
+
+      if (displayHR > 0) {
+        Serial.printf("HR:%d\n", displayHR);
       } else {
-        Serial.print("--");        // Invalid or not ready
+        Serial.println("HR:--");
+      }
+
+      if (displaySpO2 > 0) {
+        Serial.printf("SPO2:%d\n", displaySpO2);
+      } else {
+        Serial.println("SPO2:--");
+      }
+
+      // Backward compatible human readable format
+      Serial.print("Heart Rate: ");
+      if (displayHR > 0) {
+        Serial.print(displayHR);
+      } else {
+        Serial.print("--");
       }
       Serial.print(" BPM | SpO2: ");
-      
-      if (validSPO2) {
-        Serial.print(spo2);        // Valid SpO2 value (percentage)
+      if (displaySpO2 > 0) {
+        Serial.print(displaySpO2);
       } else {
-        Serial.print("--");        // Invalid or not ready
+        Serial.print("--");
       }
       Serial.println(" %");
     }
-    
-  } else {
-    // ============= FALLBACK MODE (SENSOR UNAVAILABLE) =============
-    // Generate demo data when sensor is not connected
-    // Allows testing of Flask application without hardware
-    int demoHR = 72 + random(-5, 5);      // Simulate HR: 67-77 BPM
-    int demoSpO2 = 98 + random(-2, 1);    // Simulate SpO2: 96-99%
-    
-    Serial.print("Heart Rate: ");
-    Serial.print(demoHR);
-    Serial.print(" BPM | SpO2: ");
-    Serial.print(demoSpO2);
-    Serial.println(" %");
   }
-  
-  // Wait 1 second before next iteration
-  // This syncs with typical vital sign monitoring requirements
-  delay(1000);
+
+  delay(10);
 }

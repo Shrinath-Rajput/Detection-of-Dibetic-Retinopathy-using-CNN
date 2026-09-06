@@ -159,8 +159,9 @@
 
     <div class="card vital-card animate">
         <h3>{{ t('live_health.sensor_status') }}</h3>
-        <div class="vital-value" style="font-size: 24px; margin: 20px 0;" id="status">--</div>
-        <p style="font-size: 13px; color: #4a5568; margin: 8px 0;">{{ t('live_health.live_data') }}</p>
+        <span class="status-badge status-danger" id="status">DISCONNECTED</span>
+        <p id="sensor_subtext" style="font-size: 13px; color: #4a5568; margin: 8px 0;">{{ t('live_health.live_data') }}</p>
+        <button id="retry_btn" onclick="retryDetection()" style="display: none; margin-top: 10px; padding: 6px 18px; background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%); color: white; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 10px rgba(0,217,255,0.3);">🔄 Try Again</button>
     </div>
 </div>
 
@@ -206,6 +207,17 @@
 </div>
 
 <script>
+let consecutiveErrors = 0;
+
+async function retryDetection() {
+    try {
+        await fetch("/reset_finger_timeout?t=" + Date.now(), { method: 'POST' });
+        fetchData();
+    } catch(e) {
+        console.error("Retry error:", e);
+    }
+}
+
 async function fetchData() {
     try {
         const sensorResponse = await fetch("/get_sensor_data?t=" + Date.now(), {
@@ -224,74 +236,194 @@ async function fetchData() {
         const hrElement = document.getElementById("hr");
         const spo2Element = document.getElementById("spo2");
         const statusElement = document.getElementById("status");
-
-        if (hrElement) hrElement.innerText = sensor.heart_rate !== undefined ? sensor.heart_rate : "--";
-        if (spo2Element) spo2Element.innerText = sensor.spo2 !== undefined ? sensor.spo2 : "--";
-        if (statusElement) {
-            const statusValue = sensor.status || "DISCONNECTED";
-            statusElement.innerText = statusValue;
-            statusElement.className = "status-badge " + (statusValue === "CONNECTED" ? "status-ok" : "status-danger");
-        }
-
-        const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
-            cache: 'no-store',
-            method: 'GET',
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache'
-            }
-        });
-
-        if (!analysisResponse.ok) throw new Error(`HTTP ${analysisResponse.status}`);
-
-        const data = await analysisResponse.json();
-
+        const subtextElement = document.getElementById("sensor_subtext");
         const hrStatusEl = document.getElementById("hr_status");
-        if (hrStatusEl) {
-            hrStatusEl.innerText = data.heart_rate_status || "WAITING";
-            const hrCode = data.heart_rate_status_code || "WAITING";
-            hrStatusEl.className = "status-badge " + (hrCode === "NORMAL" || hrCode === "WAITING" ? "status-ok" : "status-danger");
-        }
-
         const spo2StatusEl = document.getElementById("spo2_status");
-        if (spo2StatusEl) {
-            spo2StatusEl.innerText = data.spo2_status || "WAITING";
-            const spo2Code = data.spo2_status_code || "WAITING";
-            spo2StatusEl.className = "status-badge " + (spo2Code === "NORMAL" || spo2Code === "WAITING" ? "status-ok" : "status-danger");
+        const retryBtn = document.getElementById("retry_btn");
+
+        const isConnected = (sensor.status === "CONNECTED" || sensor.connected === true);
+
+        if (statusElement) {
+            statusElement.innerText = isConnected ? "CONNECTED" : "DISCONNECTED";
+            statusElement.className = "status-badge " + (isConnected ? "status-ok" : "status-danger");
         }
 
-        const riskBox = document.getElementById("risk");
-        if (riskBox) {
-            riskBox.innerHTML = "";
-            if (data.risk && Array.isArray(data.risk) && data.risk.length > 0) {
-                data.risk.forEach(item => {
-                    const li = document.createElement("li");
-                    li.innerText = item;
-                    riskBox.appendChild(li);
-                });
+        let isLiveActive = false;
+
+        if (!isConnected) {
+            if (hrElement) hrElement.innerText = "--";
+            if (spo2Element) spo2Element.innerText = "--";
+            if (subtextElement) {
+                subtextElement.innerText = "ESP32/Sensor disconnected";
+            }
+            if (retryBtn) retryBtn.style.display = "none";
+            if (hrStatusEl) {
+                hrStatusEl.innerText = "DISCONNECTED";
+                hrStatusEl.className = "status-badge status-danger";
+            }
+            if (spo2StatusEl) {
+                spo2StatusEl.innerText = "DISCONNECTED";
+                spo2StatusEl.className = "status-badge status-danger";
+            }
+        } else {
+            // Sensor is CONNECTED (Both ESP32 serial and MAX30102 I2C)
+            const hasValidHR = sensor.heart_rate !== "--" && sensor.heart_rate !== undefined && sensor.heart_rate !== null;
+            const hasValidSpO2 = sensor.spo2 !== "--" && sensor.spo2 !== undefined && sensor.spo2 !== null;
+
+            if (sensor.finger_detected) {
+                if (retryBtn) retryBtn.style.display = "none";
+                if (hrElement) hrElement.innerText = hasValidHR ? sensor.heart_rate : "--";
+                if (spo2Element) spo2Element.innerText = hasValidSpO2 ? sensor.spo2 : "--";
+                if (subtextElement) subtextElement.innerText = "Measuring...";
+
+                if (hrStatusEl) {
+                    hrStatusEl.innerText = hasValidHR ? "NORMAL" : "Measuring...";
+                    hrStatusEl.className = "status-badge " + (hasValidHR ? "status-ok" : "status-warn");
+                }
+                if (spo2StatusEl) {
+                    spo2StatusEl.innerText = hasValidSpO2 ? "NORMAL" : "Measuring...";
+                    spo2StatusEl.className = "status-badge " + (hasValidSpO2 ? "status-ok" : "status-warn");
+                }
+
+                if (hasValidHR || hasValidSpO2) {
+                    isLiveActive = true;
+                }
+            } else if (sensor.measurement_status === "TRY_AGAIN" || sensor.timeout_remaining <= 0) {
+                // 30 seconds expired without finger detection -> CONNECTED + TRY AGAIN
+                if (hrElement) hrElement.innerText = "--";
+                if (spo2Element) spo2Element.innerText = "--";
+                if (subtextElement) {
+                    subtextElement.innerText = "Please place your finger correctly on the sensor.";
+                }
+                if (retryBtn) retryBtn.style.display = "inline-block";
+
+                if (hrStatusEl) {
+                    hrStatusEl.innerText = "TRY AGAIN";
+                    hrStatusEl.className = "status-badge status-warn";
+                }
+                if (spo2StatusEl) {
+                    spo2StatusEl.innerText = "TRY AGAIN";
+                    spo2StatusEl.className = "status-badge status-warn";
+                }
             } else {
-                const li = document.createElement("li");
-                li.innerText = "{{ t('live_health.no_risks') }}";
-                riskBox.appendChild(li);
+                // Waiting for finger (Active 30-second detection window)
+                if (hrElement) hrElement.innerText = "--";
+                if (spo2Element) spo2Element.innerText = "--";
+                if (retryBtn) retryBtn.style.display = "none";
+                if (subtextElement) {
+                    const rem = sensor.timeout_remaining;
+                    subtextElement.innerText = (rem !== undefined && rem > 0) ? `Waiting for finger (${rem}s)` : "Waiting for finger";
+                }
+
+                if (hrStatusEl) {
+                    hrStatusEl.innerText = "WAITING";
+                    hrStatusEl.className = "status-badge status-ok";
+                }
+                if (spo2StatusEl) {
+                    spo2StatusEl.innerText = "WAITING";
+                    spo2StatusEl.className = "status-badge status-ok";
+                }
             }
         }
 
-        const adviceBox = document.getElementById("advice");
-        if (adviceBox) {
-            adviceBox.innerHTML = "";
-            if (data.advice && Array.isArray(data.advice)) {
-                data.advice.forEach(item => {
-                    const li = document.createElement("li");
-                    li.innerText = item;
-                    adviceBox.appendChild(li);
+        if (!isLiveActive) {
+            const riskBox = document.getElementById("risk");
+            if (riskBox) {
+                riskBox.innerHTML = "<li>Waiting for valid sensor readings.</li>";
+            }
+            const adviceBox = document.getElementById("advice");
+            if (adviceBox) {
+                adviceBox.innerHTML = "";
+            }
+        } else {
+            try {
+                const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
+                    cache: 'no-store',
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
                 });
+
+                if (analysisResponse.ok) {
+                    const data = await analysisResponse.json();
+
+                    if (hrStatusEl) {
+                        hrStatusEl.innerText = data.heart_rate_status || "WAITING";
+                        const hrCode = data.heart_rate_status_code || "WAITING";
+                        hrStatusEl.className = "status-badge " + (hrCode === "NORMAL" || hrCode === "WAITING" ? "status-ok" : "status-danger");
+                    }
+
+                    if (spo2StatusEl) {
+                        spo2StatusEl.innerText = data.spo2_status || "WAITING";
+                        const spo2Code = data.spo2_status_code || "WAITING";
+                        spo2StatusEl.className = "status-badge " + (spo2Code === "NORMAL" || spo2Code === "WAITING" ? "status-ok" : "status-danger");
+                    }
+
+                    const riskBox = document.getElementById("risk");
+                    if (riskBox) {
+                        riskBox.innerHTML = "";
+                        if (data.risk && Array.isArray(data.risk) && data.risk.length > 0) {
+                            data.risk.forEach(item => {
+                                const li = document.createElement("li");
+                                li.innerText = item;
+                                riskBox.appendChild(li);
+                            });
+                        } else {
+                            const li = document.createElement("li");
+                            li.innerText = "{{ t('live_health.no_risks') }}";
+                            riskBox.appendChild(li);
+                        }
+                    }
+
+                    const adviceBox = document.getElementById("advice");
+                    if (adviceBox) {
+                        adviceBox.innerHTML = "";
+                        if (data.advice && Array.isArray(data.advice)) {
+                            data.advice.forEach(item => {
+                                const li = document.createElement("li");
+                                li.innerText = item;
+                                adviceBox.appendChild(li);
+                            });
+                        }
+                    }
+                }
+            } catch(analysisErr) {
+                console.warn("Health analysis update deferred:", analysisErr);
             }
         }
+
+        consecutiveErrors = 0;
 
     } catch(err) {
         console.error("Fetch Error:", err);
-        const statusElement = document.getElementById("status");
-        if (statusElement) statusElement.innerText = "DISCONNECTED";
+        consecutiveErrors++;
+        if (consecutiveErrors >= 5) {
+            const statusElement = document.getElementById("status");
+            if (statusElement) {
+                statusElement.innerText = "DISCONNECTED";
+                statusElement.className = "status-badge status-danger";
+            }
+            const subtextElement = document.getElementById("sensor_subtext");
+            if (subtextElement) {
+                subtextElement.innerText = "ESP32/Sensor disconnected";
+            }
+            const hrElement = document.getElementById("hr");
+            if (hrElement) hrElement.innerText = "--";
+            const spo2Element = document.getElementById("spo2");
+            if (spo2Element) spo2Element.innerText = "--";
+            const hrStatusEl = document.getElementById("hr_status");
+            if (hrStatusEl) {
+                hrStatusEl.innerText = "DISCONNECTED";
+                hrStatusEl.className = "status-badge status-danger";
+            }
+            const spo2StatusEl = document.getElementById("spo2_status");
+            if (spo2StatusEl) {
+                spo2StatusEl.innerText = "DISCONNECTED";
+                spo2StatusEl.className = "status-badge status-danger";
+            }
+        }
     }
 }
 

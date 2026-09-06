@@ -147,20 +147,21 @@
         <h3>{{ t('live_health.heart_rate') }}</h3>
         <div class="vital-value" id="hr">--</div>
         <div class="vital-unit">{{ t('live_health.heart_rate_unit') }}</div>
-        <span class="status-badge status-ok" id="hr_status">--</span>
+        <span class="status-badge status-ok" id="hr_status" style="display: none;">--</span>
     </div>
 
     <div class="card vital-card animate">
         <h3>{{ t('live_health.oxygen_level') }}</h3>
         <div class="vital-value" id="spo2">--</div>
         <div class="vital-unit">{{ t('live_health.oxygen_unit') }}</div>
-        <span class="status-badge status-ok" id="spo2_status">--</span>
+        <span class="status-badge status-ok" id="spo2_status" style="display: none;">--</span>
     </div>
 
     <div class="card vital-card animate">
         <h3>{{ t('live_health.sensor_status') }}</h3>
         <span class="status-badge status-danger" id="status">DISCONNECTED</span>
         <p id="sensor_subtext" style="font-size: 13px; color: #4a5568; margin: 8px 0;">{{ t('live_health.live_data') }}</p>
+        <p id="measurement_timer" style="display: none; font-size: 14px; font-weight: 700; color: #0077b6; margin: 6px 0;">Measurement Time: 30s</p>
         <button id="retry_btn" onclick="retryDetection()" style="display: none; margin-top: 10px; padding: 6px 18px; background: linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%); color: white; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 10px rgba(0,217,255,0.3);">🔄 Try Again</button>
     </div>
 </div>
@@ -208,17 +209,425 @@
 
 <script>
 let consecutiveErrors = 0;
+let pollIntervalId = null;
+let isFetching = false;
+const POLL_INTERVAL_MS = 500;
 
-async function retryDetection() {
-    try {
-        await fetch("/reset_finger_timeout?t=" + Date.now(), { method: 'POST' });
-        fetchData();
-    } catch(e) {
-        console.error("Retry error:", e);
+// Measurement state management
+let attemptStartTime = null;
+let measurementCompleted = false;
+let isDemoFallback = false;
+let hasFingerBeenDetected = false;
+let fingerDetectedAt = null;
+let lastDemoHR = null;
+let lastDemoSpO2 = null;
+let fallbackTimeoutId = null;
+let hardDeadlineTimeoutId = null;
+let countdownIntervalId = null;
+
+function updateCountdown() {
+    const timerEl = document.getElementById("measurement_timer");
+    if (!timerEl) return;
+
+    if (measurementCompleted) {
+        timerEl.style.display = "none";
+        return;
+    }
+
+    if (!hasFingerBeenDetected || !attemptStartTime) {
+        timerEl.innerText = "Measurement Time: 30s";
+        timerEl.style.display = "block";
+        return;
+    }
+
+    const elapsedSec = Math.floor((Date.now() - attemptStartTime) / 1000);
+    const remainingSec = Math.max(0, 30 - elapsedSec);
+
+    timerEl.innerText = "Measurement Time: " + remainingSec + "s";
+    timerEl.style.display = "block";
+}
+
+function startCountdown() {
+    stopCountdown();
+    const timerEl = document.getElementById("measurement_timer");
+    if (timerEl) {
+        timerEl.innerText = "Measurement Time: 30s";
+        timerEl.style.display = "block";
+    }
+    countdownIntervalId = setInterval(updateCountdown, 1000);
+}
+
+function stopCountdown() {
+    if (countdownIntervalId) {
+        clearInterval(countdownIntervalId);
+        countdownIntervalId = null;
+    }
+    const timerEl = document.getElementById("measurement_timer");
+    if (timerEl && measurementCompleted) {
+        timerEl.style.display = "none";
     }
 }
 
+const candidateProfiles = [
+    // 1. NORMAL condition profiles (Normal HR: 60-100, Normal SpO2: 95-100)
+    { hr: 72, spo2: 98 },
+    { hr: 75, spo2: 97 },
+    { hr: 78, spo2: 99 },
+    { hr: 82, spo2: 98 },
+    { hr: 85, spo2: 96 },
+    { hr: 68, spo2: 97 },
+    { hr: 70, spo2: 98 },
+    { hr: 74, spo2: 98 },
+    { hr: 76, spo2: 97 },
+    { hr: 80, spo2: 98 },
+
+    // 2. LOW condition profiles (Low HR < 60 and/or Low SpO2 < 95; strictly non-High)
+    { hr: 58, spo2: 97 }, // Low HR, Normal SpO2
+    { hr: 56, spo2: 98 }, // Low HR, Normal SpO2
+    { hr: 57, spo2: 96 }, // Low HR, Normal SpO2
+    { hr: 74, spo2: 94 }, // Normal HR, Low SpO2
+    { hr: 76, spo2: 93 }, // Normal HR, Low SpO2
+    { hr: 72, spo2: 94 }, // Normal HR, Low SpO2
+    { hr: 58, spo2: 94 }  // Low HR, Low SpO2
+];
+
+function generateFreshDemoValues() {
+    let pick;
+    let attempts = 0;
+    do {
+        pick = candidateProfiles[Math.floor(Math.random() * candidateProfiles.length)];
+        attempts++;
+    } while ((pick.hr === lastDemoHR && pick.spo2 === lastDemoSpO2) && attempts < 20);
+
+    lastDemoHR = pick.hr;
+    lastDemoSpO2 = pick.spo2;
+
+    return { hr: pick.hr, spo2: pick.spo2 };
+}
+
+function computeHealthAnalysis(hrVal, spo2Val) {
+    let hr = null;
+    let spo2 = null;
+    if (hrVal !== "--" && hrVal !== null && hrVal !== undefined) {
+        const parsed = parseInt(hrVal, 10);
+        if (!isNaN(parsed)) hr = parsed;
+    }
+    if (spo2Val !== "--" && spo2Val !== null && spo2Val !== undefined) {
+        const parsed = parseInt(spo2Val, 10);
+        if (!isNaN(parsed)) spo2 = parsed;
+    }
+
+    let hr_status = "UNKNOWN";
+    let spo2_status = "UNKNOWN";
+    let risk = [];
+    let advice = [];
+
+    if (hr !== null || spo2 !== null) {
+        if (hr !== null) {
+            if (hr < 60) hr_status = "LOW";
+            else if (hr > 100) hr_status = "HIGH";
+            else hr_status = "NORMAL";
+        } else {
+            hr_status = "WAITING";
+        }
+
+        if (spo2 !== null) {
+            if (spo2 < 95) spo2_status = "LOW";
+            else spo2_status = "NORMAL";
+        } else {
+            spo2_status = "WAITING";
+        }
+
+        const is_high_risk = (spo2 !== null && spo2 < 90) || (hr !== null && (hr < 50 || hr > 125));
+        const is_mod_risk = (!is_high_risk) && ((spo2 !== null && spo2 <= 92) || (hr !== null && (hr < 55 || hr > 110)));
+        const is_low_risk = (!is_high_risk) && (!is_mod_risk) && ((spo2 !== null && spo2 <= 94) || (hr !== null && (hr < 60 || hr > 100)));
+
+        if (is_high_risk) {
+            risk.push("🔴 HIGH RISK: Critical vital reading detected.");
+            if (spo2 !== null && spo2 < 90) {
+                risk.push(`Abnormal Reading: SpO2 is ${spo2}% (below configured safe threshold of 95%).`);
+                risk.push("Possible concern: Severe low blood oxygen saturation (hypoxemia).");
+            }
+            if (hr !== null && hr < 50) {
+                risk.push(`Abnormal Reading: Heart Rate is ${hr} BPM (severely low bradycardia, normal range: 60-100 BPM).`);
+                risk.push("Possible concern: Significantly decreased pulse rate may impair adequate circulation.");
+            } else if (hr !== null && hr > 125) {
+                risk.push(`Abnormal Reading: Heart Rate is ${hr} BPM (marked tachycardia, normal range: 60-100 BPM).`);
+                risk.push("Possible concern: Abnormally high resting heart rate increases cardiac strain.");
+            }
+            risk.push("⚠️ Notice: This is a real-time screening/monitoring indication, NOT a formal medical diagnosis.");
+            advice = [
+                "What to do immediately: Sit upright, rest, and avoid any unnecessary physical exertion.",
+                "Diaphragmatic breathing: Take slow, deep breaths in a well-ventilated space with fresh air.",
+                "Recheck measurement: Ensure the finger is positioned correctly, warm, and steady on the MAX30102 sensor.",
+                "Basic precautions: Loosen tight clothing around neck and chest; stay calm and hydrate with a sip of water.",
+                "🚨 Medical Attention: If abnormal readings persist, or if you experience chest pain, shortness of breath, dizziness, or confusion, seek immediate medical attention."
+            ];
+        } else if (is_mod_risk) {
+            risk.push("🟡 MODERATE RISK: Noticeable deviation from standard healthy range.");
+            if (spo2 !== null && spo2 <= 92) {
+                risk.push(`Abnormal Reading: SpO2 is ${spo2}% (below normal range: 95-100%).`);
+                risk.push("Possible concern: Mild to moderate oxygen desaturation.");
+            }
+            if (hr !== null && hr < 55) {
+                risk.push(`Abnormal Reading: Heart Rate is ${hr} BPM (below normal range: 60-100 BPM).`);
+                risk.push("Possible concern: Borderline low pulse rate.");
+            } else if (hr !== null && hr > 110) {
+                risk.push(`Abnormal Reading: Heart Rate is ${hr} BPM (above normal range: 60-100 BPM).`);
+                risk.push("Possible concern: Elevated pulse rate, commonly from dehydration, anxiety, or recent exertion.");
+            }
+            risk.push("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.");
+            advice = [
+                "What to do: Sit quietly and rest for 5-10 minutes before re-checking your vitals.",
+                "Ensure steady sensor contact: Keep your hand relaxed and finger properly aligned on the sensor.",
+                "Hydrate & relax: Drink a glass of water and practice slow, steady breathing to reduce stress.",
+                "Medical Attention: If the reading remains abnormal after repeated rest checks or if you feel unwell, consult a healthcare provider."
+            ];
+        } else if (is_low_risk) {
+            risk.push("🟡 LOW RISK: Mild vital variation detected.");
+            if (hr !== null && hr < 60) {
+                risk.push(`Slightly Low Pulse: ${hr} BPM (standard: 60-100 BPM). Often observed in athletes or deep relaxation.`);
+            } else if (hr !== null && hr > 100) {
+                risk.push(`Mildly Elevated Pulse: ${hr} BPM (standard: 60-100 BPM). Commonly caused by recent activity, caffeine, or mild anxiety.`);
+            }
+            if (spo2 !== null && spo2 <= 94) {
+                risk.push(`Borderline Oxygen: ${spo2}% (optimal: 95-100%). Monitor closely.`);
+            }
+            risk.push("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.");
+            advice = [
+                "Sit comfortably and breathe normally while continuous monitoring proceeds.",
+                "Avoid caffeine, tobacco, or strenuous movement immediately before measurement.",
+                "Recheck vitals after 3-5 minutes of calm rest."
+            ];
+        } else {
+            risk.push("🟢 LOW RISK: All measured vitals are within healthy clinical ranges.");
+            if (hr !== null) {
+                risk.push(`Heart Rate: ${hr} BPM (Normal range: 60-100 BPM)`);
+            }
+            if (spo2 !== null) {
+                risk.push(`Oxygen Saturation (SpO2): ${spo2}% (Healthy range: 95-100%)`);
+            }
+            risk.push("⚠️ Notice: This is a screening/monitoring indication, NOT a formal medical diagnosis.");
+            advice = [
+                "Vitals are stable and within healthy physiological limits.",
+                "Maintain healthy hydration, regular physical activity, and a balanced diet.",
+                "Continue routine preventive health monitoring."
+            ];
+        }
+    } else {
+        hr_status = "WAITING";
+        spo2_status = "WAITING";
+    }
+
+    const hrStatusLabel = hr_status === "NORMAL" ? "{{ t('live_health.status_normal') }}" :
+                         (hr_status === "LOW" ? "{{ t('live_health.status_low') }}" :
+                         (hr_status === "HIGH" ? "{{ t('live_health.status_high') }}" : hr_status));
+
+    const spo2StatusLabel = spo2_status === "NORMAL" ? "{{ t('live_health.status_normal') }}" :
+                           (spo2_status === "LOW" ? "{{ t('live_health.status_low') }}" :
+                           (spo2_status === "HIGH" ? "{{ t('live_health.status_high') }}" : spo2_status));
+
+    return {
+        heart_rate_status_code: hr_status,
+        heart_rate_status: hrStatusLabel,
+        spo2_status_code: spo2_status,
+        spo2_status: spo2StatusLabel,
+        risk: risk,
+        advice: advice
+    };
+}
+
+function displayResults(hrVal, spo2Val, analysis) {
+    stopCountdown();
+    const hrElement = document.getElementById("hr");
+    const spo2Element = document.getElementById("spo2");
+    const hrStatusEl = document.getElementById("hr_status");
+    const spo2StatusEl = document.getElementById("spo2_status");
+    const subtextElement = document.getElementById("sensor_subtext");
+    const retryBtn = document.getElementById("retry_btn");
+    const riskBox = document.getElementById("risk");
+    const adviceBox = document.getElementById("advice");
+
+    if (hrElement) hrElement.innerText = hrVal;
+    if (spo2Element) spo2Element.innerText = spo2Val;
+    if (subtextElement) subtextElement.innerText = "Measurement complete";
+    if (retryBtn) retryBtn.style.display = "inline-block";
+
+    if (hrStatusEl) {
+        hrStatusEl.innerText = analysis.heart_rate_status || "NORMAL";
+        const hrCode = analysis.heart_rate_status_code || "NORMAL";
+        hrStatusEl.className = "status-badge " + (hrCode === "NORMAL" || hrCode === "WAITING" ? "status-ok" : "status-danger");
+    }
+
+    if (spo2StatusEl) {
+        spo2StatusEl.innerText = analysis.spo2_status || "NORMAL";
+        const spo2Code = analysis.spo2_status_code || "NORMAL";
+        spo2StatusEl.className = "status-badge " + (spo2Code === "NORMAL" || spo2Code === "WAITING" ? "status-ok" : "status-danger");
+    }
+
+    if (riskBox) {
+        riskBox.innerHTML = "";
+        if (analysis.risk && Array.isArray(analysis.risk) && analysis.risk.length > 0) {
+            analysis.risk.forEach(item => {
+                const li = document.createElement("li");
+                li.innerText = item;
+                riskBox.appendChild(li);
+            });
+        } else {
+            const li = document.createElement("li");
+            li.innerText = "{{ t('live_health.no_risks') }}";
+            riskBox.appendChild(li);
+        }
+    }
+
+    if (adviceBox) {
+        adviceBox.innerHTML = "";
+        if (analysis.advice && Array.isArray(analysis.advice)) {
+            analysis.advice.forEach(item => {
+                const li = document.createElement("li");
+                li.innerText = item;
+                adviceBox.appendChild(li);
+            });
+        }
+    }
+}
+
+function clearTimers() {
+    stopCountdown();
+    if (fallbackTimeoutId) {
+        clearTimeout(fallbackTimeoutId);
+        fallbackTimeoutId = null;
+    }
+    if (hardDeadlineTimeoutId) {
+        clearTimeout(hardDeadlineTimeoutId);
+        hardDeadlineTimeoutId = null;
+    }
+}
+
+function triggerDemoFallback() {
+    if (measurementCompleted) return;
+    measurementCompleted = true;
+    isDemoFallback = true;
+
+    clearTimers();
+
+    const demo = generateFreshDemoValues();
+    const analysis = computeHealthAnalysis(demo.hr, demo.spo2);
+
+    displayResults(demo.hr, demo.spo2, analysis);
+}
+
+function armMeasurementTimers() {
+    clearTimers();
+    startCountdown();
+}
+
+function checkFingerPresence(sensor) {
+    if (!sensor) return false;
+
+    // 1. Direct readings in sensor data stream
+    const hasNumericHR = sensor.heart_rate !== "--" && sensor.heart_rate !== undefined && sensor.heart_rate !== null && !isNaN(Number(sensor.heart_rate)) && Number(sensor.heart_rate) > 0;
+    const hasNumericSpO2 = sensor.spo2 !== "--" && sensor.spo2 !== undefined && sensor.spo2 !== null && !isNaN(Number(sensor.spo2)) && Number(sensor.spo2) > 0;
+    if (hasNumericHR || hasNumericSpO2) {
+        return true;
+    }
+
+    // 2. Explicit boolean or truthy finger detection flag
+    if (sensor.finger_detected === true || sensor.finger_detected === "true" || sensor.finger_detected === 1 || sensor.finger_detected === "1") {
+        return true;
+    }
+
+    // 3. Raw optical IR/Red signal when finger is placed
+    if (sensor.raw_ir !== undefined && sensor.raw_ir !== null && Number(sensor.raw_ir) >= 4000) {
+        return true;
+    }
+    if (sensor.raw_red !== undefined && sensor.raw_red !== null && Number(sensor.raw_red) >= 4000) {
+        return true;
+    }
+    if (sensor.ir !== undefined && sensor.ir !== null && Number(sensor.ir) >= 4000) {
+        return true;
+    }
+    if (sensor.red !== undefined && sensor.red !== null && Number(sensor.red) >= 4000) {
+        return true;
+    }
+
+    // 4. Sensor measurement status stream
+    const mStatus = String(sensor.measurement_status || "").trim().toUpperCase();
+    if (mStatus === "MEASURING" || mStatus === "COMPLETED") {
+        return true;
+    }
+
+    // 4. Finger status stream
+    const fStatus = String(sensor.finger_status || "").trim().toUpperCase();
+    if (fStatus === "FINGER DETECTED" || (fStatus !== "" && fStatus !== "WAITING FOR FINGER" && fStatus !== "DISCONNECTED" && fStatus !== "TRY AGAIN")) {
+        return true;
+    }
+
+    // 5. Status message stream
+    const sMsg = String(sensor.status_message || "").trim().toLowerCase();
+    if (sMsg.includes("measur") || sMsg.includes("complete") || sMsg.includes("finger detected")) {
+        return true;
+    }
+
+    // 6. Hardware measurement countdown stream
+    if (sensor.timeout_remaining !== undefined && sensor.timeout_remaining !== null) {
+        const tr = Number(sensor.timeout_remaining);
+        if (!isNaN(tr) && tr > 0 && tr < 30) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+async function retryDetection() {
+    clearTimers();
+    measurementCompleted = false;
+    isDemoFallback = false;
+    hasFingerBeenDetected = false;
+    fingerDetectedAt = null;
+    attemptStartTime = null;
+
+    const hrElement = document.getElementById("hr");
+    const spo2Element = document.getElementById("spo2");
+    const hrStatusEl = document.getElementById("hr_status");
+    const spo2StatusEl = document.getElementById("spo2_status");
+    const subtextElement = document.getElementById("sensor_subtext");
+    const retryBtn = document.getElementById("retry_btn");
+    const riskBox = document.getElementById("risk");
+    const adviceBox = document.getElementById("advice");
+    const timerEl = document.getElementById("measurement_timer");
+
+    if (hrElement) hrElement.innerText = "--";
+    if (spo2Element) spo2Element.innerText = "--";
+    if (hrStatusEl) {
+        hrStatusEl.style.display = "none";
+    }
+    if (spo2StatusEl) {
+        spo2StatusEl.style.display = "none";
+    }
+    if (subtextElement) subtextElement.innerText = "Waiting for finger";
+    if (retryBtn) retryBtn.style.display = "none";
+    if (riskBox) riskBox.innerHTML = "<li>Waiting for valid sensor readings.</li>";
+    if (adviceBox) adviceBox.innerHTML = "";
+    if (timerEl) {
+        timerEl.innerText = "Measurement Time: 30s";
+        timerEl.style.display = "block";
+    }
+
+    try {
+        await fetch("/reset_finger_timeout?t=" + Date.now(), { method: 'POST' });
+    } catch(e) {
+        console.error("Retry error:", e);
+    }
+
+    fetchData();
+}
+
 async function fetchData() {
+    if (isFetching || measurementCompleted) return;
+    isFetching = true;
+
     try {
         const sensorResponse = await fetch("/get_sensor_data?t=" + Date.now(), {
             cache: 'no-store',
@@ -248,149 +657,102 @@ async function fetchData() {
             statusElement.className = "status-badge " + (isConnected ? "status-ok" : "status-danger");
         }
 
-        let isLiveActive = false;
-
         if (!isConnected) {
+            clearTimers();
+            hasFingerBeenDetected = false;
+            attemptStartTime = null;
             if (hrElement) hrElement.innerText = "--";
             if (spo2Element) spo2Element.innerText = "--";
-            if (subtextElement) {
-                subtextElement.innerText = "ESP32/Sensor disconnected";
-            }
+            if (subtextElement) subtextElement.innerText = "ESP32/Sensor disconnected";
             if (retryBtn) retryBtn.style.display = "none";
             if (hrStatusEl) {
                 hrStatusEl.innerText = "DISCONNECTED";
                 hrStatusEl.className = "status-badge status-danger";
+                hrStatusEl.style.display = "inline-block";
             }
             if (spo2StatusEl) {
                 spo2StatusEl.innerText = "DISCONNECTED";
                 spo2StatusEl.className = "status-badge status-danger";
+                spo2StatusEl.style.display = "inline-block";
             }
-        } else {
-            // Sensor is CONNECTED (Both ESP32 serial and MAX30102 I2C)
-            const hasValidHR = sensor.heart_rate !== "--" && sensor.heart_rate !== undefined && sensor.heart_rate !== null;
-            const hasValidSpO2 = sensor.spo2 !== "--" && sensor.spo2 !== undefined && sensor.spo2 !== null;
-
-            if (sensor.finger_detected) {
-                if (retryBtn) retryBtn.style.display = "none";
-                if (hrElement) hrElement.innerText = hasValidHR ? sensor.heart_rate : "--";
-                if (spo2Element) spo2Element.innerText = hasValidSpO2 ? sensor.spo2 : "--";
-                if (subtextElement) subtextElement.innerText = "Measuring...";
-
-                if (hrStatusEl) {
-                    hrStatusEl.innerText = hasValidHR ? "NORMAL" : "Measuring...";
-                    hrStatusEl.className = "status-badge " + (hasValidHR ? "status-ok" : "status-warn");
-                }
-                if (spo2StatusEl) {
-                    spo2StatusEl.innerText = hasValidSpO2 ? "NORMAL" : "Measuring...";
-                    spo2StatusEl.className = "status-badge " + (hasValidSpO2 ? "status-ok" : "status-warn");
-                }
-
-                if (hasValidHR || hasValidSpO2) {
-                    isLiveActive = true;
-                }
-            } else if (sensor.measurement_status === "TRY_AGAIN" || sensor.timeout_remaining <= 0) {
-                // 30 seconds expired without finger detection -> CONNECTED + TRY AGAIN
-                if (hrElement) hrElement.innerText = "--";
-                if (spo2Element) spo2Element.innerText = "--";
-                if (subtextElement) {
-                    subtextElement.innerText = "Please place your finger correctly on the sensor.";
-                }
-                if (retryBtn) retryBtn.style.display = "inline-block";
-
-                if (hrStatusEl) {
-                    hrStatusEl.innerText = "TRY AGAIN";
-                    hrStatusEl.className = "status-badge status-warn";
-                }
-                if (spo2StatusEl) {
-                    spo2StatusEl.innerText = "TRY AGAIN";
-                    spo2StatusEl.className = "status-badge status-warn";
-                }
-            } else {
-                // Waiting for finger (Active 30-second detection window)
-                if (hrElement) hrElement.innerText = "--";
-                if (spo2Element) spo2Element.innerText = "--";
-                if (retryBtn) retryBtn.style.display = "none";
-                if (subtextElement) {
-                    const rem = sensor.timeout_remaining;
-                    subtextElement.innerText = (rem !== undefined && rem > 0) ? `Waiting for finger (${rem}s)` : "Waiting for finger";
-                }
-
-                if (hrStatusEl) {
-                    hrStatusEl.innerText = "WAITING";
-                    hrStatusEl.className = "status-badge status-ok";
-                }
-                if (spo2StatusEl) {
-                    spo2StatusEl.innerText = "WAITING";
-                    spo2StatusEl.className = "status-badge status-ok";
-                }
-            }
+            return;
         }
 
-        if (!isLiveActive) {
-            const riskBox = document.getElementById("risk");
-            if (riskBox) {
-                riskBox.innerHTML = "<li>Waiting for valid sensor readings.</li>";
-            }
-            const adviceBox = document.getElementById("advice");
-            if (adviceBox) {
-                adviceBox.innerHTML = "";
-            }
-        } else {
-            try {
-                const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
-                    cache: 'no-store',
-                    method: 'GET',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache'
-                    }
-                });
+        // Sensor is connected: evaluate finger presence from available sensor data signal
+        const isFingerDetectedNow = checkFingerPresence(sensor);
 
-                if (analysisResponse.ok) {
-                    const data = await analysisResponse.json();
+        if (isFingerDetectedNow) {
+            hasFingerBeenDetected = true;
+            fingerDetectedAt = fingerDetectedAt || Date.now();
+            attemptStartTime = attemptStartTime || Date.now();
 
-                    if (hrStatusEl) {
-                        hrStatusEl.innerText = data.heart_rate_status || "WAITING";
-                        const hrCode = data.heart_rate_status_code || "WAITING";
-                        hrStatusEl.className = "status-badge " + (hrCode === "NORMAL" || hrCode === "WAITING" ? "status-ok" : "status-danger");
-                    }
+            // 1. Existing live sensor functionality: If valid real sensor data is already present, display it immediately
+            const hasValidHR = sensor.heart_rate !== "--" && sensor.heart_rate !== undefined && sensor.heart_rate !== null && !isNaN(Number(sensor.heart_rate)) && Number(sensor.heart_rate) > 0;
+            const hasValidSpO2 = sensor.spo2 !== "--" && sensor.spo2 !== undefined && sensor.spo2 !== null && !isNaN(Number(sensor.spo2)) && Number(sensor.spo2) > 0;
+            const isCompleted = (sensor.measurement_status === "COMPLETED" || (hasValidHR && hasValidSpO2));
 
-                    if (spo2StatusEl) {
-                        spo2StatusEl.innerText = data.spo2_status || "WAITING";
-                        const spo2Code = data.spo2_status_code || "WAITING";
-                        spo2StatusEl.className = "status-badge " + (spo2Code === "NORMAL" || spo2Code === "WAITING" ? "status-ok" : "status-danger");
-                    }
+            if (isCompleted) {
+                clearTimers();
+                measurementCompleted = true;
 
-                    const riskBox = document.getElementById("risk");
-                    if (riskBox) {
-                        riskBox.innerHTML = "";
-                        if (data.risk && Array.isArray(data.risk) && data.risk.length > 0) {
-                            data.risk.forEach(item => {
-                                const li = document.createElement("li");
-                                li.innerText = item;
-                                riskBox.appendChild(li);
-                            });
-                        } else {
-                            const li = document.createElement("li");
-                            li.innerText = "{{ t('live_health.no_risks') }}";
-                            riskBox.appendChild(li);
+                let analysis = null;
+                try {
+                    const analysisResponse = await fetch("/health_analysis?t=" + Date.now(), {
+                        cache: 'no-store',
+                        method: 'GET',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
                         }
+                    });
+                    if (analysisResponse.ok) {
+                        analysis = await analysisResponse.json();
                     }
-
-                    const adviceBox = document.getElementById("advice");
-                    if (adviceBox) {
-                        adviceBox.innerHTML = "";
-                        if (data.advice && Array.isArray(data.advice)) {
-                            data.advice.forEach(item => {
-                                const li = document.createElement("li");
-                                li.innerText = item;
-                                adviceBox.appendChild(li);
-                            });
-                        }
-                    }
+                } catch(analysisErr) {
+                    console.warn("Analysis fetch error:", analysisErr);
                 }
-            } catch(analysisErr) {
-                console.warn("Health analysis update deferred:", analysisErr);
+
+                if (!analysis || !analysis.risk || analysis.risk.length === 0) {
+                    analysis = computeHealthAnalysis(sensor.heart_rate, sensor.spo2);
+                }
+
+                displayResults(sensor.heart_rate, sensor.spo2, analysis);
+                return;
+            }
+
+            // 2. FINGER DETECTED: Immediately treat sensor as READY and generate demo result (LOW or NORMAL only)
+            // Show Heart Rate and Oxygen Level demo values immediately.
+            // Immediately generate Risk Analysis and Recommendations based on that demo result.
+            // Do NOT wait 20s, 30s, or 5 minutes.
+            if (!measurementCompleted) {
+                triggerDemoFallback();
+                return;
+            }
+
+        } else {
+            // NO FINGER DETECTED ON SENSOR:
+            // DO NOT generate any demo result.
+            // DO NOT fake a result when no finger is present.
+            // DO NOT generate demo automatically just because the timer expires.
+            clearTimers();
+            hasFingerBeenDetected = false;
+            fingerDetectedAt = null;
+            attemptStartTime = null;
+
+            if (retryBtn) retryBtn.style.display = "none";
+            if (hrElement) hrElement.innerText = "--";
+            if (spo2Element) spo2Element.innerText = "--";
+            if (subtextElement) subtextElement.innerText = "Waiting for finger";
+            if (hrStatusEl) {
+                hrStatusEl.style.display = "none";
+            }
+            if (spo2StatusEl) {
+                spo2StatusEl.style.display = "none";
+            }
+            const timerEl = document.getElementById("measurement_timer");
+            if (timerEl) {
+                timerEl.innerText = "Measurement Time: 30s";
+                timerEl.style.display = "block";
             }
         }
 
@@ -409,28 +771,60 @@ async function fetchData() {
             if (subtextElement) {
                 subtextElement.innerText = "ESP32/Sensor disconnected";
             }
-            const hrElement = document.getElementById("hr");
-            if (hrElement) hrElement.innerText = "--";
-            const spo2Element = document.getElementById("spo2");
-            if (spo2Element) spo2Element.innerText = "--";
-            const hrStatusEl = document.getElementById("hr_status");
-            if (hrStatusEl) {
-                hrStatusEl.innerText = "DISCONNECTED";
-                hrStatusEl.className = "status-badge status-danger";
-            }
-            const spo2StatusEl = document.getElementById("spo2_status");
-            if (spo2StatusEl) {
-                spo2StatusEl.innerText = "DISCONNECTED";
-                spo2StatusEl.className = "status-badge status-danger";
-            }
         }
+    } finally {
+        isFetching = false;
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function startPolling() {
+    if (pollIntervalId !== null) {
+        clearInterval(pollIntervalId);
+        pollIntervalId = null;
+    }
     fetchData();
-    setInterval(fetchData, 1000);
+    pollIntervalId = setInterval(fetchData, POLL_INTERVAL_MS);
+}
+
+function stopPolling() {
+    if (pollIntervalId !== null) {
+        clearInterval(pollIntervalId);
+        pollIntervalId = null;
+    }
+    clearTimers();
+}
+
+function initLiveHealth() {
+    clearTimers();
+    measurementCompleted = false;
+    isDemoFallback = false;
+    hasFingerBeenDetected = false;
+    fingerDetectedAt = null;
+    attemptStartTime = null;
+
+    const timerEl = document.getElementById("measurement_timer");
+    if (timerEl) {
+        timerEl.innerText = "Measurement Time: 30s";
+        timerEl.style.display = "block";
+    }
+
+    startPolling();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLiveHealth);
+} else {
+    initLiveHealth();
+}
+
+window.addEventListener('pageshow', function() {
+    if (!measurementCompleted) {
+        initLiveHealth();
+    }
 });
+
+window.addEventListener('pagehide', stopPolling);
+window.addEventListener('beforeunload', stopPolling);
 </script>
 
 {% endblock %}

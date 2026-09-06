@@ -777,21 +777,31 @@ def get_sensor_data():
         spo2_val = "--"
         m_status = "DISCONNECTED"
         msg = "ESP32/Sensor disconnected"
-    elif sensor_data.get("finger_detected", False):
-        hr_val = raw_hr if (raw_hr != "--" and raw_hr is not None) else "--"
-        spo2_val = raw_spo2 if (raw_spo2 != "--" and raw_spo2 is not None) else "--"
-        m_status = "MEASURING" if (hr_val == "--" or spo2_val == "--") else "COMPLETED"
-        msg = "Measuring..."
-    elif m_status == "TRY_AGAIN" or timeout_remaining <= 0:
+        finger_status = "DISCONNECTED"
+    elif m_status == "COMPLETED" or (raw_hr not in ("--", None) and raw_spo2 not in ("--", None)):
+        hr_val = raw_hr
+        spo2_val = raw_spo2
+        m_status = "COMPLETED"
+        msg = "Measurement complete"
+        finger_status = "FINGER DETECTED"
+    elif m_status == "TRY_AGAIN" or (m_status == "MEASURING" and timeout_remaining <= 0):
         hr_val = "--"
         spo2_val = "--"
         m_status = "TRY_AGAIN"
-        msg = "Try Again / Please place your finger correctly"
+        msg = "Please place your finger correctly on the sensor."
+        finger_status = "TRY AGAIN"
+    elif sensor_data.get("finger_detected", False) or m_status == "MEASURING":
+        hr_val = raw_hr if (raw_hr != "--" and raw_hr is not None) else "--"
+        spo2_val = raw_spo2 if (raw_spo2 != "--" and raw_spo2 is not None) else "--"
+        m_status = "MEASURING"
+        msg = "Measuring..."
+        finger_status = "FINGER DETECTED"
     else:
         hr_val = "--"
         spo2_val = "--"
         m_status = "WAITING"
-        msg = sensor_data.get("status_message", f"Waiting for finger ({timeout_remaining}s)")
+        msg = "Waiting for finger"
+        finger_status = "WAITING FOR FINGER"
 
     data = {
         "connected": is_connected,
@@ -803,9 +813,11 @@ def get_sensor_data():
         "timeout_remaining": timeout_remaining,
         "status": "CONNECTED" if is_connected else "DISCONNECTED",
         "esp32_connected": bool(sensor_data.get("esp32_connected", False)),
-        "finger_status": "FINGER DETECTED" if (is_connected and sensor_data.get("finger_detected", False)) else ("TRY AGAIN" if m_status == "TRY_AGAIN" else "WAITING FOR FINGER"),
+        "finger_status": finger_status,
         "status_message": msg,
-        "port": sensor_data.get("port")
+        "port": sensor_data.get("port"),
+        "raw_ir": sensor_data.get("raw_ir", 0),
+        "raw_red": sensor_data.get("raw_red", 0)
     }
     response = jsonify(data)
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
